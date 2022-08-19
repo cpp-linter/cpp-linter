@@ -1,0 +1,5 @@
+tbody .stub,
+thead {
+  background-color: var(--md-accent-bg-color--light);
+  color: var(--md-default-bg-color);
+}
