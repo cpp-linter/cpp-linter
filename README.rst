@@ -5,6 +5,12 @@ C/C++ Linting Package
   :alt: GitHub release (latest SemVer)
 .. image:: https://img.shields.io/github/license/cpp-linter/cpp-linter?label=license&logo=github&style=flat-square
   :alt: License
+.. image:: https://codecov.io/gh/cpp-linter/cpp-linter/branch/main/graph/badge.svg?token=0814O9WHQU
+  :alt: CodeCov
+  :target: https://codecov.io/gh/cpp-linter/cpp-linter
+.. image:: https://github.com/cpp-linter/cpp-linter/actions/workflows/build-docs.yml/badge.svg
+  :alt: Docs
+  :target: https://cpp-linter.github.io/cpp-linter
 
 A Python package for linting C/C++ code with clang-tidy and/or clang-format to collect feedback provided in the form of thread comments and/or file annotations.
 
