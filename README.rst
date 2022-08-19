@@ -88,7 +88,10 @@ Command Line Interface Arguments
 - **Description**: Set this option to false to analyze any source files in the repo.
   This is automatically enabled if lines-changed-only is enabled.
 - Default: true
-- NOTE: The ``GITHUB_TOKEN`` should be supplied when running on a private repository with this option enabled, otherwise the runner does not not have the privilege to list changed files for an event. See [Authenticating with the GITHUB_TOKEN](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)
+- NOTE: The ``GITHUB_TOKEN`` should be supplied when running on a private repository with
+  this option enabled, otherwise the runner does not not have the privilege to list changed
+  files for an event.
+  See `Authenticating with the GITHUB_TOKEN <https://docs.github.com/en/actions/reference/authentication-in-a-workflow>`_
 
 ``ignore``
 ************************
