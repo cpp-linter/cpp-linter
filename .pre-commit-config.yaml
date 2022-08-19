@@ -9,6 +9,8 @@ repos:
       - id: check-yaml
       - id: check-toml
       - id: requirements-txt-fixer
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
   - repo: https://github.com/python/black
     rev: '22.6.0'
     hooks:
