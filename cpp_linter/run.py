@@ -270,7 +270,7 @@ def filter_out_non_source_files(
 
     :returns:
         True if there are files to check. False will invoke a early exit (in
-        `main()` when no files to be checked.
+        `main()`) when no files to be checked.
     """
     files = []
     for file in Globals.FILES:
