@@ -152,9 +152,9 @@ this output variable to exit the workflow early if that is desired.
 Have question or feedback?
 --------------------------
 
-To provide feedback (requesting a feature or reporting a bug) please post to `issues <https://github.com/cpp-linter/cpp-linter-action/issues>`_.
+To provide feedback (requesting a feature or reporting a bug) please post to `issues <https://github.com/cpp-linter/cpp-linter/issues>`_.
 
 License
 -------
 
-The scripts and documentation in this project are released under the `MIT License <https://github.com/cpp-linter/cpp-linter-action/blob/master/LICENSE>`_.
+The scripts and documentation in this project are released under the `MIT License <https://github.com/cpp-linter/cpp-linter/blob/master/LICENSE>`_.

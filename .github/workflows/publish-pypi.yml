@@ -38,13 +38,13 @@ jobs:
     - name: Check distribution
       run: twine check dist/*
     - name: Publish package (to TestPyPI)
-      if: github.event_name == 'workflow_dispatch' && github.repository == 'cpp-linter/cpp-linter-action'
+      if: github.event_name == 'workflow_dispatch' && github.repository == 'cpp-linter/cpp-linter'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
       run: twine upload --repository testpypi dist/*
     - name: Publish package (to PyPI)
-      if: github.event_name != 'workflow_dispatch' && github.repository == 'cpp-linter/cpp-linter-action'
+      if: github.event_name != 'workflow_dispatch' && github.repository == 'cpp-linter/cpp-linter'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

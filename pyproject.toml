@@ -36,8 +36,8 @@ dynamic = ["version"]
 cpp-linter = "cpp_linter.run:main"
 
 [project.urls]
-source =  "https://github.com/cpp-linter/cpp-linter-action"
-tracker = "https://github.com/cpp-linter/cpp-linter-action/issues"
+source =  "https://github.com/cpp-linter/cpp-linter"
+tracker = "https://github.com/cpp-linter/cpp-linter/issues"
 
 # ... other project metadata fields as specified in:
 #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/

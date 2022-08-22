@@ -27,7 +27,7 @@ jobs:
       - name: Upload wheel as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: cpp-linter-action_wheel
+          name: cpp-linter_wheel
           path: ${{ github.workspace }}/dist/*.whl
 
   test:
@@ -75,7 +75,7 @@ jobs:
       - name: download wheel artifact
         uses: actions/download-artifact@v3
         with:
-          name: cpp-linter-action_wheel
+          name: cpp-linter_wheel
           path: dist
 
       - name: Install workflow deps
