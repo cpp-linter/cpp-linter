@@ -21,10 +21,7 @@ Usage
 
 For usage in a CI workflow, see `the cpp-linter/cpp-linter-action repository <https://github.com/cpp-linter/cpp-linter-action>`_
 
-For the description of supported CLI options, see :doc:`cli_args`
-..
-  TODO The :doc: role here should be replaced with an absolute link after we
-  start hosting the docs via github pages.
+For the description of supported Command Line Interface options, see `the CLI documentation <https://cpp-linter.github.io/cpp-linter/cli_args.html>`_
 
 Have question or feedback?
 --------------------------
