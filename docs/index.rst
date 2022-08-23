@@ -8,6 +8,11 @@
 
 .. toctree::
    :hidden:
+
+   cli_args
+
+.. toctree::
+   :hidden:
    :caption: API Reference
 
    API-Reference/cpp_linter

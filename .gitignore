@@ -182,3 +182,7 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 CMakeFiles
 cmake_install.cmake
+
+
+# generated doc pages
+docs/cli_args.rst
