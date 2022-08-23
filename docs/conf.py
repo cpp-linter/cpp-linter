@@ -23,6 +23,7 @@ extensions = [
     "sphinx_immaterial",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.viewcode",
 ]
 
 intersphinx_mapping = {
