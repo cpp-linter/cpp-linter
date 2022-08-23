@@ -542,6 +542,7 @@
 
 <span class="s2">Defaults to level ``</span><span class="si">%(default)s</span><span class="s2">`` (aka  &quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;``logging.</span><span class="si">{</span><span class="n">logging</span><span class="o">.</span><span class="n">getLevelName</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="p">)</span><span class="si">}</span><span class="s2">``).&quot;</span>
 <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
     <span class="s2">&quot;-p&quot;</span><span class="p">,</span>
@@ -603,6 +604,7 @@
 
 <span class="s2">Default is &quot;&quot;&quot;</span>
 <span class="p">)</span>
+<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="s2">&quot;a blank string.&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">default</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;``</span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="si">}</span><span class="s2">``.&quot;</span>
 <span class="n">arg</span> <span class="o">=</span> <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
     <span class="s2">&quot;-e&quot;</span><span class="p">,</span>
@@ -614,6 +616,7 @@
 
 <span class="s2">    &quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
 <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
     <span class="s2">&quot;-r&quot;</span><span class="p">,</span>
@@ -635,7 +638,7 @@
 <span class="s2">- There is no need to use ``./`` for each entry; a blank string (``&#39;&#39;``)</span>
 <span class="s2">  represents the repo-root path.</span>
 <span class="s2">- This can also have files, but the file&#39;s path (relative to</span>
-<span class="s2">  the :cli-opt:`--repo-root`) has to be specified with the filename.</span>
+<span class="s2">  the :cli-opt:`-r, --repo-root`) has to be specified with the filename.</span>
 <span class="s2">- Submodules are automatically ignored. Hidden directories (beginning</span>
 <span class="s2">  with a ``.``) are also ignored automatically.</span>
 <span class="s2">- Prefix a path with ``!`` to explicitly not ignore it. This can be</span>
@@ -658,6 +661,7 @@
 
 <span class="s2">Defaults to &quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;``</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">``.&quot;</span>
 <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
     <span class="s2">&quot;-f&quot;</span><span class="p">,</span>
@@ -665,7 +669,8 @@
     <span class="n">default</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
     <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">input</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set this option to false to analyze any source files in the repo.</span>
-<span class="s2">This is automatically enabled if :cli-opt:`--lines-changed-only` is enabled.</span>
+<span class="s2">This is automatically enabled if</span>
+<span class="s2">:cli-opt:`-l, --lines-changed-only` is enabled.</span>
 
 <span class="s2">.. note::</span>
 <span class="s2">    The ``GITHUB_TOKEN`` should be supplied when running on a</span>
@@ -689,7 +694,7 @@
 <span class="s2">    To use thread comments, the ``GITHUB_TOKEN`` (provided by</span>
 <span class="s2">    Github to each repository) must be declared as an environment</span>
 <span class="s2">    variable.</span>
-<span class="s2">  </span>
+
 <span class="s2">    See `Authenticating with the GITHUB_TOKEN</span>
 <span class="s2">    &lt;https://docs.github.com/en/actions/reference/authentication-in-a-workflow&gt;`_</span>
 

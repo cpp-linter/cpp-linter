@@ -97,7 +97,7 @@ Command Line Interface Options
                         - There is no need to use ``./`` for each entry; a blank string (``''``)
                           represents the repo-root path.
                         - This can also have files, but the file's path (relative to
-                          the :cli-opt:`--repo-root`) has to be specified with the filename.
+                          the :cli-opt:`-r, --repo-root`) has to be specified with the filename.
                         - Submodules are automatically ignored. Hidden directories (beginning
                           with a ``.``) are also ignored automatically.
                         - Prefix a path with ``!`` to explicitly not ignore it. This can be
@@ -122,7 +122,8 @@ Command Line Interface Options
 
   -f FILES_CHANGED_ONLY, --files-changed-only FILES_CHANGED_ONLY
                         Set this option to false to analyze any source files in the repo.
-                        This is automatically enabled if :cli-opt:`--lines-changed-only` is enabled.
+                        This is automatically enabled if
+                        :cli-opt:`-l, --lines-changed-only` is enabled.
                         
                         .. note::
                             The ``GITHUB_TOKEN`` should be supplied when running on a
@@ -144,7 +145,7 @@ Command Line Interface Options
                             To use thread comments, the ``GITHUB_TOKEN`` (provided by
                             Github to each repository) must be declared as an environment
                             variable.
-                          
+                        
                             See `Authenticating with the GITHUB_TOKEN
                             <https://docs.github.com/en/actions/reference/authentication-in-a-workflow>`_
                         

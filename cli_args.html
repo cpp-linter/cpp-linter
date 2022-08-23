@@ -425,7 +425,7 @@
       
         <li class="md-nav__item">
   <a href="#cli-opt-f-files-changed-only" class="md-nav__link">
-    <span title="-f, --files-changed-only (Command Line Interface option) — Set this option to false to analyze any source files in the repo. This is automatically enabled if --lines-changed-only is enabled." class="md-ellipsis">-<wbr>f, --<wbr>files-<wbr>changed-<wbr>only</span>
+    <span title="-f, --files-changed-only (Command Line Interface option) — Set this option to false to analyze any source files in the repo. This is automatically enabled if -l, --lines-changed-only is enabled." class="md-ellipsis">-<wbr>f, --<wbr>files-<wbr>changed-<wbr>only</span>
   </a>
   
 </li>
@@ -671,7 +671,7 @@
       
         <li class="md-nav__item">
   <a href="#cli-opt-f-files-changed-only" class="md-nav__link">
-    <span title="-f, --files-changed-only (Command Line Interface option) — Set this option to false to analyze any source files in the repo. This is automatically enabled if --lines-changed-only is enabled." class="md-ellipsis">-<wbr>f, --<wbr>files-<wbr>changed-<wbr>only</span>
+    <span title="-f, --files-changed-only (Command Line Interface option) — Set this option to false to analyze any source files in the repo. This is automatically enabled if -l, --lines-changed-only is enabled." class="md-ellipsis">-<wbr>f, --<wbr>files-<wbr>changed-<wbr>only</span>
   </a>
   
 </li>
@@ -842,7 +842,7 @@ the current working directory if not using a CI runner).</p>
 <li><p>There is no need to use <code class="docutils literal notranslate"><span class="pre">./</span></code> for each entry; a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>)
 represents the repo-root path.</p></li>
 <li><p>This can also have files, but the file’s path (relative to
-the <code class="xref std std-cli-opt docutils literal notranslate"><span class="pre">--repo-root</span></code>) has to be specified with the filename.</p></li>
+the <a class="reference internal" href="#cli-opt-r-repo-root" title="-r, --repo-root (Command Line Interface option) — The relative path to the repository root directory. This path is relative to the runner's GITHUB_WORKSPACE environment variable (or the current working directory if not using a CI runner)."><code class="xref std std-cli-opt docutils literal notranslate"><span class="pre">-r,</span> <span class="pre">--repo-root</span></code></a>) has to be specified with the filename.</p></li>
 <li><p>Submodules are automatically ignored. Hidden directories (beginning
 with a <code class="docutils literal notranslate"><span class="pre">.</span></code>) are also ignored automatically.</p></li>
 <li><p>Prefix a path with <code class="docutils literal notranslate"><span class="pre">!</span></code> to explicitly not ignore it. This can be
@@ -878,7 +878,8 @@ lines but not subtractions).</p></li>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-f <var>FILES_CHANGED_ONLY</var></span>, <span class="option">--files-changed-only <var>FILES_CHANGED_ONLY</var></span></kbd></dt>
 <dd><p>Set this option to false to analyze any source files in the repo.
-This is automatically enabled if <code class="xref std std-cli-opt docutils literal notranslate"><span class="pre">--lines-changed-only</span></code> is enabled.</p>
+This is automatically enabled if
+<a class="reference internal" href="#cli-opt-l-lines-changed-only" title="-l, --lines-changed-only (Command Line Interface option) — This controls what part of the files are analyzed. The following values are accepted:"><code class="xref std std-cli-opt docutils literal notranslate"><span class="pre">-l,</span> <span class="pre">--lines-changed-only</span></code></a> is enabled.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> should be supplied when running on a
