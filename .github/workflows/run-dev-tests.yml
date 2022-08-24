@@ -4,8 +4,10 @@ on:
   push:
     paths:
       - "**.py"
+      - "**requirements*.txt"
       - pyproject.toml
       - ".github/workflows/run-dev-tests.yml"
+      - "!docs/**"
   pull_request:
     types: opened
     paths:
@@ -13,6 +15,7 @@ on:
       - "**requirements*.txt"
       - pyproject.toml
       - ".github/workflows/run-dev-tests.yml"
+      - "!docs/**"
 
 jobs:
   build:
