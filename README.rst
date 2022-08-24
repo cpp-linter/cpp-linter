@@ -1,10 +1,10 @@
 C/C++ Linting Package
 =====================
 
-.. image:: https://img.shields.io/github/v/release/cpp-linter/cpp-linter?style=plastic
+.. image:: https://img.shields.io/github/v/release/cpp-linter/cpp-linter
     :alt: Latest Version
     :target: https://github.com/cpp-linter/cpp-linter/releases
-.. image:: https://img.shields.io/github/license/cpp-linter/cpp-linter?label=license&logo=github&style=plastic
+.. image:: https://img.shields.io/github/license/cpp-linter/cpp-linter?label=license&logo=github
     :alt: License
     :target: https://github.com/cpp-linter/cpp-linter/blob/main/LICENSE
 .. image:: https://codecov.io/gh/cpp-linter/cpp-linter/branch/main/graph/badge.svg?token=0814O9WHQU
