@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cpp-linter"
 description = "Run clang-format and clang-tidy on a batch of files."
-readme = "README.md"
+readme = "README.rst"
 keywords = ["clang", "clang-tools", "linter", "clang-tidy", "clang-format"]
 license = {text = "MIT License"}
 authors = [
