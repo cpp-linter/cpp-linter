@@ -7,7 +7,10 @@
 import re
 from pathlib import Path
 import io
+from docutils.nodes import Node
+from sphinx import addnodes
 from sphinx.application import Sphinx
+from sphinx.environment import BuildEnvironment
 from cpp_linter.run import cli_arg_parser
 
 # -- Project information -----------------------------------------------------
@@ -86,6 +89,24 @@ object_description_options = [
     ("py:parameter", dict(include_in_toc=False)),
 ]
 
+# -- Parse CLI args from `-h` output -------------------------------------
+
+
+def parse_cli_option(env: BuildEnvironment, sig: str, sig_node: Node):
+    """parse the given signature of a CLI option and
+    return the docutil nodes accordingly."""
+    opt_names = sig.split(", ")
+    sig_node["is_multiline"] = True
+    for i, opt_name in enumerate(opt_names):
+        name = addnodes.desc_signature_line("", "--" if i else opt_name)
+        if not i:
+            name["add_permalink"] = True
+        else:
+            name += addnodes.desc_name(opt_name, opt_name.lstrip("-"))
+        sig_node += name
+    # print(sig_node.pformat())
+    return opt_names[-1].lstrip("-")
+
 
 def setup(app: Sphinx):
     """Generate a doc from the executable script's ``--help`` output."""
@@ -94,6 +115,7 @@ def setup(app: Sphinx):
         "cli-opt",
         objname="Command Line Interface option",
         indextemplate="pair: %s; Command Line Interface option",
+        parse_node=parse_cli_option,
     )
 
     with io.StringIO() as help_out:
@@ -104,7 +126,7 @@ def setup(app: Sphinx):
         raise OSError("unrecognized output from `cpp-linter -h`")
     output = output[first_line.end(0) :]
     doc = "Command Line Interface Options\n==============================\n\n"
-    CLI_OPT_NAME = re.compile(r"^\s+(\-+\w)[\sA-Z_]*,\s(\-\-.*?)\s")
+    CLI_OPT_NAME = re.compile(r"^\s*(\-\w)\s?[A-Z_]*,\s(\-\-.*?)\s")
     for line in output.splitlines():
         match = CLI_OPT_NAME.search(line)
         if match is not None:

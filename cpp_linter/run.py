@@ -160,7 +160,7 @@ cli_arg_parser.add_argument(
 - There is no need to use ``./`` for each entry; a blank string (``''``)
   represents the repo-root path.
 - This can also have files, but the file's path (relative to
-  the :cli-opt:`-r, --repo-root`) has to be specified with the filename.
+  the :cli-opt:`repo-root`) has to be specified with the filename.
 - Submodules are automatically ignored. Hidden directories (beginning
   with a ``.``) are also ignored automatically.
 - Prefix a path with ``!`` to explicitly not ignore it. This can be
@@ -192,7 +192,7 @@ cli_arg_parser.add_argument(
     type=lambda input: input.lower() == "true",
     help="""Set this option to false to analyze any source files in the repo.
 This is automatically enabled if
-:cli-opt:`-l, --lines-changed-only` is enabled.
+:cli-opt:`lines-changed-only` is enabled.
 
 .. note::
     The ``GITHUB_TOKEN`` should be supplied when running on a
@@ -572,14 +572,14 @@ def create_comment_body(
     tidy_notes: List[TidyNotification],
 ):
     """Create the content for a thread comment about a certain file.
-    This is a helper function to [`capture_clang_tools_output()`].
+    This is a helper function to `capture_clang_tools_output()`.
 
     :param filename: The file's name (& path).
     :param file_obj: The file's JSON `dict`.
     :param lines_changed_only: A flag used to filter the comment based on line changes.
     :param tidy_notes: A list of cached notifications from clang-tidy. This is used to
         avoid duplicated content in comment, and it is later used again by
-        [`make_annotations()`] after [`capture_clang_tools_output()`] us finished.
+        `make_annotations()` after `capture_clang_tools_output()` is finished.
     """
     ranges = range_of_changed_lines(file_obj, lines_changed_only)
     if Path("clang_tidy_report.txt").stat().st_size:
@@ -863,7 +863,8 @@ def parse_ignore_option(paths: str) -> Tuple[List[str], List[str]]:
     """Parse a given string of paths (separated by a ``|``) into ``ignored`` and
     ``not_ignored`` lists of strings.
 
-    :param paths: This argument conforms to the CLI arg ``--ignore`` (or ``-i``).
+    :param paths: This argument conforms to the input value of CLI arg
+        :cli-opt:`ignore`.
 
     :returns:
         Returns a tuple of lists in which each list is a set of strings.
