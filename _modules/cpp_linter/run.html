@@ -638,7 +638,7 @@
 <span class="s2">- There is no need to use ``./`` for each entry; a blank string (``&#39;&#39;``)</span>
 <span class="s2">  represents the repo-root path.</span>
 <span class="s2">- This can also have files, but the file&#39;s path (relative to</span>
-<span class="s2">  the :cli-opt:`-r, --repo-root`) has to be specified with the filename.</span>
+<span class="s2">  the :cli-opt:`repo-root`) has to be specified with the filename.</span>
 <span class="s2">- Submodules are automatically ignored. Hidden directories (beginning</span>
 <span class="s2">  with a ``.``) are also ignored automatically.</span>
 <span class="s2">- Prefix a path with ``!`` to explicitly not ignore it. This can be</span>
@@ -670,7 +670,7 @@
     <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">input</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set this option to false to analyze any source files in the repo.</span>
 <span class="s2">This is automatically enabled if</span>
-<span class="s2">:cli-opt:`-l, --lines-changed-only` is enabled.</span>
+<span class="s2">:cli-opt:`lines-changed-only` is enabled.</span>
 
 <span class="s2">.. note::</span>
 <span class="s2">    The ``GITHUB_TOKEN`` should be supplied when running on a</span>
@@ -1050,14 +1050,14 @@
     <span class="n">tidy_notes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">],</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create the content for a thread comment about a certain file.</span>
-<span class="sd">    This is a helper function to [`capture_clang_tools_output()`].</span>
+<span class="sd">    This is a helper function to `capture_clang_tools_output()`.</span>
 
 <span class="sd">    :param filename: The file&#39;s name (&amp; path).</span>
 <span class="sd">    :param file_obj: The file&#39;s JSON `dict`.</span>
 <span class="sd">    :param lines_changed_only: A flag used to filter the comment based on line changes.</span>
 <span class="sd">    :param tidy_notes: A list of cached notifications from clang-tidy. This is used to</span>
 <span class="sd">        avoid duplicated content in comment, and it is later used again by</span>
-<span class="sd">        [`make_annotations()`] after [`capture_clang_tools_output()`] us finished.</span>
+<span class="sd">        `make_annotations()` after `capture_clang_tools_output()` is finished.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ranges</span> <span class="o">=</span> <span class="n">range_of_changed_lines</span><span class="p">(</span><span class="n">file_obj</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;clang_tidy_report.txt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span><span class="p">:</span>
@@ -1341,7 +1341,8 @@
     <span class="sd">&quot;&quot;&quot;Parse a given string of paths (separated by a ``|``) into ``ignored`` and</span>
 <span class="sd">    ``not_ignored`` lists of strings.</span>
 
-<span class="sd">    :param paths: This argument conforms to the CLI arg ``--ignore`` (or ``-i``).</span>
+<span class="sd">    :param paths: This argument conforms to the input value of CLI arg</span>
+<span class="sd">        :cli-opt:`ignore`.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        Returns a tuple of lists in which each list is a set of strings.</span>
