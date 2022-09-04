@@ -13,7 +13,7 @@ C/C++ Linting Package
 .. image:: https://github.com/cpp-linter/cpp-linter/actions/workflows/build-docs.yml/badge.svg
     :alt: Docs
     :target: https://cpp-linter.github.io/cpp-linter
-.. image:: https://img.shields.io/pypi/dm/cpp-linter?label=PyPI%20Downloads&logo=python&logoColor=white
+.. image:: https://img.shields.io/pypi/dw/cpp-linter?color=dark-green&label=PyPI%20Downloads&logo=python&logoColor=white
     :target: https://pepy.tech/project/cpp-linter
     :alt: PyPI - Downloads
 
