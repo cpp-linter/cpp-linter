@@ -244,7 +244,8 @@ cli_arg_parser.add_argument(
     action="append",
     help="""A string of extra arguments passed to clang-tidy for use as
 compiler arguments. This can be specified more than once for each
-additional argument. Recommend using quotes around the value here:
+additional argument. Recommend using quotes around the value and
+avoid using spaces between name and value (use ``=`` instead):
 
 .. code-block:: shell
 
@@ -508,6 +509,21 @@ def run_clang_tidy(
     :param repo_root: The path to the repository root folder.
     :param extra_args: A list of extra arguments used by clang-tidy as compiler
         arguments.
+
+        .. note::
+            If the list is only 1 item long and there is a space in the first item,
+            then the list is reformed from splitting the first item by whitespace
+            characters.
+
+            .. code-block:: shell
+
+                cpp-linter -extra-arg="-std=c++14 -Wall"
+
+            is equivalent to
+
+            .. code-block:: shell
+
+                cpp-linter -extra-arg=-std=c++14 --extra-arg=-Wall
     """
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
