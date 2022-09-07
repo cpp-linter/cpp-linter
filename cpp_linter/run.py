@@ -124,7 +124,7 @@ strings which can be 8, 9, 10, 11, 12, 13, 14.
   installed (if using a custom install location). All paths specified
   here are converted to absolute.
 
-Default is """
+Default is """,
 )
 assert arg.help is not None
 arg.help += "a blank string." if not arg.default else f"``{arg.default}``."
@@ -236,6 +236,16 @@ cli_arg_parser.add_argument(
 file annotations as feedback.
 
 Defaults to ``%(default)s``.""",
+)
+cli_arg_parser.add_argument(
+    "-x",
+    "--extra-args",
+    default="",
+    help="""A string of extra arguments passed to clang-tidy for use as
+compiler arguments.
+
+Defaults to ``'%(default)s'``.
+""",
 )
 
 
@@ -477,6 +487,7 @@ def run_clang_tidy(
     lines_changed_only: int,
     database: str,
     repo_root: str,
+    extra_args: str,
 ) -> None:
     """Run clang-tidy on a certain file.
 
@@ -489,6 +500,8 @@ def run_clang_tidy(
         diff info.
     :param database: The path to the compilation database.
     :param repo_root: The path to the repository root folder.
+    :param extra_args: A string of extra arguments used by clang-tidy as compiler
+        arguments.
     """
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
@@ -511,6 +524,8 @@ def run_clang_tidy(
         line_ranges = dict(name=filename, lines=file_obj["line_filter"][ranges])
         logger.info("line_filter = %s", json.dumps([line_ranges]))
         cmds.append(f"--line-filter={json.dumps([line_ranges])}")
+    if extra_args:
+        cmds.append(f"--extra-arg={repr(extra_args)}")
     cmds.append(filename)
     # clear yml file's content before running clang-tidy
     Path("clang_tidy_output.yml").write_bytes(b"")
@@ -623,6 +638,7 @@ def capture_clang_tools_output(
     lines_changed_only: int,
     database: str,
     repo_root: str,
+    extra_args: str,
 ):
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
@@ -636,6 +652,8 @@ def capture_clang_tools_output(
         diff info.
     :param database: The path to the compilation database.
     :param repo_root: The path to the repository root folder.
+    :param extra_args: A string of extra arguments used by clang-tidy as compiler
+        arguments.
     """
     # temporary cache of parsed notifications for use in log commands
     tidy_notes: List[TidyNotification] = []
@@ -643,7 +661,14 @@ def capture_clang_tools_output(
         filename = cast(str, file["filename"])
         start_log_group(f"Performing checkup on {filename}")
         run_clang_tidy(
-            filename, file, version, checks, lines_changed_only, database, repo_root
+            filename,
+            file,
+            version,
+            checks,
+            lines_changed_only,
+            database,
+            repo_root,
+            extra_args,
         )
         run_clang_format(filename, file, version, style, lines_changed_only)
         end_log_group()
@@ -962,6 +987,7 @@ def main():
         args.lines_changed_only,
         args.database,
         args.repo_root,
+        args.extra_args,
     )
 
     start_log_group("Posting comment(s)")
