@@ -113,7 +113,7 @@ def test_format_annotations(
         lines_changed_only=lines_changed_only,
         database="",
         repo_root="",
-        extra_args="",
+        extra_args=[],
     )
     assert "Output from `clang-tidy`" not in cpp_linter.Globals.OUTPUT
     caplog.set_level(logging.INFO, logger=log_commander.name)
@@ -163,7 +163,7 @@ def test_tidy_annotations(
         lines_changed_only=lines_changed_only,
         database="",
         repo_root="",
-        extra_args="",
+        extra_args=[],
     )
     assert "Run `clang-format` on the following files" not in cpp_linter.Globals.OUTPUT
     caplog.set_level(logging.INFO, logger=log_commander.name)
@@ -197,7 +197,7 @@ def test_diff_comment(lines_changed_only: int):
         lines_changed_only=lines_changed_only,
         database="",
         repo_root="",
-        extra_args="",
+        extra_args=[],
     )
     diff_comments = list_diff_comments(lines_changed_only)
     # output = Path(__file__).parent / "diff_comments.json"
