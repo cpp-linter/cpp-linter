@@ -237,6 +237,13 @@ file annotations as feedback.
 
 Defaults to ``%(default)s``.""",
 )
+cli_arg_parser.add_argument(
+    "--extra-arg",
+    default="",
+    help="""Pass an additional argument to clang tidy. Defaults to the empty string for no extra argument.
+    
+An example for this option is to explicitly pass the C++ version as in ``--extra-arg="-std=c++17"``""",
+)
 
 
 def set_exit_code(override: int = None) -> int:
@@ -477,6 +484,7 @@ def run_clang_tidy(
     lines_changed_only: int,
     database: str,
     repo_root: str,
+    extra_arg: str,
 ) -> None:
     """Run clang-tidy on a certain file.
 
@@ -489,6 +497,7 @@ def run_clang_tidy(
         diff info.
     :param database: The path to the compilation database.
     :param repo_root: The path to the repository root folder.
+    :param extra_arg: Extra argument to pass to clang-tidy.
     """
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
@@ -511,6 +520,8 @@ def run_clang_tidy(
         line_ranges = dict(name=filename, lines=file_obj["line_filter"][ranges])
         logger.info("line_filter = %s", json.dumps([line_ranges]))
         cmds.append(f"--line-filter={json.dumps([line_ranges])}")
+    if extra_arg:
+        cmds.append(f"--extra-arg=\"{extra_arg}\"")
     cmds.append(filename)
     # clear yml file's content before running clang-tidy
     Path("clang_tidy_output.yml").write_bytes(b"")
@@ -623,6 +634,7 @@ def capture_clang_tools_output(
     lines_changed_only: int,
     database: str,
     repo_root: str,
+    extra_arg: str,
 ):
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
@@ -636,6 +648,7 @@ def capture_clang_tools_output(
         diff info.
     :param database: The path to the compilation database.
     :param repo_root: The path to the repository root folder.
+    :param extra_arg: Extra argument to pass to clang-tidy.
     """
     # temporary cache of parsed notifications for use in log commands
     tidy_notes: List[TidyNotification] = []
@@ -643,7 +656,7 @@ def capture_clang_tools_output(
         filename = cast(str, file["filename"])
         start_log_group(f"Performing checkup on {filename}")
         run_clang_tidy(
-            filename, file, version, checks, lines_changed_only, database, repo_root
+            filename, file, version, checks, lines_changed_only, database, repo_root, extra_arg
         )
         run_clang_format(filename, file, version, style, lines_changed_only)
         end_log_group()
@@ -962,6 +975,7 @@ def main():
         args.lines_changed_only,
         args.database,
         args.repo_root,
+        args.extra_arg
     )
 
     start_log_group("Posting comment(s)")

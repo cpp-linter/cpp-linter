@@ -48,6 +48,7 @@ def test_db_detection(
         lines_changed_only=0,  # analyze complete file
         database=database,
         repo_root=rel_root,
+        extra_arg="",
     )
     matched_args = []
     for record in caplog.records:

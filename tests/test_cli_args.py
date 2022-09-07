@@ -36,6 +36,7 @@ class Args:
     files_changed_only: bool = False
     thread_comments: bool = False
     file_annotations: bool = True
+    extra_arg: str = ""
 
 
 def test_defaults():
@@ -62,6 +63,7 @@ def test_defaults():
         ("files-changed-only", "True", "files_changed_only", True),
         ("thread-comments", "True", "thread_comments", True),
         ("file-annotations", "False", "file_annotations", False),
+        ("extra-arg", "-std=c++17", "extra_arg", "-std=c++17"),
     ],
 )
 def test_arg_parser(
