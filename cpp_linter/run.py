@@ -517,13 +517,13 @@ def run_clang_tidy(
 
             .. code-block:: shell
 
-                cpp-linter -extra-arg="-std=c++14 -Wall"
+                cpp-linter --extra-arg="-std=c++14 -Wall"
 
             is equivalent to
 
             .. code-block:: shell
 
-                cpp-linter -extra-arg=-std=c++14 --extra-arg=-Wall
+                cpp-linter --extra-arg=-std=c++14 --extra-arg=-Wall
     """
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
