@@ -995,13 +995,13 @@
 
 <span class="sd">            .. code-block:: shell</span>
 
-<span class="sd">                cpp-linter -extra-arg=&quot;-std=c++14 -Wall&quot;</span>
+<span class="sd">                cpp-linter --extra-arg=&quot;-std=c++14 -Wall&quot;</span>
 
 <span class="sd">            is equivalent to</span>
 
 <span class="sd">            .. code-block:: shell</span>
 
-<span class="sd">                cpp-linter -extra-arg=-std=c++14 --extra-arg=-Wall</span>
+<span class="sd">                cpp-linter --extra-arg=-std=c++14 --extra-arg=-Wall</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">checks</span> <span class="o">==</span> <span class="s2">&quot;-*&quot;</span><span class="p">:</span>  <span class="c1"># if all checks are disabled, then clang-tidy is skipped</span>
         <span class="c1"># clear the clang-tidy output file and exit function</span>

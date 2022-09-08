@@ -1497,11 +1497,11 @@ arguments.</p>
 <p>If the list is only 1 item long and there is a space in the first item,
 then the list is reformed from splitting the first item by whitespace
 characters.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter -extra-arg<span class="o">=</span><span class="s2">&quot;-std=c++14 -Wall&quot;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter --extra-arg<span class="o">=</span><span class="s2">&quot;-std=c++14 -Wall&quot;</span>
 </code></pre></div>
 </div>
 <p>is equivalent to</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter -extra-arg<span class="o">=</span>-std<span class="o">=</span>c++14 --extra-arg<span class="o">=</span>-Wall
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter --extra-arg<span class="o">=</span>-std<span class="o">=</span>c++14 --extra-arg<span class="o">=</span>-Wall
 </code></pre></div>
 </div>
 </div>
