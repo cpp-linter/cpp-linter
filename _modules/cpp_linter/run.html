@@ -602,7 +602,7 @@
 <span class="s2">  installed (if using a custom install location). All paths specified</span>
 <span class="s2">  here are converted to absolute.</span>
 
-<span class="s2">Default is &quot;&quot;&quot;</span>
+<span class="s2">Default is &quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="s2">&quot;a blank string.&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">default</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;``</span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="si">}</span><span class="s2">``.&quot;</span>
@@ -714,6 +714,23 @@
 <span class="s2">file annotations as feedback.</span>
 
 <span class="s2">Defaults to ``</span><span class="si">%(default)s</span><span class="s2">``.&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+    <span class="s2">&quot;-x&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;--extra-arg&quot;</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;A string of extra arguments passed to clang-tidy for use as</span>
+<span class="s2">compiler arguments. This can be specified more than once for each</span>
+<span class="s2">additional argument. Recommend using quotes around the value and</span>
+<span class="s2">avoid using spaces between name and value (use ``=`` instead):</span>
+
+<span class="s2">.. code-block:: shell</span>
+
+<span class="s2">    cpp-linter --extra-arg=&quot;-std=c++17&quot; --extra-arg=&quot;-Wall&quot;</span>
+
+<span class="s2">Defaults to ``&#39;</span><span class="si">%(default)s</span><span class="s2">&#39;``.</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -955,6 +972,7 @@
     <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">database</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">repo_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">extra_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Run clang-tidy on a certain file.</span>
 
@@ -967,6 +985,23 @@
 <span class="sd">        diff info.</span>
 <span class="sd">    :param database: The path to the compilation database.</span>
 <span class="sd">    :param repo_root: The path to the repository root folder.</span>
+<span class="sd">    :param extra_args: A list of extra arguments used by clang-tidy as compiler</span>
+<span class="sd">        arguments.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If the list is only 1 item long and there is a space in the first item,</span>
+<span class="sd">            then the list is reformed from splitting the first item by whitespace</span>
+<span class="sd">            characters.</span>
+
+<span class="sd">            .. code-block:: shell</span>
+
+<span class="sd">                cpp-linter -extra-arg=&quot;-std=c++14 -Wall&quot;</span>
+
+<span class="sd">            is equivalent to</span>
+
+<span class="sd">            .. code-block:: shell</span>
+
+<span class="sd">                cpp-linter -extra-arg=-std=c++14 --extra-arg=-Wall</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">checks</span> <span class="o">==</span> <span class="s2">&quot;-*&quot;</span><span class="p">:</span>  <span class="c1"># if all checks are disabled, then clang-tidy is skipped</span>
         <span class="c1"># clear the clang-tidy output file and exit function</span>
@@ -989,6 +1024,10 @@
         <span class="n">line_ranges</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="n">file_obj</span><span class="p">[</span><span class="s2">&quot;line_filter&quot;</span><span class="p">][</span><span class="n">ranges</span><span class="p">])</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;line_filter = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">line_ranges</span><span class="p">]))</span>
         <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--line-filter=</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span><span class="n">line_ranges</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="s2">&quot; &quot;</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">extra_args</span> <span class="o">=</span> <span class="n">extra_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">extra_arg</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="p">:</span>
+        <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--extra-arg=</span><span class="si">{</span><span class="n">extra_arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="c1"># clear yml file&#39;s content before running clang-tidy</span>
     <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;clang_tidy_output.yml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -1101,6 +1140,7 @@
     <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">database</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">repo_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">extra_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Execute and capture all output from clang-tidy and clang-format. This aggregates</span>
 <span class="sd">    results in the :attr:`~cpp_linter.Globals.OUTPUT`.</span>
@@ -1114,6 +1154,8 @@
 <span class="sd">        diff info.</span>
 <span class="sd">    :param database: The path to the compilation database.</span>
 <span class="sd">    :param repo_root: The path to the repository root folder.</span>
+<span class="sd">    :param extra_args: A list of extra arguments used by clang-tidy as compiler</span>
+<span class="sd">        arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># temporary cache of parsed notifications for use in log commands</span>
     <span class="n">tidy_notes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1121,7 +1163,14 @@
         <span class="n">filename</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">])</span>
         <span class="n">start_log_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performing checkup on </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">run_clang_tidy</span><span class="p">(</span>
-            <span class="n">filename</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">checks</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">,</span> <span class="n">database</span><span class="p">,</span> <span class="n">repo_root</span>
+            <span class="n">filename</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">version</span><span class="p">,</span>
+            <span class="n">checks</span><span class="p">,</span>
+            <span class="n">lines_changed_only</span><span class="p">,</span>
+            <span class="n">database</span><span class="p">,</span>
+            <span class="n">repo_root</span><span class="p">,</span>
+            <span class="n">extra_args</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">run_clang_format</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">)</span>
         <span class="n">end_log_group</span><span class="p">()</span>
@@ -1440,6 +1489,7 @@
         <span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
         <span class="n">args</span><span class="o">.</span><span class="n">repo_root</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Posting comment(s)&quot;</span><span class="p">)</span>

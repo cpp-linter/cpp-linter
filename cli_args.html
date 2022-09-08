@@ -444,6 +444,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#cli-opt-extra-arg" class="md-nav__link">
+    <span title="extra-arg (Command Line Interface option) — A string of extra arguments passed to clang-tidy for use as compiler arguments. This can be specified more than once for each additional argument. Recommend using quotes around the value and avoid using spaces between name and value (use = instead):" class="md-ellipsis">extra-<wbr>arg</span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -690,6 +697,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#cli-opt-extra-arg" class="md-nav__link">
+    <span title="extra-arg (Command Line Interface option) — A string of extra arguments passed to clang-tidy for use as compiler arguments. This can be specified more than once for each additional argument. Recommend using quotes around the value and avoid using spaces between name and value (use = instead):" class="md-ellipsis">extra-<wbr>arg</span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -925,6 +939,23 @@ differently for thread comments on a private repository.</p>
 <dd><p>Set this option to false to disable the use of
 file annotations as feedback.</p>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std cli-opt objdesc">
+<dt class="sig sig-object highlight std" id="cli-opt-extra-arg">
+<span class="pre">-x</span><a class="headerlink" href="#cli-opt-extra-arg" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">extra-arg</span></span><br /></dt>
+<dd><dl class="option-list">
+<dt><kbd><span class="option">-x <var>EXTRA_ARG</var></span>, <span class="option">--extra-arg <var>EXTRA_ARG</var></span></kbd></dt>
+<dd><p>A string of extra arguments passed to clang-tidy for use as
+compiler arguments. This can be specified more than once for each
+additional argument. Recommend using quotes around the value and
+avoid using spaces between name and value (use <code class="docutils literal notranslate"><span class="pre">=</span></code> instead):</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter --extra-arg<span class="o">=</span><span class="s2">&quot;-std=c++17&quot;</span> --extra-arg<span class="o">=</span><span class="s2">&quot;-Wall&quot;</span>
+</code></pre></div>
+</div>
+<p>Defaults to <code class="docutils literal notranslate"><span class="pre">'[]'</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>

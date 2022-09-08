@@ -163,3 +163,17 @@ Command Line Interface Options
                         file annotations as feedback.
                         
                         Defaults to ``true``.
+
+.. cli-opt:: -x, --extra-arg
+
+  -x EXTRA_ARG, --extra-arg EXTRA_ARG
+                        A string of extra arguments passed to clang-tidy for use as
+                        compiler arguments. This can be specified more than once for each
+                        additional argument. Recommend using quotes around the value and
+                        avoid using spaces between name and value (use ``=`` instead):
+                        
+                        .. code-block:: shell
+                        
+                            cpp-linter --extra-arg="-std=c++17" --extra-arg="-Wall"
+                        
+                        Defaults to ``'[]'``.
