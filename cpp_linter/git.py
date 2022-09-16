@@ -4,6 +4,7 @@ import re
 import subprocess
 from typing import List, Dict, Any
 
+
 def get_sha(parent: int = 0) -> str:
     """use ``git`` to fetch the full SHA of the current commit."""
     level = "HEAD" + ("" if not parent else f"^{parent}")
@@ -18,15 +19,13 @@ def get_diff(parents: int = 1) -> str:
 
     :param commit_sha: The SHA for the commit to focus on.
     """
-    head = get_sha()
-    base = get_sha(parents)
     result = subprocess.run(
         ["git", "diff", f"HEAD^{parents}"], capture_output=True, check=True
     )
+    head = get_sha()
+    base = get_sha(parents)
     Path(f"{head[-6:]}...{base[-6:]}.diff").write_bytes(result.stdout)
     return result.stdout.decode(encoding="utf-8")
-
-DIFF_FILE_DELIMITER = re.compile(r"diff --git a/.*?\sb/.*$", re.MULTILINE)
 
 
 def consolidate_list_to_ranges(just_numbers: List[int]) -> List[List[int]]:
@@ -43,37 +42,66 @@ def consolidate_list_to_ranges(just_numbers: List[int]) -> List[List[int]]:
             result[-1].append(n + 1)
     return result
 
-def parse_diff(full_patch: str) -> List[Dict[str, Any]]:
-    """Parse a given diff into file objects"""
+
+DIFF_FILE_DELIMITER = re.compile(r"diff --git a/.*?\sb/.*$", re.MULTILINE)
+DIFF_FILE_NAME = re.compile(r"^\+\+\+\sb?/(.*)$", re.MULTILINE)
+HUNK_INFO = re.compile(r"@@\s\-\d+,\d+\s\+(\d+,\d+)\s@@", re.MULTILINE)
+
+
+def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
+    """Parse a given diff into file objects.
+
+    :param full_diff: The complete diff for an event.
+    :returns: A `list` of `dict` containing information about the files changed.
+        .. note:: Deleted files are omitted because we only want to analyze updates.
+    """
     file_objects = []
-    file_diffs = DIFF_FILE_DELIMITER.split(full_patch)
+    file_diffs = DIFF_FILE_DELIMITER.split(full_diff)
     for diff in file_diffs:
-        if not diff:
+        if not diff or diff.startswith("deleted file"):
             continue
-        filename = re.findall(r"^\+\+\+ b/(.*)$", diff, re.MULTILINE)[0]
-        file_objects.append(dict(filename=filename))
-        first_hunk = diff.find("@@ -")
-        if first_hunk == -1:
-            file_objects[-1]["patch"] = ""
+        filename = DIFF_FILE_NAME.findall(diff)[0]
+        status = "created" if diff.startswith("new file") else "changed"
+        file_objects.append(dict(filename=filename, status=status))
+        first_hunk = HUNK_INFO.search(diff)
+        if first_hunk is None:
             continue
-        patch = diff[first_hunk:]
-        file_objects[-1]["patch"] = patch
-        ranges: List[List[int]] = []
-        # additions is a list line numbers in the diff containing additions
-        additions: List[int] = []
-        line_numb_in_diff: int = 0
-        for line in patch.splitlines(keepends=True):
-            if line.startswith("+"):
-                additions.append(line_numb_in_diff)
-            if line.startswith("@@ -"):
-                hunk = line[line.find(" +") + 2 : line.find(" @@")].split(",")
-                start_line, hunk_length = [int(x) for x in hunk]
-                ranges.append([start_line, hunk_length + start_line])
-                line_numb_in_diff = start_line
-            elif not line.startswith("-"):
-                line_numb_in_diff += 1
+        patch = diff[first_hunk.start() :]
+        # patch info not needed as we will be getting what we need from the diff here
+        # file_objects[-1]["patch"] = patch
+        ranges, additions = parse_patch(patch)
         file_objects[-1]["line_filter"] = dict(
             diff_chunks=ranges,
             lines_added=consolidate_list_to_ranges(additions),
         )
     return file_objects
+
+
+def parse_patch(full_patch: str) -> tuple:
+    """Parse a diff's patch accordingly.
+
+    :param full_patch: The entire patch of hunks for 1 file.
+    :returns: A `tuple` of lists where
+        - Index 0 is the ranges of lines in the diff. Each item in this `list` is a
+          2 element `list` describing the starting and ending line numbers.
+        - Index 1 is a `list` of the line numbers that contain additions.
+    """
+    ranges: List[List[int]] = []
+    # additions is a list line numbers in the diff containing additions
+    additions: List[int] = []
+    line_numb_in_diff: int = 0
+    chunks = HUNK_INFO.split(full_patch)
+    for index, chunk in enumerate(chunks):
+        if index % 2 == 1:
+            # each odd element holds the starting line number and number of lines
+            start_line, hunk_length = [int(x) for x in chunk.split(",")]
+            ranges.append([start_line, hunk_length + start_line])
+            line_numb_in_diff = start_line
+            continue
+        # each even element holds the actual line changes
+        for i, line in enumerate(chunk.splitlines()):
+            if line.startswith("+"):
+                additions.append(line_numb_in_diff)
+            if not line.startswith("-") and i:  # don't increment on first line
+                line_numb_in_diff += 1
+    return (ranges, additions)

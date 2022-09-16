@@ -36,7 +36,7 @@ from .clang_tidy_yml import parse_tidy_suggestions_yml
 from .clang_format_xml import parse_format_replacements_xml
 from .clang_tidy import parse_tidy_output, TidyNotification
 from .thread_comments import remove_bot_comments, list_diff_comments  # , get_review_id
-from .git import consolidate_list_to_ranges
+from .git import consolidate_list_to_ranges, parse_patch, get_diff, parse_diff
 
 
 # global constant variables
@@ -331,23 +331,22 @@ def get_list_of_changed_files() -> None:
     """Fetch the JSON payload of the event's changed files. Sets the
     :attr:`~cpp_linter.Globals.FILES` attribute."""
     start_log_group("Get list of specified source files")
-    files_link = f"{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/"
     if GITHUB_EVENT_NAME == "pull_request":
+        files_link = f"{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/"
         files_link += f"pulls/{Globals.EVENT_PAYLOAD['number']}/files"
+        logger.info("Fetching files list from url: %s", files_link)
+        Globals.response_buffer = requests.get(files_link, headers=API_HEADERS)
+        log_response_msg()
+        Globals.FILES = Globals.response_buffer.json()
     else:
         if GITHUB_EVENT_NAME != "push":
             logger.warning(
                 "Triggered on unsupported event '%s'. Behaving like a push event.",
                 GITHUB_EVENT_NAME,
             )
-        files_link += f"commits/{GITHUB_SHA}"
-    logger.info("Fetching files list from url: %s", files_link)
-    Globals.response_buffer = requests.get(files_link, headers=API_HEADERS)
-    log_response_msg()
-    if GITHUB_EVENT_NAME == "pull_request":
-        Globals.FILES = Globals.response_buffer.json()
-    else:
-        Globals.FILES = Globals.response_buffer.json()["files"]
+        # files_link += f"commits/{GITHUB_SHA}"
+        # Globals.FILES = Globals.response_buffer.json()["files"]
+        Globals.FILES = parse_diff(get_diff())
 
 
 def filter_out_non_source_files(
@@ -378,22 +377,7 @@ def filter_out_non_source_files(
             )
         ):
             if "patch" in file.keys():
-                # get diff details for the file's changes
-                # ranges is a list of start/end line numbers shown in the diff
-                ranges: List[List[int]] = []
-                # additions is a list line numbers in the diff containing additions
-                additions: List[int] = []
-                line_numb_in_diff: int = 0
-                for line in cast(str, file["patch"]).splitlines():
-                    if line.startswith("+"):
-                        additions.append(line_numb_in_diff)
-                    if line.startswith("@@ -"):
-                        hunk = line[line.find(" +") + 2 : line.find(" @@")].split(",")
-                        start_line, hunk_length = [int(x) for x in hunk]
-                        ranges.append([start_line, hunk_length + start_line])
-                        line_numb_in_diff = start_line
-                    elif not line.startswith("-"):
-                        line_numb_in_diff += 1
+                ranges, additions = parse_patch(file["patch"])
                 file["line_filter"] = dict(
                     diff_chunks=ranges,
                     lines_added=consolidate_list_to_ranges(additions),
