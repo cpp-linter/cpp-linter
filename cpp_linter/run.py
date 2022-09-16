@@ -36,6 +36,7 @@ from .clang_tidy_yml import parse_tidy_suggestions_yml
 from .clang_format_xml import parse_format_replacements_xml
 from .clang_tidy import parse_tidy_output, TidyNotification
 from .thread_comments import remove_bot_comments, list_diff_comments  # , get_review_id
+from .git import consolidate_list_to_ranges
 
 
 # global constant variables
@@ -347,21 +348,6 @@ def get_list_of_changed_files() -> None:
         Globals.FILES = Globals.response_buffer.json()
     else:
         Globals.FILES = Globals.response_buffer.json()["files"]
-
-
-def consolidate_list_to_ranges(just_numbers: List[int]) -> List[List[int]]:
-    """A helper function to `filter_out_non_source_files()` that is only used when
-    extracting the lines from a diff that contain additions."""
-    result: List[List[int]] = []
-    for i, n in enumerate(just_numbers):
-        if not i:
-            result.append([n])
-        elif n - 1 != just_numbers[i - 1]:
-            result[-1].append(just_numbers[i - 1] + 1)
-            result.append([n])
-        if i == len(just_numbers) - 1:
-            result[-1].append(n + 1)
-    return result
 
 
 def filter_out_non_source_files(
