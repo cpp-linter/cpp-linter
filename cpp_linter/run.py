@@ -541,7 +541,7 @@ def run_clang_tidy(
         if not PurePath(database).is_absolute():
             database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
         cmds.append(database)
-    if lines_changed_only:
+    if lines_changed_only and "line_filter" in file_obj.keys():
         ranges = "diff_chunks" if lines_changed_only == 1 else "lines_added"
         line_ranges = dict(name=filename, lines=file_obj["line_filter"][ranges])
         logger.info("line_filter = %s", json.dumps([line_ranges]))
@@ -898,7 +898,7 @@ def make_annotations(
                     break
             else:
                 continue
-            if note.line in line_filter:
+            if note.line in line_filter or not line_filter:
                 count += 1
                 log_commander.info(note.log_command())
         else:
