@@ -106,7 +106,7 @@ def range_of_changed_lines(
     :returns:
         A list of line numbers for which to give attention.
     """
-    if lines_changed_only:
+    if lines_changed_only and "line_filter" in file_obj.keys():
         ranges = file_obj["line_filter"][
             "diff_chunks" if lines_changed_only == 1 else "lines_added"
         ]
