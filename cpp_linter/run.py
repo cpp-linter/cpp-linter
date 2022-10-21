@@ -266,7 +266,7 @@ def set_exit_code(override: int = None) -> int:
         then this value will describe (like a bool value) if any checks failed.
     """
     exit_code = override if override is not None else bool(Globals.OUTPUT)
-    os.environ["GITHUB_OUTPUT"] = f"checks-failed={exit_code}"
+    os.environ["GITHUB_ENV"] = f"checks-failed={exit_code}"
     return exit_code
 
 

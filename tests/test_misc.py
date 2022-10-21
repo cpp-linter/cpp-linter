@@ -21,7 +21,7 @@ from cpp_linter.run import (
 def test_exit_override():
     """Test exit code that indicates if action encountered lining errors."""
     assert 1 == set_exit_code(1)
-    assert os.environ["GITHUB_OUTPUT"] == f"checks-failed=1"
+    assert os.environ["GITHUB_ENV"] == f"checks-failed=1"
 
 
 def test_exit_implicit():
