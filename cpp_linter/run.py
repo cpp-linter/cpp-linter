@@ -269,7 +269,7 @@ def set_exit_code(override: int = None) -> int:
     try:
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as env_file:
             env_file.write(f"checks-failed={exit_code}\n")
-    except FileNotFoundError:
+    except FileNotFoundError:  # pragma: no cover
         # not executed on a github CI runner; ignore this error when executed locally
         pass
     return exit_code
