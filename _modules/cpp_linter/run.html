@@ -17,7 +17,7 @@
       
     
     
-      <link rel="stylesheet" href="../../_static/stylesheets/main.b0359c04.min.css">
+      <link rel="stylesheet" href="../../_static/stylesheets/main.30c392bc.min.css">
       
         
         <link rel="stylesheet" href="../../_static/stylesheets/palette.92c9fe4a.min.css">
@@ -744,7 +744,12 @@
 <span class="sd">        then this value will describe (like a bool value) if any checks failed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">exit_code</span> <span class="o">=</span> <span class="n">override</span> <span class="k">if</span> <span class="n">override</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;::set-output name=checks-failed::</span><span class="si">{</span><span class="n">exit_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GITHUB_OUTPUT&quot;</span><span class="p">],</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">env_file</span><span class="p">:</span>
+            <span class="n">env_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checks-failed=</span><span class="si">{</span><span class="n">exit_code</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="c1"># not executed on a github CI runner; ignore this error when executed locally</span>
+        <span class="k">pass</span>
     <span class="k">return</span> <span class="n">exit_code</span></div>
 
 
@@ -1541,7 +1546,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    5.1.1.
+    5.3.0.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -1560,6 +1565,7 @@
     
     
       <script src="../../_static/javascripts/bundle.dc1bded0.min.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     
   </body>
 </html>
