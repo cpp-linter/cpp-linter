@@ -1,5 +1,6 @@
 coverage[toml]
 mypy
+pre-commit
 pylint
 pytest
 rich

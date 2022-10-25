@@ -1,5 +1,6 @@
 """Tests that complete coverage that aren't prone to failure."""
 import logging
+import os
 from pathlib import Path
 from typing import List
 import pytest
@@ -17,9 +18,12 @@ from cpp_linter.run import (
 )
 
 
-def test_exit_override():
+def test_exit_override(tmp_path: Path):
     """Test exit code that indicates if action encountered lining errors."""
+    env_file = tmp_path / "GITHUB_OUTPUT"
+    os.environ["GITHUB_OUTPUT"] = str(env_file)
     assert 1 == set_exit_code(1)
+    assert env_file.read_text(encoding="utf-8") == "checks-failed=1\n"
 
 
 def test_exit_implicit():
