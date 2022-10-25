@@ -1,3 +1,3 @@
 tasks:
   - init: pip install -r requirements.txt -r requirements-dev.txt
-    command: pre-commit install
+    command: pre-commit install && pip install -e .
