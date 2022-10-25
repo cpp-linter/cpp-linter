@@ -18,10 +18,12 @@ from cpp_linter.run import (
 )
 
 
-def test_exit_override():
+def test_exit_override(tmpdir):
     """Test exit code that indicates if action encountered lining errors."""
+    env_file = tmpdir.join("GITHUB_OUTPUT")
+    os.environ["GITHUB_OUTPUT"] = str(env_file)
     assert 1 == set_exit_code(1)
-    assert os.environ["GITHUB_ENV"] == f"checks-failed=1"
+    assert env_file.read() == "checks-failed=1\n"
 
 
 def test_exit_implicit():

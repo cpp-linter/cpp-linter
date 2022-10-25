@@ -266,7 +266,12 @@ def set_exit_code(override: int = None) -> int:
         then this value will describe (like a bool value) if any checks failed.
     """
     exit_code = override if override is not None else bool(Globals.OUTPUT)
-    os.environ["GITHUB_ENV"] = f"checks-failed={exit_code}"
+    try:
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8")as env_file:
+            env_file.write(f"checks-failed={exit_code}\n")
+    except FileNotFoundError:
+        # not executed on a github CI runner; ignore this error when executed locally
+        pass
     return exit_code
 
 
