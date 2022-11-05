@@ -85,7 +85,9 @@ class XMLFixit:
         :param style: The chosen code style guidelines.
         :param line_filter: A list of lines numbers used to narrow notifications.
         """
-        if style not in ("llvm", "google", "webkit", "mozilla", "gnu"):
+        if style not in (
+            "llvm", "gnu", "google", "chromium", "microsoft", "mozilla", "webkit"
+            ):
             # potentially the style parameter could be a str of JSON/YML syntax
             style = "Custom"
         else:
