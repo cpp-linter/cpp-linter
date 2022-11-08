@@ -585,11 +585,11 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="s2">&quot;::notice file=</span><span class="si">{name}</span><span class="s2">,title=Run clang-format on </span><span class="si">{name}</span><span class="s2">::&quot;</span>
-            <span class="s2">&quot;File </span><span class="si">{name}</span><span class="s2"> (lines </span><span class="si">{lines}</span><span class="s2">): Code does not conform to </span><span class="si">{style_guide}</span><span class="s2"> &quot;</span>
-            <span class="s2">&quot;style guidelines.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">&quot;File </span><span class="si">{name}</span><span class="s2"> does not conform to </span><span class="si">{style_guide}</span><span class="s2"> style guidelines. &quot;</span>
+            <span class="s2">&quot;(lines </span><span class="si">{lines}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
-                <span class="n">lines</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">),</span>
                 <span class="n">style_guide</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+                <span class="n">lines</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span></div></div>
 
