@@ -597,8 +597,9 @@ def run_clang_format(
     ]
     if lines_changed_only:
         ranges = "diff_chunks" if lines_changed_only == 1 else "lines_added"
-        for line_range in file_obj["line_filter"][ranges]:
-            cmds.append(f"--lines={line_range[0]}:{line_range[1]}")
+        if "line_filter" in file_obj.keys():
+            for line_range in file_obj["line_filter"][ranges]:
+                cmds.append(f"--lines={line_range[0]}:{line_range[1]}")
     cmds.append(PurePath(filename).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
