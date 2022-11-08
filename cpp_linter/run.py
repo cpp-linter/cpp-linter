@@ -17,7 +17,7 @@ import sys
 import argparse
 import configparser
 import json
-from typing import cast, List, Dict, Any, Tuple
+from typing import cast, List, Dict, Any, Tuple, Optional
 import requests
 from . import (
     Globals,
@@ -256,7 +256,7 @@ Defaults to ``'%(default)s'``.
 )
 
 
-def set_exit_code(override: int = None) -> int:
+def set_exit_code(override: Optional[int] = None) -> int:
     """Set the action's exit code.
 
     :param override: The number to use when overriding the action's logic.
