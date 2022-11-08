@@ -499,7 +499,7 @@
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">configparser</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Globals</span><span class="p">,</span>
@@ -738,7 +738,7 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="set_exit_code"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.set_exit_code">[docs]</a><span class="k">def</span> <span class="nf">set_exit_code</span><span class="p">(</span><span class="n">override</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="set_exit_code"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.set_exit_code">[docs]</a><span class="k">def</span> <span class="nf">set_exit_code</span><span class="p">(</span><span class="n">override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Set the action&#39;s exit code.</span>
 
 <span class="sd">    :param override: The number to use when overriding the action&#39;s logic.</span>
