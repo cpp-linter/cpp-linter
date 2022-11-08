@@ -103,11 +103,11 @@ class XMLFixit:
             return None
         return (
             "::notice file={name},title=Run clang-format on {name}::"
-            "File {name} (lines {lines}): Code does not conform to {style_guide} "
-            "style guidelines.".format(
+            "File {name} does not conform to {style_guide} style guidelines. "
+            "(lines {lines})".format(
                 name=self.filename,
-                lines=", ".join(line_list),
                 style_guide=style,
+                lines=", ".join(line_list),
             )
         )
 
