@@ -368,6 +368,7 @@ def filter_out_non_source_files(
     ext_list: List[str],
     ignored: List[str],
     not_ignored: List[str],
+    lines_changed_only: int,
 ) -> bool:
     """Exclude undesired files (specified by user input 'extensions'). This filter
     applies to the event's :attr:`~cpp_linter.Globals.FILES` attribute.
@@ -411,23 +412,40 @@ def filter_out_non_source_files(
                     diff_chunks=ranges,
                     lines_added=consolidate_list_to_ranges(additions),
                 )
-            files.append(file)
+            if file["status"] == "added":
+                # check all lines in newly created files
+                file_contents = Path(file["filename"]).read_bytes()
+                total_line_count = file_contents.count(b"\n") + int(
+                    # + 1 if no LF on last line in file
+                    not file_contents.endswith(b"\n")
+                )
+                file["line_filter"] = dict(
+                    diff_chunks=[[1, total_line_count]],
+                    lines_added=[[1, total_line_count]],
+                )
 
-    if files:
-        logger.info(
-            "Giving attention to the following files:\n\t%s",
-            "\n\t".join([f["filename"] for f in files]),
-        )
-        Globals.FILES = files
-        if not IS_ON_RUNNER:  # if not executed on a github runner
-            # dump altered json of changed files
-            Path(".changed_files.json").write_text(
-                json.dumps(Globals.FILES, indent=2),
-                encoding="utf-8",
-            )
-    else:
+            # conditionally include file if lines changed warrant attention
+            if (lines_changed_only == 1 and file["line_filter"]["diff_chunks"]) or (
+                lines_changed_only == 2 and file["line_filter"]["lines_added"]
+            ):
+                files.append(file)
+            elif not lines_changed_only:  # or lint whole file
+                files.append(file)
+
+    if not files:
         logger.info("No source files need checking!")
         return False
+    logger.info(
+        "Giving attention to the following files:\n\t%s",
+        "\n\t".join([f["filename"] for f in files]),
+    )
+    Globals.FILES = files
+    if not IS_ON_RUNNER:  # if not executed on a github runner
+        # dump altered json of changed files
+        Path(".changed_files.json").write_text(
+            json.dumps(Globals.FILES, indent=2),
+            encoding="utf-8",
+        )
     return True
 
 
@@ -546,10 +564,11 @@ def run_clang_tidy(
         if not PurePath(database).is_absolute():
             database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
         cmds.append(database)
-    if lines_changed_only and "line_filter" in file_obj.keys():
-        ranges = "diff_chunks" if lines_changed_only == 1 else "lines_added"
-        line_ranges = dict(name=filename, lines=file_obj["line_filter"][ranges])
-        logger.info("line_filter = %s", json.dumps([line_ranges]))
+    line_ranges = dict(
+        name=filename, lines=range_of_changed_lines(file_obj, lines_changed_only)
+    )
+    if line_ranges["lines"]:
+        # logger.info("line_filter = %s", json.dumps([line_ranges]))
         cmds.append(f"--line-filter={json.dumps([line_ranges])}")
     if len(extra_args) == 1 and " " in extra_args[0]:
         extra_args = extra_args[0].split()
@@ -595,11 +614,10 @@ def run_clang_format(
         f"-style={style}",
         "--output-replacements-xml",
     ]
-    if lines_changed_only:
-        ranges = "diff_chunks" if lines_changed_only == 1 else "lines_added"
-        if "line_filter" in file_obj.keys():
-            for line_range in file_obj["line_filter"][ranges]:
-                cmds.append(f"--lines={line_range[0]}:{line_range[1]}")
+    ranges = range_of_changed_lines(file_obj, lines_changed_only)
+    print("ranges:", ranges)
+    if ranges:
+        cmds.append(f"--lines={ranges[0]}:{ranges[1]}")
     cmds.append(PurePath(filename).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
@@ -1001,6 +1019,7 @@ def main():
             args.extensions,
             ignored,
             not_ignored,
+            args.lines_changed_only,
         )
         if not exit_early:
             verify_files_are_present()

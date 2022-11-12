@@ -22,10 +22,12 @@ CLANG_VERSION = os.getenv("CLANG_VERSION", "12")
 @pytest.mark.parametrize(
     "extensions", [(["c"]), pytest.param(["h"], marks=pytest.mark.xfail)]
 )
+@pytest.mark.parametrize("lines_changed_only", [0, 1, 2])
 def test_lines_changed_only(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
     extensions: List[str],
+    lines_changed_only: int,
 ):
     """Test for lines changes in diff.
 
@@ -42,6 +44,7 @@ def test_lines_changed_only(
         ext_list=extensions,
         ignored=[".github"],
         not_ignored=[],
+        lines_changed_only=lines_changed_only,
     ):
         test_result = Path("expected_result.json").read_text(encoding="utf-8")
         for file, result in zip(
