@@ -900,7 +900,7 @@ def make_annotations(
         else cast(Dict[str, Any], Globals.FILES)["files"]
     )
     for advice, file in zip(GlobalParser.format_advice, files):
-        line_filter = range_of_changed_lines(file, lines_changed_only)
+        line_filter = cast(List[int], range_of_changed_lines(file, lines_changed_only))
         if advice.replaced_lines:
             if file_annotations:
                 output = advice.log_command(style, line_filter)
@@ -913,7 +913,9 @@ def make_annotations(
             line_filter = []
             for file in files:
                 if filename == file["filename"]:
-                    line_filter = range_of_changed_lines(file, lines_changed_only)
+                    line_filter = cast(
+                        List[int], range_of_changed_lines(file, lines_changed_only)
+                    )
                     break
             else:
                 continue
