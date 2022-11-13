@@ -238,5 +238,16 @@
     "raw_url": "https://github.com/chocolate-doom/chocolate-doom/raw/4372e7fd057b2050ccf5266185410edf9a7d4422/src%2Fhexen%2Fp_enemy.c",
     "contents_url": "https://api.github.com/repos/chocolate-doom/chocolate-doom/contents/src%2Fhexen%2Fp_enemy.c?ref=4372e7fd057b2050ccf5266185410edf9a7d4422",
     "patch": "@@ -1102,7 +1102,6 @@ void A_MinotaurFade2(mobj_t * actor)\n // \n //----------------------------------------------------------------------------\n \n-void A_MinotaurLook(mobj_t * actor);\n \n // Check the age of the minotaur and stomp it after MAULATORTICS of time\n // have passed. Returns false if killed.\n@@ -3854,8 +3853,6 @@ void A_IceGuyMissilePuff(mobj_t * actor)\n \n void A_IceGuyDie(mobj_t * actor)\n {\n-    void A_FreezeDeathChunks(mobj_t * actor);\n-\n     actor->momx = 0;\n     actor->momy = 0;\n     actor->momz = 0;\n@@ -3932,22 +3929,6 @@ void A_IceGuyMissileExplode(mobj_t * actor)\n #define BALL2_ANGLEOFFSET\t(ANG_MAX/3)\n #define BALL3_ANGLEOFFSET\t((ANG_MAX/3)*2)\n \n-void A_SorcBallOrbit(mobj_t * actor);\n-void A_SorcSpinBalls(mobj_t * actor);\n-void A_SpeedBalls(mobj_t * actor);\n-void A_SlowBalls(mobj_t * actor);\n-void A_StopBalls(mobj_t * actor);\n-void A_AccelBalls(mobj_t * actor);\n-void A_DecelBalls(mobj_t * actor);\n-void A_SorcBossAttack(mobj_t * actor);\n-void A_SpawnFizzle(mobj_t * actor);\n-void A_CastSorcererSpell(mobj_t * actor);\n-void A_SorcUpdateBallAngle(mobj_t * actor);\n-void A_BounceCheck(mobj_t * actor);\n-void A_SorcFX1Seek(mobj_t * actor);\n-void A_SorcOffense1(mobj_t * actor);\n-void A_SorcOffense2(mobj_t * actor);\n-\n \n // Spawn spinning balls above head - actor is sorcerer\n void A_SorcSpinBalls(mobj_t * actor)"
+  },
+  {
+    "sha": "7bbd0034cd367fcc11858a2466921aab27bfc21e",
+    "filename": "p_enemy.c",
+    "status": "added",
+    "additions": 5403,
+    "deletions": 0,
+    "changes": 5403,
+    "blob_url": "https://github.com/shenxianpeng/test-repo/blob/662ad4cf90084063ea9c089b8de4aff0b8959d0e/p_enemy.c",
+    "raw_url": "https://github.com/shenxianpeng/test-repo/raw/662ad4cf90084063ea9c089b8de4aff0b8959d0e/p_enemy.c",
+    "contents_url": "https://api.github.com/repos/shenxianpeng/test-repo/contents/p_enemy.c?ref=662ad4cf90084063ea9c089b8de4aff0b8959d0e"
   }
 ]

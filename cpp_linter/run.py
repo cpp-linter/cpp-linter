@@ -414,11 +414,7 @@ def filter_out_non_source_files(
                 )
             if file["status"] == "added":
                 # check all lines in newly created files
-                file_contents = Path(file["filename"]).read_bytes()
-                total_line_count = file_contents.count(b"\n") + int(
-                    # + 1 if no LF on last line in file
-                    not file_contents.endswith(b"\n")
-                )
+                total_line_count: int = file["additions"] + 1
                 file["line_filter"] = dict(
                     diff_chunks=[[1, total_line_count]],
                     lines_added=[[1, total_line_count]],
