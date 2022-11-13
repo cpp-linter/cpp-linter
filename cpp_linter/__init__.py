@@ -92,7 +92,7 @@ def get_line_cnt_from_cols(file_path: str, offset: int) -> Tuple[int, int]:
 
 
 def range_of_changed_lines(
-    file_obj: Dict[str, Any], lines_changed_only: int
+    file_obj: Dict[str, Any], lines_changed_only: int, get_ranges: bool = False
 ) -> List[int]:
     """Assemble a list of lines changed.
 
@@ -110,6 +110,8 @@ def range_of_changed_lines(
         ranges = file_obj["line_filter"][
             "diff_chunks" if lines_changed_only == 1 else "lines_added"
         ]
+        if get_ranges:
+            return ranges
         return [l for r in ranges for l in range(r[0], r[1])]
     return []
 

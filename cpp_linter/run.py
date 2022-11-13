@@ -565,7 +565,7 @@ def run_clang_tidy(
             database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
         cmds.append(database)
     line_ranges = dict(
-        name=filename, lines=range_of_changed_lines(file_obj, lines_changed_only)
+        name=filename, lines=range_of_changed_lines(file_obj, lines_changed_only, True)
     )
     if line_ranges["lines"]:
         # logger.info("line_filter = %s", json.dumps([line_ranges]))
@@ -615,7 +615,6 @@ def run_clang_format(
         "--output-replacements-xml",
     ]
     ranges = range_of_changed_lines(file_obj, lines_changed_only)
-    print("ranges:", ranges)
     if ranges:
         cmds.append(f"--lines={ranges[0]}:{ranges[1]}")
     cmds.append(PurePath(filename).as_posix())
