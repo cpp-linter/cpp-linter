@@ -425,11 +425,11 @@ def filter_out_non_source_files(
                 )
 
             # conditionally include file if lines changed warrant attention
-            if (lines_changed_only == 1 and file["line_filter"]["diff_chunks"]) or (
-                lines_changed_only == 2 and file["line_filter"]["lines_added"]
+            if (
+                (lines_changed_only == 1 and file["line_filter"]["diff_chunks"])
+                or (lines_changed_only == 2 and file["line_filter"]["lines_added"])
+                or not lines_changed_only
             ):
-                files.append(file)
-            elif not lines_changed_only:  # or lint whole file
                 files.append(file)
 
     if not files:
