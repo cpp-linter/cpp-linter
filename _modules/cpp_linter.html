@@ -486,7 +486,7 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Response</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># Used to avoid circular imports</span>
@@ -574,8 +574,8 @@
 
 
 <div class="viewcode-block" id="range_of_changed_lines"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.range_of_changed_lines">[docs]</a><span class="k">def</span> <span class="nf">range_of_changed_lines</span><span class="p">(</span>
-    <span class="n">file_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="n">file_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">get_ranges</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
     <span class="sd">&quot;&quot;&quot;Assemble a list of lines changed.</span>
 
 <span class="sd">    :param file_obj: The file&#39;s JSON object.</span>
@@ -585,15 +585,22 @@
 <span class="sd">        - ``1``: focuses on any lines shown in the event&#39;s diff (may include</span>
 <span class="sd">          unchanged lines).</span>
 <span class="sd">        - ``2``: focuses strictly on lines in the diff that contain additions.</span>
+<span class="sd">    :param get_ranges: A flag to return sequence a list of sequences representing</span>
+<span class="sd">        `range()` parameters. Defaults to `False` since this is only required when</span>
+<span class="sd">        constructing clang-tidy CLI arguments.</span>
 <span class="sd">    :returns:</span>
-<span class="sd">        A list of line numbers for which to give attention.</span>
+<span class="sd">        A list of line numbers for which to give attention. If ``get_ranges`` is</span>
+<span class="sd">        asserted, then the returned list will be a list of ranges.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">lines_changed_only</span> <span class="ow">and</span> <span class="s2">&quot;line_filter&quot;</span> <span class="ow">in</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">ranges</span> <span class="o">=</span> <span class="n">file_obj</span><span class="p">[</span><span class="s2">&quot;line_filter&quot;</span><span class="p">][</span>
             <span class="s2">&quot;diff_chunks&quot;</span> <span class="k">if</span> <span class="n">lines_changed_only</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;lines_added&quot;</span>
         <span class="p">]</span>
+        <span class="k">if</span> <span class="n">get_ranges</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ranges</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">ranges</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
-    <span class="k">return</span> <span class="p">[]</span></div>
+    <span class="c1"># we return an empty list (instead of None) here so we can still iterate it</span>
+    <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># type: ignore[return-value]</span></div>
 
 
 <div class="viewcode-block" id="log_response_msg"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.log_response_msg">[docs]</a><span class="k">def</span> <span class="nf">log_response_msg</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
