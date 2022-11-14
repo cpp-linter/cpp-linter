@@ -22,10 +22,12 @@ CLANG_VERSION = os.getenv("CLANG_VERSION", "12")
 @pytest.mark.parametrize(
     "extensions", [(["c"]), pytest.param(["h"], marks=pytest.mark.xfail)]
 )
+@pytest.mark.parametrize("lines_changed_only", [0, 1, 2])
 def test_lines_changed_only(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
     extensions: List[str],
+    lines_changed_only: int,
 ):
     """Test for lines changes in diff.
 
@@ -42,12 +44,18 @@ def test_lines_changed_only(
         ext_list=extensions,
         ignored=[".github"],
         not_ignored=[],
+        lines_changed_only=lines_changed_only,
     ):
-        test_result = Path("expected_result.json").read_text(encoding="utf-8")
-        for file, result in zip(
-            cpp_linter.Globals.FILES,
-            json.loads(test_result),
-        ):
+        # uncomment to update the expected test's results
+        # Path(f"expected_result{lines_changed_only}.json").write_text(
+        #     json.dumps(cpp_linter.Globals.FILES, indent=2), encoding="utf-8"
+        # )
+        test_result = json.loads(
+            Path(f"expected_result{lines_changed_only}.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        for file, result in zip(cpp_linter.Globals.FILES, test_result):
             expected = result["line_filter"]["diff_chunks"]
             assert file["line_filter"]["diff_chunks"] == expected
             expected = result["line_filter"]["lines_added"]
@@ -64,7 +72,7 @@ def setup_test_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     """Setup a test repo to run the rest of the tests in this module."""
     test_root = Path(__file__).parent
     cpp_linter.Globals.FILES = json.loads(
-        Path(test_root / "expected_result.json").read_text(encoding="utf-8")
+        Path(test_root / "expected_result0.json").read_text(encoding="utf-8")
     )
     # flush output from any previous tests
     cpp_linter.Globals.OUTPUT = ""

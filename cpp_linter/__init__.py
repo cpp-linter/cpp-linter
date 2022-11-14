@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import platform
 import logging
-from typing import TYPE_CHECKING, List, Dict, Tuple, Any
+from typing import TYPE_CHECKING, List, Dict, Tuple, Any, Union
 from requests import Response
 
 if TYPE_CHECKING:  # Used to avoid circular imports
@@ -92,8 +92,8 @@ def get_line_cnt_from_cols(file_path: str, offset: int) -> Tuple[int, int]:
 
 
 def range_of_changed_lines(
-    file_obj: Dict[str, Any], lines_changed_only: int
-) -> List[int]:
+    file_obj: Dict[str, Any], lines_changed_only: int, get_ranges: bool = False
+) -> Union[List[int], List[List[int]]]:
     """Assemble a list of lines changed.
 
     :param file_obj: The file's JSON object.
@@ -103,15 +103,22 @@ def range_of_changed_lines(
         - ``1``: focuses on any lines shown in the event's diff (may include
           unchanged lines).
         - ``2``: focuses strictly on lines in the diff that contain additions.
+    :param get_ranges: A flag to return sequence a list of sequences representing
+        `range()` parameters. Defaults to `False` since this is only required when
+        constructing clang-tidy CLI arguments.
     :returns:
-        A list of line numbers for which to give attention.
+        A list of line numbers for which to give attention. If ``get_ranges`` is
+        asserted, then the returned list will be a list of ranges.
     """
     if lines_changed_only and "line_filter" in file_obj.keys():
         ranges = file_obj["line_filter"][
             "diff_chunks" if lines_changed_only == 1 else "lines_added"
         ]
+        if get_ranges:
+            return ranges
         return [l for r in ranges for l in range(r[0], r[1])]
-    return []
+    # we return an empty list (instead of None) here so we can still iterate it
+    return []  # type: ignore[return-value]
 
 
 def log_response_msg() -> bool:
