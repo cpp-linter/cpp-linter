@@ -92,13 +92,8 @@ def test_get_changed_files(caplog: pytest.LogCaptureFixture):
     execute anyway.
     """
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    cpp_linter.run.GITHUB_REPOSITORY = "cpp-linter/test-cpp-linter-action"
-    cpp_linter.run.GITHUB_SHA = "76adde5367196cd57da5bef49a4f09af6175fd3f"
-    cpp_linter.run.GITHUB_EVENT_NAME = "push"
     get_list_of_changed_files()
-    # pylint: disable=no-member
-    assert Globals.FILES
-    # pylint: enable=no-member
+    assert Globals.FILES  # pylint: disable=no-member
 
 
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])

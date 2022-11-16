@@ -3,15 +3,15 @@ from pathlib import Path
 import re
 import subprocess
 from typing import List, Dict, Any
+from . import logger
 
 
-def get_sha(parent: int = 0) -> str:
+def get_sha(parent: int = 1) -> str:
     """use ``git`` to fetch the full SHA of the current commit."""
-    level = "HEAD" + ("" if not parent else f"^{parent}")
     result = subprocess.run(
-        ["git", "rev-parse", level], capture_output=True, check=True
+        ["git", "log", f"-{parent}", "--format=%H"], capture_output=True, check=True
     )
-    return result.stdout.decode(encoding="utf-8").rstrip("\n")
+    return result.stdout.splitlines()[-1].decode(encoding="utf-8")
 
 
 def get_diff(parents: int = 1) -> str:
@@ -19,11 +19,12 @@ def get_diff(parents: int = 1) -> str:
 
     :param commit_sha: The SHA for the commit to focus on.
     """
+    head = get_sha(parents)
+    base = get_sha(parents + 1)
+    logger.info("getting diff between %s...%s", head, base)
     result = subprocess.run(
-        ["git", "diff", f"HEAD^{parents}"], capture_output=True, check=True
+        ["git", "show", f"{head}", "--format=%n"], capture_output=True, check=True
     )
-    head = get_sha()
-    base = get_sha(parents)
     Path(f"{head[-6:]}...{base[-6:]}.diff").write_bytes(result.stdout)
     return result.stdout.decode(encoding="utf-8")
 
@@ -43,7 +44,7 @@ def consolidate_list_to_ranges(just_numbers: List[int]) -> List[List[int]]:
     return result
 
 
-DIFF_FILE_DELIMITER = re.compile(r"diff --git a/.*?\sb/.*$", re.MULTILINE)
+DIFF_FILE_DELIMITER = re.compile(r"^diff --git a/.*$", re.MULTILINE)
 DIFF_FILE_NAME = re.compile(r"^\+\+\+\sb?/(.*)$", re.MULTILINE)
 HUNK_INFO = re.compile(r"@@\s\-\d+,\d+\s\+(\d+,\d+)\s@@", re.MULTILINE)
 
@@ -55,12 +56,15 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
     :returns: A `list` of `dict` containing information about the files changed.
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
-    file_objects = []
-    file_diffs = DIFF_FILE_DELIMITER.split(full_diff)
+    file_objects: List[Dict[str, Any]] = []
+    logger.debug("full diff:\n%s", full_diff.strip("\n"))
+    file_diffs = DIFF_FILE_DELIMITER.split(full_diff.lstrip("\n"))
     for diff in file_diffs:
         if not diff or diff.startswith("deleted file"):
             continue
-        filename = DIFF_FILE_NAME.findall(diff)[0]
+        filename_match = DIFF_FILE_NAME.search(diff)
+        assert filename_match is not None
+        filename = filename_match.groups(0)[0]
         status = "created" if diff.startswith("new file") else "changed"
         file_objects.append(dict(filename=filename, status=status))
         first_hunk = HUNK_INFO.search(diff)
