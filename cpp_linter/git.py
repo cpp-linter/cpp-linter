@@ -19,14 +19,15 @@ def get_diff(parents: int = 1) -> str:
 
     :param commit_sha: The SHA for the commit to focus on.
     """
-    head = get_sha(parents)
-    base = get_sha(parents + 1)
+    head = "HEAD"
+    base = get_sha(parents)
     logger.info("getting diff between %s...%s", head, base)
     result = subprocess.run(
-        ["git", "show", f"{head}", "--format=%n"], capture_output=True, check=True
+        ["git", "status", "-v"], capture_output=True, check=True
     )
-    Path(f"{head[-6:]}...{base[-6:]}.diff").write_bytes(result.stdout)
-    return result.stdout.decode(encoding="utf-8")
+    diff_start = result.stdout.find(b"diff --git")
+    Path(f"{head}...{base[:6]}.diff").write_bytes(result.stdout[diff_start:])
+    return result.stdout[diff_start:].decode(encoding="utf-8")
 
 
 def consolidate_list_to_ranges(just_numbers: List[int]) -> List[List[int]]:
@@ -65,7 +66,7 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
         filename_match = DIFF_FILE_NAME.search(diff)
         assert filename_match is not None
         filename = filename_match.groups(0)[0]
-        status = "created" if diff.startswith("new file") else "changed"
+        status = "added" if diff.startswith("new file") else "changed"
         file_objects.append(dict(filename=filename, status=status))
         first_hunk = HUNK_INFO.search(diff)
         if first_hunk is None:

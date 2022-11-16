@@ -35,12 +35,17 @@ if not FOUND_RICH_LIB:
 IS_ON_RUNNER = bool(os.getenv("CI"))
 GITHUB_SHA = os.getenv("GITHUB_SHA", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", os.getenv("GIT_REST_API", ""))
-API_HEADERS = {
-    "Accept": "application/vnd.github.v3.text+json",
-}
-if GITHUB_TOKEN:
-    API_HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
 IS_ON_WINDOWS = platform.system().lower() == "windows"
+
+
+def make_headers(use_diff: bool = False):
+    """create a dict for use in REST API headers."""
+    headers = {
+        "Accept": "application/vnd.github." + ("diff" if use_diff else "text+json"),
+    }
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"token {GITHUB_TOKEN}"
+    return headers
 
 
 class Globals:

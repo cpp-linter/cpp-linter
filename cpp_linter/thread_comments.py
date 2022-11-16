@@ -7,7 +7,7 @@ from . import (
     Globals,
     GlobalParser,
     logger,
-    API_HEADERS,
+    make_headers,
     GITHUB_SHA,
     log_response_msg,
     range_of_changed_lines,
@@ -37,7 +37,7 @@ def remove_bot_comments(comments_url: str, user_id: int):
             # remove other outdated comments but don't remove the last comment
             Globals.response_buffer = requests.delete(
                 comment["url"],
-                headers=API_HEADERS,
+                headers=make_headers(),
             )
             logger.info(
                 "Got %d from DELETE %s",
@@ -226,7 +226,7 @@ def get_review_id(reviews_url: str, user_id: int) -> Optional[int]:
     if review_id is None:  # create a PR review
         Globals.response_buffer = requests.post(
             reviews_url,
-            headers=API_HEADERS,
+            headers=make_headers(),
             data=json.dumps(
                 {
                     "body": "<!-- cpp linter action -->\n"

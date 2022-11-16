@@ -3,12 +3,10 @@ REST API. If executed from command-line, then `main()` is the entrypoint.
 
 .. seealso::
 
-    - `github rest API reference for pulls
-      <https://docs.github.com/en/rest/reference/pulls>`_
-    - `github rest API reference for repos
-      <https://docs.github.com/en/rest/reference/repos>`_
-    - `github rest API reference for issues
-      <https://docs.github.com/en/rest/reference/issues>`_
+    - `github rest API reference for pulls <https://docs.github.com/en/rest/pulls>`_
+    - `github rest API reference for commits <https://docs.github.com/en/rest/commits>`_
+    - `github rest API reference for repos <https://docs.github.com/en/rest/repos>`_
+    - `github rest API reference for issues <https://docs.github.com/en/rest/issues>`_
 """
 import subprocess
 from pathlib import Path, PurePath
@@ -26,7 +24,7 @@ from . import (
     logger,
     GITHUB_TOKEN,
     GITHUB_SHA,
-    API_HEADERS,
+    make_headers,
     IS_ON_RUNNER,
     log_response_msg,
     range_of_changed_lines,
@@ -270,7 +268,7 @@ def set_exit_code(override: Optional[int] = None) -> int:
     try:
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as env_file:
             env_file.write(f"checks-failed={exit_code}\n")
-    except FileNotFoundError:  # pragma: no cover
+    except (KeyError, FileNotFoundError):  # pragma: no cover
         # not executed on a github CI runner; ignore this error when executed locally
         pass
     return exit_code
@@ -331,21 +329,24 @@ def get_list_of_changed_files() -> None:
     """Fetch the JSON payload of the event's changed files. Sets the
     :attr:`~cpp_linter.Globals.FILES` attribute."""
     start_log_group("Get list of specified source files")
-    if GITHUB_EVENT_NAME == "pull_request":
+    if IS_ON_RUNNER:
         files_link = f"{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/"
-        files_link += f"pulls/{Globals.EVENT_PAYLOAD['number']}/files"
+        if GITHUB_EVENT_NAME == "pull_request":
+            files_link += f"pulls/{Globals.EVENT_PAYLOAD['number']}"
+        else:
+            if GITHUB_EVENT_NAME != "push":
+                logger.warning(
+                    "Triggered on unsupported event '%s'. Behaving like a push event.",
+                    GITHUB_EVENT_NAME,
+                )
+            files_link += f"commits/{GITHUB_SHA}"
         logger.info("Fetching files list from url: %s", files_link)
-        Globals.response_buffer = requests.get(files_link, headers=API_HEADERS)
+        Globals.response_buffer = requests.get(
+            files_link, headers=make_headers(use_diff=True)
+        )
         log_response_msg()
-        Globals.FILES = Globals.response_buffer.json()
+        Globals.FILES = parse_diff(Globals.response_buffer.text)
     else:
-        if GITHUB_EVENT_NAME != "push":
-            logger.warning(
-                "Triggered on unsupported event '%s'. Behaving like a push event.",
-                GITHUB_EVENT_NAME,
-            )
-        # files_link += f"commits/{GITHUB_SHA}"
-        # Globals.FILES = Globals.response_buffer.json()["files"]
         Globals.FILES = parse_diff(get_diff())
 
 
@@ -382,7 +383,7 @@ def filter_out_non_source_files(
                     diff_chunks=ranges,
                     lines_added=consolidate_list_to_ranges(additions),
                 )
-            if file["status"] == "added":
+            if "status" in file and file["status"] == "added" and "additions" in file:
                 # check all lines in newly created files
                 total_line_count: int = file["additions"] + 1
                 file["line_filter"] = dict(
@@ -719,7 +720,7 @@ def post_push_comment(base_url: str, user_id: int) -> bool:
         payload = json.dumps({"body": Globals.OUTPUT})
         logger.debug("payload body:\n%s", json.dumps({"body": Globals.OUTPUT}))
         Globals.response_buffer = requests.post(
-            comments_url, headers=API_HEADERS, data=payload
+            comments_url, headers=make_headers(), data=payload
         )
         logger.info(
             "Got %d response from POSTing comment", Globals.response_buffer.status_code
@@ -782,7 +783,7 @@ def post_diff_comments(base_url: str, user_id: int) -> bool:
         if comment_id is not None:
             Globals.response_buffer = requests.patch(
                 comments_url + comment_id,
-                headers=API_HEADERS,
+                headers=make_headers(),
                 data=json.dumps({"body": body["body"]}),
             )
             logger.info(
@@ -794,7 +795,7 @@ def post_diff_comments(base_url: str, user_id: int) -> bool:
             log_response_msg()
         else:
             Globals.response_buffer = requests.post(
-                reviews_url + "comments", headers=API_HEADERS, data=json.dumps(body)
+                reviews_url + "comments", headers=make_headers(), data=json.dumps(body)
             )
             logger.info(
                 "Got %d from POSTing review comment %d",
@@ -825,7 +826,7 @@ def post_pr_comment(base_url: str, user_id: int) -> bool:
             "payload body:\n%s", json.dumps({"body": Globals.OUTPUT}, indent=2)
         )
         Globals.response_buffer = requests.post(
-            comments_url, headers=API_HEADERS, data=payload
+            comments_url, headers=make_headers(), data=payload
         )
         logger.info("Got %d from POSTing comment", Globals.response_buffer.status_code)
         log_response_msg()
