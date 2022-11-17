@@ -610,9 +610,12 @@ def run_clang_format(
         f"-style={style}",
         "--output-replacements-xml",
     ]
-    ranges = range_of_changed_lines(file_obj, lines_changed_only)
-    if ranges:
-        cmds.append(f"--lines={ranges[0]}:{ranges[1]}")
+    ranges = cast(
+        List[List[int]],
+        range_of_changed_lines(file_obj, lines_changed_only, get_ranges=True),
+    )
+    for span in ranges:
+        cmds.append(f"--lines={span[0]}:{span[1]}")
     cmds.append(PurePath(filename).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
