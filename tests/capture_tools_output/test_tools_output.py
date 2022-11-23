@@ -80,7 +80,7 @@ def setup_test_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     cpp_linter.GlobalParser.tidy_notes = []
     cpp_linter.GlobalParser.tidy_advice = []
 
-    repo_root = TEST_REPO.sub("\\1", cpp_linter.Globals.FILES[0]["blob_url"])
+    repo_root = TEST_REPO.sub("\\1", cpp_linter.Globals.FILES[0]["raw_url"])
     return_path = test_root / repo_root
     if not return_path.exists():
         return_path.mkdir()

@@ -16,6 +16,7 @@ from cpp_linter.run import (
     list_source_files,
     get_list_of_changed_files,
 )
+from cpp_linter.git import get_diff
 
 
 def test_exit_override(tmp_path: Path):
@@ -93,7 +94,14 @@ def test_get_changed_files(caplog: pytest.LogCaptureFixture):
     """
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     get_list_of_changed_files()
-    assert Globals.FILES  # pylint: disable=no-member
+    if not cpp_linter.IS_ON_RUNNER:
+        # local coverage test runs should reflect if files are added to the index.
+        if get_diff().strip():
+            assert Globals.FILES
+        else:
+            assert not Globals.FILES
+    else:
+        assert Globals.FILES
 
 
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])
