@@ -92,12 +92,21 @@ def prep_tmp_dir(
                 str(Path(__file__).parent / repo / f".clang-{config}"),
                 str(tmp_path / f".clang-{config}"),
             )
-    repo_path = Path(repo.split("/")[1])
-    if not repo_path.exists():
-        repo_path.mkdir()
-    monkeypatch.chdir(str(repo_path))
+    # Make a folder to download the needed files in the tests' temp folder. This is
+    # meant to avoid re-downloading the same files for multiple tests run against the
+    # same sample repo.
+    repo_cache = tmp_path.parent / repo
+    repo_cache.mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(str(repo_cache))
     filter_out_non_source_files(["c", "h"], [".github"], [], lines_changed_only)
     cpp_linter.run.verify_files_are_present()
+    repo_path = tmp_path / repo.split("/")[1]
+    shutil.copytree(
+        str(repo_cache),
+        str(repo_path),
+        ignore=shutil.ignore_patterns("\\.changed_files.json"),
+    )
+    monkeypatch.chdir(repo_path)
 
 
 @pytest.mark.parametrize(
