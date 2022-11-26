@@ -14,6 +14,7 @@ import os
 import sys
 import configparser
 import json
+import urllib.parse
 import logging
 from typing import cast, List, Dict, Any, Tuple, Optional
 import requests
@@ -221,8 +222,10 @@ def verify_files_are_present() -> None:
         file_name = Path(file["filename"])
         if not file_name.exists():
             logger.warning("Could not find %s! Did you checkout the repo?", file_name)
-            logger.info("Downloading file from url: %s", file["raw_url"])
-            Globals.response_buffer = requests.get(file["raw_url"])
+            raw_url = f"https://github.com/{GITHUB_REPOSITORY}/raw/{GITHUB_SHA}/"
+            raw_url += urllib.parse.quote(file["filename"], safe="")
+            logger.info("Downloading file from url: %s", raw_url)
+            Globals.response_buffer = requests.get(raw_url)
             # retain the repo's original structure
             Path.mkdir(file_name.parent, parents=True, exist_ok=True)
             file_name.write_text(Globals.response_buffer.text, encoding="utf-8")
