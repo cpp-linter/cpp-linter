@@ -1,0 +1,19 @@
+[
+  {
+    "filename": "src/hexen/p_local.h",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          194,
+          217
+        ]
+      ],
+      "lines_added": [
+        [
+          197,
+          214
+        ]
+      ]
+    }
+  }
+]

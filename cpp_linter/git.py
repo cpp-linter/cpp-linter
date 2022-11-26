@@ -77,7 +77,7 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
     file_objects: List[Dict[str, Any]] = []
-    logger.debug("full diff:\n%s", full_diff.strip("\n"))
+    # logger.debug("full diff:\n%s", full_diff.strip("\n"))
     file_diffs = DIFF_FILE_DELIMITER.split(full_diff.lstrip("\n"))
     for diff in file_diffs:
         if not diff or diff.startswith("deleted file"):
@@ -85,8 +85,7 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
         filename_match = DIFF_FILE_NAME.search(diff)
         assert filename_match is not None
         filename = filename_match.groups(0)[0]
-        status = "added" if diff.startswith("new file") else "changed"
-        file_objects.append(dict(filename=filename, status=status))
+        file_objects.append(dict(filename=filename))
         first_hunk = HUNK_INFO.search(diff)
         if first_hunk is None:
             continue

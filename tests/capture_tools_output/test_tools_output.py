@@ -1,15 +1,17 @@
 """Various tests related to the ``lines_changed_only`` option."""
 import os
 import logging
+import shutil
 from typing import Dict, Any, cast, List, Optional
 from pathlib import Path
 import json
 import re
 import pytest
 import cpp_linter
+import cpp_linter.run
+from cpp_linter.git import parse_diff
 from cpp_linter.run import (
     filter_out_non_source_files,
-    verify_files_are_present,
     capture_clang_tools_output,
     make_annotations,
     log_commander,
@@ -18,14 +20,108 @@ from cpp_linter.thread_comments import list_diff_comments
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "12")
 
+TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
+    dict(
+        repo="chocolate-doom/chocolate-doom",
+        commit="67715d6e2725322e6132e9ff99b9a2a3f3b10c83",
+    ),
+    dict(
+        repo="chocolate-doom/chocolate-doom",
+        commit="71091562db5b0e7853d08ffa2f110af49cc3bc0d",
+    ),
+    dict(
+        repo="libvips/libvips",
+        commit="fe82be345a5b654a76835a7aea5a804bd9ebff0a",
+    ),
+    dict(
+        repo="shenxianpeng/test-repo",
+        commit="662ad4cf90084063ea9c089b8de4aff0b8959d0e",
+    ),
+]
+
+
+def _translate_lines_changed_only_value(value: int) -> str:
+    """generates an id for tests that use lines-changed-only settings."""
+    ret_vals = ["all lines", "only added", "only diff"]
+    return ret_vals[value]
+
+
+def flush_prior_artifacts():
+    """flush output from any previous tests"""
+    cpp_linter.Globals.OUTPUT = ""
+    cpp_linter.Globals.FILES.clear()
+    cpp_linter.GlobalParser.format_advice.clear()
+    cpp_linter.GlobalParser.tidy_advice.clear()
+    cpp_linter.GlobalParser.tidy_notes.clear()
+
+
+def prep_repo(
+    monkeypatch: pytest.MonkeyPatch,
+    repo: str,
+    commit: str,
+):
+    """Setup a test repo to run the rest of the tests in this module."""
+    for name, value in zip(["GITHUB_REPOSITORY", "GITHUB_SHA"], [repo, commit]):
+        monkeypatch.setattr(cpp_linter.run, name, value)
+
+    flush_prior_artifacts()
+    test_diff = Path(__file__).parent / repo / f"{commit}.diff"
+    monkeypatch.setattr(
+        cpp_linter.Globals, "FILES", parse_diff(test_diff.read_text(encoding="utf-8"))
+    )
+
+
+def prep_tmp_dir(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    repo: str,
+    commit: str,
+    copy_configs: bool = False,
+    lines_changed_only: int = 0,
+):
+    """Some extra setup for test's temp directory to ensure needed files exist."""
+    monkeypatch.chdir(str(tmp_path))
+    prep_repo(
+        monkeypatch,
+        repo=repo,
+        commit=commit,
+    )
+    if copy_configs:
+        for config in ("format", "tidy"):
+            shutil.copyfile(
+                str(Path(__file__).parent / repo / f".clang-{config}"),
+                str(tmp_path / f".clang-{config}"),
+            )
+    repo_path = Path(repo.split("/")[1])
+    if not repo_path.exists():
+        repo_path.mkdir()
+    monkeypatch.chdir(str(repo_path))
+    filter_out_non_source_files(["c", "h"], [".github"], [], lines_changed_only)
+    cpp_linter.run.verify_files_are_present()
+
 
 @pytest.mark.parametrize(
-    "extensions", [(["c"]), pytest.param(["h"], marks=pytest.mark.xfail)]
+    "repo_commit_pair",
+    [
+        (TEST_REPO_COMMIT_PAIRS[0]),
+        (TEST_REPO_COMMIT_PAIRS[1]),
+        (TEST_REPO_COMMIT_PAIRS[2]),
+        (TEST_REPO_COMMIT_PAIRS[3]),
+    ],
+    ids=["line ranges", "no additions", "large diff", "new file"],
 )
-@pytest.mark.parametrize("lines_changed_only", [0, 1, 2])
+@pytest.mark.parametrize(
+    "extensions",
+    [(["c", "h"]), pytest.param(["hpp"], marks=pytest.mark.xfail)],
+    ids=[".c,.h", ".hpp"],
+)
+@pytest.mark.parametrize(
+    "lines_changed_only", [0, 1, 2], ids=_translate_lines_changed_only_value
+)
 def test_lines_changed_only(
-    monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    repo_commit_pair: Dict[str, str],
     extensions: List[str],
     lines_changed_only: int,
 ):
@@ -35,26 +131,25 @@ def test_lines_changed_only(
     1. ranges of diff chunks.
     2. ranges of lines in diff that only contain additions.
     """
-    monkeypatch.chdir(str(Path(__file__).parent))
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    cpp_linter.Globals.FILES = json.loads(
-        Path("event_files.json").read_text(encoding="utf-8")
-    )
+    repo, commit = repo_commit_pair["repo"], repo_commit_pair["commit"]
+    prep_repo(monkeypatch, repo, commit)
     if filter_out_non_source_files(
         ext_list=extensions,
         ignored=[".github"],
         not_ignored=[],
         lines_changed_only=lines_changed_only,
     ):
-        # uncomment to update the expected test's results
-        # Path(f"expected_result{lines_changed_only}.json").write_text(
-        #     json.dumps(cpp_linter.Globals.FILES, indent=2), encoding="utf-8"
-        # )
-        test_result = json.loads(
-            Path(f"expected_result{lines_changed_only}.json").read_text(
-                encoding="utf-8"
-            )
+        expected_results_json = (
+            Path(__file__).parent
+            / repo
+            / f"expected-result_{commit[:6]}-{lines_changed_only}.json"
         )
+        # uncomment to update the expected test's results
+        # expected_results_json.write_text(
+        #     json.dumps(cpp_linter.Globals.FILES, indent=2) + "\n", encoding="utf-8"
+        # )
+        test_result = json.loads(expected_results_json.read_text(encoding="utf-8"))
         for file, result in zip(cpp_linter.Globals.FILES, test_result):
             expected = result["line_filter"]["diff_chunks"]
             assert file["line_filter"]["diff_chunks"] == expected
@@ -62,30 +157,6 @@ def test_lines_changed_only(
             assert file["line_filter"]["lines_added"] == expected
     else:
         raise RuntimeError("test failed to find files")
-
-
-TEST_REPO = re.compile(r".*github.com/(?:\w|\-|_)+/((?:\w|\-|_)+)/.*")
-
-
-@pytest.fixture(autouse=True)
-def setup_test_repo(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Setup a test repo to run the rest of the tests in this module."""
-    test_root = Path(__file__).parent
-    cpp_linter.Globals.FILES = json.loads(
-        Path(test_root / "expected_result0.json").read_text(encoding="utf-8")
-    )
-    # flush output from any previous tests
-    cpp_linter.Globals.OUTPUT = ""
-    cpp_linter.GlobalParser.format_advice = []
-    cpp_linter.GlobalParser.tidy_notes = []
-    cpp_linter.GlobalParser.tidy_advice = []
-
-    repo_root = TEST_REPO.sub("\\1", cpp_linter.Globals.FILES[0]["raw_url"])
-    return_path = test_root / repo_root
-    if not return_path.exists():
-        return_path.mkdir()
-    monkeypatch.chdir(str(return_path))
-    verify_files_are_present()
 
 
 def match_file_json(filename: str) -> Optional[Dict[str, Any]]:
@@ -105,15 +176,24 @@ TIDY_RECORD_LINE = re.compile(r".*,line=(\d+).*")
 
 
 @pytest.mark.parametrize(
-    "lines_changed_only", [0, 1, 2], ids=["all lines", "only diff", "only added"]
+    "lines_changed_only", [0, 1, 2], ids=_translate_lines_changed_only_value
 )
 @pytest.mark.parametrize("style", ["file", "llvm", "google"])
 def test_format_annotations(
     caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
     lines_changed_only: int,
     style: str,
 ):
     """Test clang-format annotations."""
+    prep_tmp_dir(
+        tmp_path,
+        monkeypatch,
+        **TEST_REPO_COMMIT_PAIRS[0],
+        copy_configs=True,
+        lines_changed_only=lines_changed_only,
+    )
     capture_clang_tools_output(
         version=CLANG_VERSION,
         checks="-*",  # disable clang-tidy output
@@ -147,7 +227,7 @@ def test_format_annotations(
 
 
 @pytest.mark.parametrize(
-    "lines_changed_only", [0, 1, 2], ids=["all lines", "only diff", "only added"]
+    "lines_changed_only", [0, 1, 2], ids=_translate_lines_changed_only_value
 )
 @pytest.mark.parametrize(
     "checks",
@@ -160,10 +240,19 @@ def test_format_annotations(
 )
 def test_tidy_annotations(
     caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
     lines_changed_only: int,
     checks: str,
 ):
     """Test clang-tidy annotations."""
+    prep_tmp_dir(
+        tmp_path,
+        monkeypatch,
+        **TEST_REPO_COMMIT_PAIRS[0],
+        copy_configs=False,
+        lines_changed_only=lines_changed_only,
+    )
     capture_clang_tools_output(
         version=CLANG_VERSION,
         checks=checks,
@@ -192,12 +281,25 @@ def test_tidy_annotations(
             raise RuntimeWarning(f"unrecognized record: {message}")
 
 
-@pytest.mark.parametrize("lines_changed_only", [1, 2], ids=["only diff", "only added"])
-def test_diff_comment(lines_changed_only: int):
+@pytest.mark.parametrize(
+    "lines_changed_only", [1, 2], ids=_translate_lines_changed_only_value
+)
+def test_diff_comment(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    lines_changed_only: int,
+):
     """Tests code that isn't actually used (yet) for posting
     comments (not annotations) in the event's diff.
 
     Remember, diff comments should only focus on lines in the diff."""
+    prep_tmp_dir(
+        tmp_path,
+        monkeypatch,
+        **TEST_REPO_COMMIT_PAIRS[0],
+        copy_configs=True,
+        lines_changed_only=lines_changed_only,
+    )
     capture_clang_tools_output(
         version=CLANG_VERSION,
         checks="",

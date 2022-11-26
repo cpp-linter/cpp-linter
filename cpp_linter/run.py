@@ -34,7 +34,7 @@ from .clang_tidy_yml import parse_tidy_suggestions_yml
 from .clang_format_xml import parse_format_replacements_xml
 from .clang_tidy import parse_tidy_output, TidyNotification
 from .thread_comments import remove_bot_comments, list_diff_comments  # , get_review_id
-from .git import consolidate_list_to_ranges, parse_patch, get_diff, parse_diff
+from .git import get_diff, parse_diff
 from .cli import cli_arg_parser
 
 # global constant variables
@@ -165,27 +165,11 @@ def filter_out_non_source_files(
     for file in Globals.FILES:
         if (
             PurePath(file["filename"]).suffix.lstrip(".") in ext_list
-            and not file["status"].endswith("removed")
             and (
                 not is_file_in_list(ignored, file["filename"], "ignored")
                 or is_file_in_list(not_ignored, file["filename"], "not ignored")
             )
         ):
-            if "patch" in file.keys():
-                ranges, additions = parse_patch(file["patch"])
-                file["line_filter"] = dict(
-                    diff_chunks=ranges,
-                    lines_added=consolidate_list_to_ranges(additions),
-                )
-            if "status" in file and file["status"] == "added" and "additions" in file:
-                # check all lines in newly created files
-                total_line_count: int = file["additions"] + 1
-                file["line_filter"] = dict(
-                    diff_chunks=[[1, total_line_count]],
-                    lines_added=[[1, total_line_count]],
-                )
-
-            # conditionally include file if lines changed warrant attention
             if (
                 (lines_changed_only == 1 and file["line_filter"]["diff_chunks"])
                 or (lines_changed_only == 2 and file["line_filter"]["lines_added"])

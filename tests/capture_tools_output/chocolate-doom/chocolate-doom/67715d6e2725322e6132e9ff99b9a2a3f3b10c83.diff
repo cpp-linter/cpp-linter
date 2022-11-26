@@ -1,0 +1,593 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b73c7984c1..7f1eed09c6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -28,9 +28,21 @@ else()
+                         "-Wredundant-decls")
+ endif()
+
++option(ENABLE_SDL2_NET "Enable SDL2_net" On)
++option(ENABLE_SDL2_MIXER "Enable SDL2_mixer" On)
++
+ find_package(SDL2 2.0.7)
+-find_package(SDL2_mixer 2.0.2)
+-find_package(SDL2_net 2.0.0)
++if(ENABLE_SDL2_MIXER)
++    find_package(SDL2_mixer 2.0.2)
++else()
++    add_compile_definitions(DISABLE_SDL2MIXER=1)
++endif()
++
++if(ENABLE_SDL2_NET)
++    find_package(SDL2_net 2.0.0)
++else()
++    add_compile_definitions(DISABLE_SDL2NET=1)
++endif()
+
+ # Check for libsamplerate.
+ find_package(samplerate)
+diff --git a/configure.ac b/configure.ac
+index 8ef1d65ad3..fd5d8bcecd 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -32,8 +32,23 @@ then
+ fi
+
+ PKG_CHECK_MODULES(SDL, [sdl2 >= 2.0.7])
+-PKG_CHECK_MODULES(SDLMIXER, [SDL2_mixer >= 2.0.2])
+-PKG_CHECK_MODULES(SDLNET, [SDL2_net >= 2.0.0])
++# Check for SDL2_mixer
++AC_ARG_ENABLE([sdl2mixer],
++AS_HELP_STRING([--disable-sdl2mixer], [Disable SDL2_mixer support])
++)
++AS_IF([test "x$enable_sdl2mixer" != xno], [
++    PKG_CHECK_MODULES(SDLMIXER, [SDL2_mixer >= 2.0.2])], [
++    AC_DEFINE([DISABLE_SDL2MIXER], [1], [SDL2_mixer disabled])
++])
++
++# Check for networking
++AC_ARG_ENABLE([sdl2net],
++AS_HELP_STRING([--disable-sdl2net], [Disable SDL2_net support])
++)
++AS_IF([test "x$enable_sdl2net" != xno], [
++    PKG_CHECK_MODULES(SDLNET, [SDL2_net >= 2.0.0])], [
++    AC_DEFINE([DISABLE_SDL2NET], [1], [SDL2_net disabled])
++])
+
+ # Check for bash-completion.
+ AC_ARG_ENABLE([bash-completion],
+diff --git a/opl/CMakeLists.txt b/opl/CMakeLists.txt
+index f88a12a155..151f7617dd 100644
+--- a/opl/CMakeLists.txt
++++ b/opl/CMakeLists.txt
+@@ -12,4 +12,7 @@ add_library(opl STATIC
+ target_include_directories(opl
+                            INTERFACE "."
+                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+-target_link_libraries(opl SDL2::mixer)
++target_link_libraries(opl SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(opl SDL2::mixer)
++endif()
+diff --git a/opl/opl.c b/opl/opl.c
+index a1aa1d95c7..8486dcab67 100644
+--- a/opl/opl.c
++++ b/opl/opl.c
+@@ -50,7 +50,9 @@ static opl_driver_t *drivers[] =
+ #ifdef _WIN32
+     &opl_win32_driver,
+ #endif
++#ifndef DISABLE_SDL2MIXER
+     &opl_sdl_driver,
++#endif // DISABLE_SDL2MIXER
+     NULL
+ };
+
+diff --git a/opl/opl_sdl.c b/opl/opl_sdl.c
+index fc71be318b..7d531ae43f 100644
+--- a/opl/opl_sdl.c
++++ b/opl/opl_sdl.c
+@@ -33,6 +33,10 @@
+
+ #include "opl_queue.h"
+
++
++#ifndef DISABLE_SDL2MIXER
++
++
+ #define MAX_SOUND_SLICE_TIME 100 /* ms */
+
+ typedef struct
+@@ -511,3 +515,5 @@ opl_driver_t opl_sdl_driver =
+     OPL_SDL_AdjustCallbacks,
+ };
+
++
++#endif // DISABLE_SDL2MIXER
+diff --git a/pcsound/CMakeLists.txt b/pcsound/CMakeLists.txt
+index 7988b8bdf6..9924263aea 100644
+--- a/pcsound/CMakeLists.txt
++++ b/pcsound/CMakeLists.txt
+@@ -8,4 +8,7 @@ add_library(pcsound STATIC
+ target_include_directories(pcsound
+                            INTERFACE "."
+                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+-target_link_libraries(pcsound SDL2::mixer)
++target_link_libraries(pcsound SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(pcsound SDL2::mixer)
++endif()
+diff --git a/pcsound/pcsound.c b/pcsound/pcsound.c
+index c4dd97009a..4695c3780d 100644
+--- a/pcsound/pcsound.c
++++ b/pcsound/pcsound.c
+@@ -56,7 +56,9 @@ static pcsound_driver_t *drivers[] =
+ #ifdef _WIN32
+     &pcsound_win32_driver,
+ #endif
++#ifndef DISABLE_SDL2MIXER
+     &pcsound_sdl_driver,
++#endif // DISABLE_SDL2MIXER
+     NULL,
+ };
+
+diff --git a/pcsound/pcsound_sdl.c b/pcsound/pcsound_sdl.c
+index c25ac7f9ca..4f413fed46 100644
+--- a/pcsound/pcsound_sdl.c
++++ b/pcsound/pcsound_sdl.c
+@@ -24,6 +24,10 @@
+ #include "pcsound.h"
+ #include "pcsound_internal.h"
+
++
++#ifndef DISABLE_SDL2MIXER
++
++
+ #define MAX_SOUND_SLICE_TIME 70 /* ms */
+ #define SQUARE_WAVE_AMP 0x2000
+
+@@ -248,3 +252,5 @@ pcsound_driver_t pcsound_sdl_driver =
+     PCSound_SDL_Shutdown,
+ };
+
++
++#endif // DISABLE_SDL2MIXER
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index b498ed29e9..bbb877641f 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -32,7 +32,10 @@ set(DEDSERV_FILES
+ add_executable("${PROGRAM_PREFIX}server" WIN32 ${COMMON_SOURCE_FILES} ${DEDSERV_FILES})
+ target_include_directories("${PROGRAM_PREFIX}server"
+                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+-target_link_libraries("${PROGRAM_PREFIX}server" SDL2::SDL2main SDL2::net)
++target_link_libraries("${PROGRAM_PREFIX}server" SDL2::SDL2main SDL2::SDL2)
++if(ENABLE_SDL2_NET)
++    target_link_libraries("${PROGRAM_PREFIX}server" SDL2::net)
++endif()
+
+ # Source files used by the game binaries (chocolate-doom, etc.)
+
+@@ -121,7 +124,13 @@ set(DEHACKED_SOURCE_FILES
+ set(SOURCE_FILES ${COMMON_SOURCE_FILES} ${GAME_SOURCE_FILES})
+ set(SOURCE_FILES_WITH_DEH ${SOURCE_FILES} ${DEHACKED_SOURCE_FILES})
+
+-set(EXTRA_LIBS SDL2::SDL2main SDL2::SDL2 SDL2::mixer SDL2::net textscreen pcsound opl)
++set(EXTRA_LIBS SDL2::SDL2main SDL2::SDL2 textscreen pcsound opl)
++if(ENABLE_SDL2_MIXER)
++    list(APPEND EXTRA_LIBS SDL2::mixer)
++endif()
++if(ENABLE_SDL2_NET)
++    list(APPEND EXTRA_LIBS SDL2::net)
++endif()
+ if(SAMPLERATE_FOUND)
+     list(APPEND EXTRA_LIBS samplerate::samplerate)
+ endif()
+@@ -213,7 +222,13 @@ endif()
+
+ target_include_directories("${PROGRAM_PREFIX}setup"
+                            PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+-target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::SDL2main SDL2::SDL2 SDL2::mixer SDL2::net setup textscreen)
++target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::SDL2main SDL2::SDL2 setup textscreen)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::mixer)
++endif()
++if(ENABLE_SDL2_NET)
++    target_link_libraries("${PROGRAM_PREFIX}setup" SDL2::net)
++endif()
+
+ if(MSVC)
+     set_target_properties("${PROGRAM_PREFIX}setup" PROPERTIES
+diff --git a/src/doom/CMakeLists.txt b/src/doom/CMakeLists.txt
+index 0310910af4..82b114b417 100644
+--- a/src/doom/CMakeLists.txt
++++ b/src/doom/CMakeLists.txt
+@@ -68,4 +68,10 @@ add_library(doom STATIC
+             wi_stuff.c      wi_stuff.h)
+
+ target_include_directories(doom PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+-target_link_libraries(doom SDL2::SDL2 SDL2::mixer SDL2::net)
++target_link_libraries(doom SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(doom SDL2::mixer)
++endif()
++if(ENABLE_SDL2_NET)
++    target_link_libraries(doom SDL2::net)
++endif()
+diff --git a/src/heretic/CMakeLists.txt b/src/heretic/CMakeLists.txt
+index 9f12bde0e4..1ea060bfdb 100644
+--- a/src/heretic/CMakeLists.txt
++++ b/src/heretic/CMakeLists.txt
+@@ -54,4 +54,10 @@ add_library(heretic STATIC
+             s_sound.c           s_sound.h)
+
+ target_include_directories(heretic PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+-target_link_libraries(heretic textscreen SDL2::SDL2 SDL2::mixer SDL2::net)
++target_link_libraries(heretic textscreen SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(heretic SDL2::mixer)
++endif()
++if(ENABLE_SDL2_NET)
++    target_link_libraries(heretic SDL2::net)
++endif()
+diff --git a/src/hexen/CMakeLists.txt b/src/hexen/CMakeLists.txt
+index 6b4beed224..0dbd170bfd 100644
+--- a/src/hexen/CMakeLists.txt
++++ b/src/hexen/CMakeLists.txt
+@@ -55,4 +55,10 @@ add_library(hexen STATIC
+                                 xddefs.h)
+
+ target_include_directories(hexen PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+-target_link_libraries(hexen SDL2::SDL2 SDL2::mixer SDL2::net)
++target_link_libraries(hexen SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(hexen SDL2::mixer)
++endif()
++if(ENABLE_SDL2_NET)
++    target_link_libraries(hexen SDL2::net)
++endif()
+diff --git a/src/i_musicpack.c b/src/i_musicpack.c
+index da1b88f336..f2f6214669 100644
+--- a/src/i_musicpack.c
++++ b/src/i_musicpack.c
+@@ -44,6 +44,13 @@
+ #include "w_wad.h"
+ #include "z_zone.h"
+
++
++char *music_pack_path = "";
++
++
++#ifndef DISABLE_SDL2MIXER
++
++
+ #define MID_HEADER_MAGIC "MThd"
+ #define MUS_HEADER_MAGIC "MUS\x1a"
+
+@@ -99,7 +106,6 @@ static boolean music_initialized = false;
+
+ static boolean sdl_was_initialized = false;
+
+-char *music_pack_path = "";
+
+ // If true, we are playing a substitute digital track rather than in-WAD
+ // MIDI/MUS track, and file_metadata contains loop metadata.
+@@ -1375,3 +1381,83 @@ music_module_t music_pack_module =
+     I_MP_PollMusic,
+ };
+
++
++#else // DISABLE_SDL2MIXER
++
++
++static boolean I_NULL_InitMusic(void)
++{
++    return false;
++}
++
++
++static void I_NULL_ShutdownMusic(void)
++{
++}
++
++
++static void I_NULL_SetMusicVolume(int volume)
++{
++}
++
++
++static void I_NULL_PauseSong(void)
++{
++}
++
++
++static void I_NULL_ResumeSong(void)
++{
++}
++
++
++static void *I_NULL_RegisterSong(void *data, int len)
++{
++    return NULL;
++}
++
++
++static void I_NULL_UnRegisterSong(void *handle)
++{
++}
++
++
++static void I_NULL_PlaySong(void *handle, boolean looping)
++{
++}
++
++
++static void I_NULL_StopSong(void)
++{
++}
++
++
++static boolean I_NULL_MusicIsPlaying(void)
++{
++    return false;
++}
++
++
++static void I_NULL_PollMusic(void)
++{
++}
++
++music_module_t music_pack_module =
++{
++    NULL,
++    0,
++    I_NULL_InitMusic,
++    I_NULL_ShutdownMusic,
++    I_NULL_SetMusicVolume,
++    I_NULL_PauseSong,
++    I_NULL_ResumeSong,
++    I_NULL_RegisterSong,
++    I_NULL_UnRegisterSong,
++    I_NULL_PlaySong,
++    I_NULL_StopSong,
++    I_NULL_MusicIsPlaying,
++    I_NULL_PollMusic,
++};
++
++
++#endif // DISABLE_SDL2MIXER
+diff --git a/src/i_sdlmusic.c b/src/i_sdlmusic.c
+index 277576a812..d840714101 100644
+--- a/src/i_sdlmusic.c
++++ b/src/i_sdlmusic.c
+@@ -44,19 +44,6 @@
+ #include "w_wad.h"
+ #include "z_zone.h"
+
+-#define MAXMIDLENGTH (96 * 1024)
+-
+-static boolean music_initialized = false;
+-
+-// If this is true, this module initialized SDL sound and has the
+-// responsibility to shut it down
+-
+-static boolean sdl_was_initialized = false;
+-
+-static boolean win_midi_stream_opened = false;
+-
+-static boolean musicpaused = false;
+-static int current_music_volume;
+
+ char *fluidsynth_sf_path = "";
+ char *timidity_cfg_path = "";
+@@ -138,6 +125,25 @@ void I_InitTimidityConfig(void)
+     }
+ }
+
++
++#ifndef DISABLE_SDL2MIXER
++
++
++#define MAXMIDLENGTH (96 * 1024)
++
++static boolean music_initialized = false;
++
++// If this is true, this module initialized SDL sound and has the
++// responsibility to shut it down
++
++static boolean sdl_was_initialized = false;
++
++static boolean win_midi_stream_opened = false;
++
++static boolean musicpaused = false;
++static int current_music_volume;
++
++
+ // Remove the temporary config file generated by I_InitTimidityConfig().
+
+ static void RemoveTimidityConfig(void)
+@@ -588,3 +594,5 @@ music_module_t music_sdl_module =
+     NULL,  // Poll
+ };
+
++
++#endif // DISABLE_SDL2MIXER
+diff --git a/src/i_sdlsound.c b/src/i_sdlsound.c
+index a28e06bb1b..2d3186e864 100644
+--- a/src/i_sdlsound.c
++++ b/src/i_sdlsound.c
+@@ -41,6 +41,21 @@
+
+ #include "doomtype.h"
+
++
++int use_libsamplerate = 0;
++
++// Scale factor used when converting libsamplerate floating point numbers
++// to integers. Too high means the sounds can clip; too low means they
++// will be too quiet. This is an amount that should avoid clipping most
++// of the time: with all the Doom IWAD sound effects, at least. If a PWAD
++// is used, clipping might occur.
++
++float libsamplerate_scale = 0.65f;
++
++
++#ifndef DISABLE_SDL2MIXER
++
++
+ #define LOW_PASS_FILTER
+ //#define DEBUG_DUMP_WAVS
+ #define NUM_CHANNELS 16
+@@ -77,15 +92,6 @@ static allocated_sound_t *allocated_sounds_head = NULL;
+ static allocated_sound_t *allocated_sounds_tail = NULL;
+ static int allocated_sounds_size = 0;
+
+-int use_libsamplerate = 0;
+-
+-// Scale factor used when converting libsamplerate floating point numbers
+-// to integers. Too high means the sounds can clip; too low means they
+-// will be too quiet. This is an amount that should avoid clipping most
+-// of the time: with all the Doom IWAD sound effects, at least. If a PWAD
+-// is used, clipping might occur.
+-
+-float libsamplerate_scale = 0.65f;
+
+ // Hook a sound into the linked list at the head.
+
+@@ -1135,3 +1141,5 @@ sound_module_t sound_sdl_module =
+     I_SDL_PrecacheSounds,
+ };
+
++
++#endif // DISABLE_SDL2MIXER
+diff --git a/src/i_sound.c b/src/i_sound.c
+index 29f4f695b3..66fc39e8e5 100644
+--- a/src/i_sound.c
++++ b/src/i_sound.c
+@@ -99,7 +99,9 @@ static int snd_mport = 0;
+
+ static sound_module_t *sound_modules[] =
+ {
++#ifndef DISABLE_SDL2MIXER
+     &sound_sdl_module,
++#endif // DISABLE_SDL2MIXER
+     &sound_pcsound_module,
+     NULL,
+ };
+@@ -108,7 +110,9 @@ static sound_module_t *sound_modules[] =
+
+ static music_module_t *music_modules[] =
+ {
++#ifndef DISABLE_SDL2MIXER
+     &music_sdl_module,
++#endif // DISABLE_SDL2MIXER
+     &music_opl_module,
+     NULL,
+ };
+diff --git a/src/net_sdl.c b/src/net_sdl.c
+index c9b3e81f36..2965f42340 100644
+--- a/src/net_sdl.c
++++ b/src/net_sdl.c
+@@ -33,6 +33,10 @@
+ // NETWORKING
+ //
+
++
++#ifndef DISABLE_SDL2NET
++
++
+ #include <SDL_net.h>
+
+ #define DEFAULT_PORT 2342
+@@ -376,3 +380,62 @@ net_module_t net_sdl_module =
+     NET_SDL_ResolveAddress,
+ };
+
++
++#else // DISABLE_SDL2NET
++
++// no-op implementation
++
++
++static boolean NET_NULL_InitClient(void)
++{
++    return false;
++}
++
++
++static boolean NET_NULL_InitServer(void)
++{
++    return false;
++}
++
++
++static void NET_NULL_SendPacket(net_addr_t *addr, net_packet_t *packet)
++{
++}
++
++
++static boolean NET_NULL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
++{
++    return false;
++}
++
++
++static void NET_NULL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
++{
++
++}
++
++
++static void NET_NULL_FreeAddress(net_addr_t *addr)
++{
++}
++
++
++net_addr_t *NET_NULL_ResolveAddress(const char *address)
++{
++    return NULL;
++}
++
++
++net_module_t net_sdl_module =
++{
++    NET_NULL_InitClient,
++    NET_NULL_InitServer,
++    NET_NULL_SendPacket,
++    NET_NULL_RecvPacket,
++    NET_NULL_AddrToString,
++    NET_NULL_FreeAddress,
++    NET_NULL_ResolveAddress,
++};
++
++
++#endif // DISABLE_SDL2NET
+diff --git a/src/setup/CMakeLists.txt b/src/setup/CMakeLists.txt
+index 4c27a07ce5..90df211416 100644
+--- a/src/setup/CMakeLists.txt
++++ b/src/setup/CMakeLists.txt
+@@ -15,4 +15,7 @@ add_library(setup STATIC
+             txt_mouseinput.c    txt_mouseinput.h)
+
+ target_include_directories(setup PRIVATE "../" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+-target_link_libraries(setup textscreen SDL2::SDL2 SDL2::mixer)
++target_link_libraries(setup textscreen SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(setup SDL2::mixer)
++endif()
+diff --git a/src/strife/CMakeLists.txt b/src/strife/CMakeLists.txt
+index 06b17a6bd7..37b17ade98 100644
+--- a/src/strife/CMakeLists.txt
++++ b/src/strife/CMakeLists.txt
+@@ -70,4 +70,10 @@ set(STRIFE_SOURCES
+ add_library(strife STATIC ${STRIFE_SOURCES})
+
+ target_include_directories(strife PRIVATE "../" "../../win32/" "${CMAKE_CURRENT_BINARY_DIR}/../../")
+-target_link_libraries(strife textscreen SDL2::SDL2 SDL2::mixer SDL2::net)
++target_link_libraries(strife textscreen SDL2::SDL2)
++if(ENABLE_SDL2_mixer)
++    target_link_libraries(strife SDL2::mixer)
++endif()
++if(ENABLE_SDL2_NET)
++    target_link_libraries(strife SDL2::net)
++endif()
