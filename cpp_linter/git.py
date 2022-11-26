@@ -1,13 +1,24 @@
-"""This module uses ``git`` direct from CLI to get commit info."""
+"""This module uses ``git`` CLI to get commit info. It also holds some functions
+related to parsing diff output into a list of changed files."""
 from pathlib import Path
 import re
 import subprocess
-from typing import List, Dict, Any
+from typing import Tuple, List, Dict, Any
 from . import logger
 
 
 def get_sha(parent: int = 1) -> str:
-    """use ``git`` to fetch the full SHA of the current commit."""
+    """Uses ``git`` to fetch the full SHA hash of the current commit.
+
+    .. note::
+        This function is only used in local development environments, not in a
+        Continuous Integration workflow.
+
+    :param parent: This parameter's default value will fetch the SHA of the last commit.
+        Set this parameter to the number of parent commits from the current tree's HEAD
+        to get the desired commit's SHA hash instead.
+    :returns: A `str` representing the commit's SHA hash.
+    """
     result = subprocess.run(
         ["git", "log", f"-{parent}", "--format=%H"], capture_output=True, check=True
     )
@@ -17,7 +28,8 @@ def get_sha(parent: int = 1) -> str:
 def get_diff(parents: int = 1) -> str:
     """Retrieve the diff info about a specified commit.
 
-    :param commit_sha: The SHA for the commit to focus on.
+    :param parents: The number of parent commits related to the current commit.
+    :returns: A `str` of the fetched diff.
     """
     head = "HEAD"
     base = get_sha(parents)
@@ -30,17 +42,23 @@ def get_diff(parents: int = 1) -> str:
     return result.stdout[diff_start:].decode(encoding="utf-8")
 
 
-def consolidate_list_to_ranges(just_numbers: List[int]) -> List[List[int]]:
-    """A helper function to `filter_out_non_source_files()` that is only used when
-    extracting the lines from a diff that contain additions."""
+def consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
+    """A helper function to `filter_out_non_source_files()` and `parse_diff()` that is
+    only used when extracting the lines from a diff that contain additions.
+
+    :param numbers: A `list` of integers representing the lines' numbers that contain
+        additions.
+    :returns: A consolidated sequence of lists. Each list will have 2 items
+        describing the starting and ending lines of all line ``numbers``.
+    """
     result: List[List[int]] = []
-    for i, n in enumerate(just_numbers):
+    for i, n in enumerate(numbers):
         if not i:
             result.append([n])
-        elif n - 1 != just_numbers[i - 1]:
-            result[-1].append(just_numbers[i - 1] + 1)
+        elif n - 1 != numbers[i - 1]:
+            result[-1].append(numbers[i - 1] + 1)
             result.append([n])
-        if i == len(just_numbers) - 1:
+        if i == len(numbers) - 1:
             result[-1].append(n + 1)
     return result
 
@@ -55,6 +73,7 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
 
     :param full_diff: The complete diff for an event.
     :returns: A `list` of `dict` containing information about the files changed.
+
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
     file_objects: List[Dict[str, Any]] = []
@@ -82,11 +101,13 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
     return file_objects
 
 
-def parse_patch(full_patch: str) -> tuple:
+def parse_patch(full_patch: str) -> Tuple[List[List[int]], List[int]]:
     """Parse a diff's patch accordingly.
 
     :param full_patch: The entire patch of hunks for 1 file.
-    :returns: A `tuple` of lists where
+    :returns:
+        A `tuple` of lists where
+
         - Index 0 is the ranges of lines in the diff. Each item in this `list` is a
           2 element `list` describing the starting and ending line numbers.
         - Index 1 is a `list` of the line numbers that contain additions.

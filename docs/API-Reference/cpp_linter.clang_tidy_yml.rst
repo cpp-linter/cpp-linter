@@ -1,5 +1,5 @@
-clang_tidy_yml module
-=====================
+``clang_tidy_yml`` module
+=========================
 
 .. admonition:: Info
     :class: info

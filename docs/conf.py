@@ -4,6 +4,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import sys
 import re
 from pathlib import Path
 import io
@@ -11,7 +12,10 @@ from docutils.nodes import Node
 from sphinx import addnodes
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
-from cpp_linter.run import cli_arg_parser
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from cpp_linter.cli import cli_arg_parser
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -112,13 +116,6 @@ def parse_cli_option(env: BuildEnvironment, sig: str, sig_node: Node):
 
 def setup(app: Sphinx):
     """Generate a doc from the executable script's ``--help`` output."""
-    app.add_object_type(
-        "cli-opt",
-        "cli-opt",
-        objname="Command Line Interface option",
-        indextemplate="pair: %s; Command Line Interface option",
-        parse_node=parse_cli_option,
-    )
 
     with io.StringIO() as help_out:
         cli_arg_parser.print_help(help_out)
@@ -133,7 +130,7 @@ def setup(app: Sphinx):
         match = CLI_OPT_NAME.search(line)
         if match is not None:
             # print(match.groups())
-            doc += "\n.. cli-opt:: " + ", ".join(match.groups()) + "\n\n"
+            doc += "\n.. std:option:: " + ", ".join(match.groups()) + "\n\n"
         doc += line + "\n"
     cli_doc = Path(app.srcdir, "cli_args.rst")
     cli_doc.unlink(missing_ok=True)

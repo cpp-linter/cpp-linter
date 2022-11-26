@@ -26,7 +26,7 @@ try:
 except ImportError:  # pragma: no cover
     logging.basicConfig()
 
-#: The logging.Logger object used for outputting data.
+#: The :py:class:`logging.Logger` object used for outputting data.
 logger = logging.getLogger("CPP Linter")
 if not FOUND_RICH_LIB:
     logger.debug("rich module not found")
@@ -108,9 +108,9 @@ def range_of_changed_lines(
         - ``1``: focuses on any lines shown in the event's diff (may include
           unchanged lines).
         - ``2``: focuses strictly on lines in the diff that contain additions.
-    :param get_ranges: A flag to return sequence a list of sequences representing
-        `range()` parameters. Defaults to `False` since this is only required when
-        constructing clang-tidy CLI arguments.
+    :param get_ranges: A flag to return a list of sequences representing
+        :py:class:`range` parameters. Defaults to `False` since this is only
+        required when constructing clang-tidy or clang-format CLI arguments.
     :returns:
         A list of line numbers for which to give attention. If ``get_ranges`` is
         asserted, then the returned list will be a list of ranges.
