@@ -643,6 +643,14 @@ def make_annotations(
 
     :param style: The chosen code style guidelines. The value 'file' is replaced with
         'custom style'.
+    :param file_annotations: A flag that corresponds to the
+        :std:option:`--file-annotations` CLI option.
+    :param lines_changed_only: Corresponds to the :std:option:`--lines-changed-only` CLI
+        option.
+
+        - ``0`` means all lines.
+        - ``1`` means only lines in the diff chunks.
+        - ``2`` means only lines in the diff with additions.
 
     :returns:
         A boolean describing if any annotations were made.

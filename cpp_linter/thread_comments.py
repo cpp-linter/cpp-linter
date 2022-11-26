@@ -118,7 +118,11 @@ def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
 
 def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
     """Aggregate a list of json contents representing advice from clang-format
-    suggestions."""
+    suggestions.
+
+    :param lines_changed_only: A flag indicating the focus of the advice that
+        should be headed.
+    """
     results = []
     for fmt_advice, file in zip(GlobalParser.format_advice, Globals.FILES):
 

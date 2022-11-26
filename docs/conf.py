@@ -95,6 +95,24 @@ object_description_options = [
     ("py:parameter", dict(include_in_toc=False)),
 ]
 
+sphinx_immaterial_custom_admonitions = [
+    {
+        "name": "seealso",
+        "color": (215, 59, 205),
+        "icon": "octicons/eye-24",
+        "override": True,
+    },
+    {
+        "name": "note",
+        "icon": "material/file-document-edit-outline",
+        "override": True,
+    }
+]
+for name in ("hint", "tip", "important"):
+    sphinx_immaterial_custom_admonitions.append(
+        dict(name=name, icon="material/school", override=True)
+    )
+
 # -- Parse CLI args from `-h` output -------------------------------------
 
 def setup(app: Sphinx):

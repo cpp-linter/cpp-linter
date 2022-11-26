@@ -38,8 +38,13 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", os.getenv("GIT_REST_API", ""))
 IS_ON_WINDOWS = platform.system().lower() == "windows"
 
 
-def make_headers(use_diff: bool = False):
-    """create a dict for use in REST API headers."""
+def make_headers(use_diff: bool = False) -> Dict[str, str]:
+    """Create a `dict` for use in REST API headers.
+
+    :param use_diff: A flag to indicate that the returned format should be in diff
+        syntax.
+    :returns: A `dict` to be used as headers in `requests` API calls.
+    """
     headers = {
         "Accept": "application/vnd.github." + ("diff" if use_diff else "text+json"),
     }
@@ -104,7 +109,7 @@ def range_of_changed_lines(
     :param file_obj: The file's JSON object.
     :param lines_changed_only: A flag to indicate the focus of certain lines.
 
-        - ``0``: focuses on all lines in file.
+        - ``0``: focuses on all lines in a file(s).
         - ``1``: focuses on any lines shown in the event's diff (may include
           unchanged lines).
         - ``2``: focuses strictly on lines in the diff that contain additions.
