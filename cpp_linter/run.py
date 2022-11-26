@@ -163,19 +163,19 @@ def filter_out_non_source_files(
     """
     files = []
     for file in Globals.FILES:
-        if (
+        if (  # pylint: disable=too-many-boolean-expressions
             PurePath(file["filename"]).suffix.lstrip(".") in ext_list
             and (
                 not is_file_in_list(ignored, file["filename"], "ignored")
                 or is_file_in_list(not_ignored, file["filename"], "not ignored")
             )
-        ):
-            if (
+            and (
                 (lines_changed_only == 1 and file["line_filter"]["diff_chunks"])
                 or (lines_changed_only == 2 and file["line_filter"]["lines_added"])
                 or not lines_changed_only
-            ):
-                files.append(file)
+            )
+        ):
+            files.append(file)
 
     if not files:
         logger.info("No source files need checking!")

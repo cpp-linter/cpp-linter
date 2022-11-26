@@ -291,11 +291,21 @@ def test_tidy_annotations(
 
 
 @pytest.mark.parametrize(
+    "repo_commit_pair",
+    [
+        (TEST_REPO_COMMIT_PAIRS[0]),
+        (TEST_REPO_COMMIT_PAIRS[1]),
+        (TEST_REPO_COMMIT_PAIRS[3]),
+    ],
+    ids=["line ranges", "no additions", "new file"],
+)
+@pytest.mark.parametrize(
     "lines_changed_only", [1, 2], ids=_translate_lines_changed_only_value
 )
 def test_diff_comment(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    repo_commit_pair: Dict[str, str],
     lines_changed_only: int,
 ):
     """Tests code that isn't actually used (yet) for posting
@@ -305,7 +315,7 @@ def test_diff_comment(
     prep_tmp_dir(
         tmp_path,
         monkeypatch,
-        **TEST_REPO_COMMIT_PAIRS[0],
+        **repo_commit_pair,
         copy_configs=True,
         lines_changed_only=lines_changed_only,
     )

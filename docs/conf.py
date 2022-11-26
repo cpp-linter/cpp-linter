@@ -97,23 +97,6 @@ object_description_options = [
 
 # -- Parse CLI args from `-h` output -------------------------------------
 
-
-def parse_cli_option(env: BuildEnvironment, sig: str, sig_node: Node):
-    """parse the given signature of a CLI option and
-    return the docutil nodes accordingly."""
-    opt_names = sig.split(", ")
-    sig_node["is_multiline"] = True
-    for i, opt_name in enumerate(opt_names):
-        name = addnodes.desc_signature_line("", "--" if i else opt_name)
-        if not i:
-            name["add_permalink"] = True
-        else:
-            name += addnodes.desc_name(opt_name, opt_name.lstrip("-"))
-        sig_node += name
-    # print(sig_node.pformat())
-    return opt_names[-1].lstrip("-")
-
-
 def setup(app: Sphinx):
     """Generate a doc from the executable script's ``--help`` output."""
 

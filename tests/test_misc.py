@@ -16,7 +16,7 @@ from cpp_linter.run import (
     list_source_files,
     get_list_of_changed_files,
 )
-
+from cpp_linter.git import get_diff
 
 def test_exit_override(tmp_path: Path):
     """Test exit code that indicates if action encountered lining errors."""
@@ -84,7 +84,31 @@ def test_list_src_files(
     assert list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
 
 
-def test_get_changed_files(caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch):
+@pytest.mark.parametrize(
+    "pseudo",
+    [
+        (
+            dict(
+                GITHUB_REPOSITORY="cpp-linter/test-cpp-linter-action",
+                GITHUB_SHA="708a1371f3a966a479b77f1f94ec3b7911dffd77",
+                GITHUB_EVENT_NAME="unknown",  # let coverage include logged warning
+                IS_ON_RUNNER=True,
+            )
+        ),
+        (
+            dict(
+                GITHUB_REPOSITORY="cpp-linter/test-cpp-linter-action",
+                GITHUB_EVENT_NAME="pull_request",
+                IS_ON_RUNNER=True,
+            )
+        ),
+        (dict(IS_ON_RUNNER=False)),
+    ],
+    ids=["push", "pull_request", "local_dev"],
+)
+def test_get_changed_files(
+    caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch, pseudo: dict
+):
     """test getting a list of changed files for an event.
 
     This is expected to fail if a github token not supplied as an env var.
@@ -93,23 +117,18 @@ def test_get_changed_files(caplog: pytest.LogCaptureFixture, monkeypatch: pytest
     """
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     # setup test to act as though executed in user's repo's CI
-    for name, value in zip(
-        [
-            "GITHUB_REPOSITORY",
-            "GITHUB_SHA",
-            "GITHUB_EVENT_NAME",
-            "IS_ON_RUNNER",
-        ],
-        [
-            "cpp-linter/test-cpp-linter-action",
-            "708a1371f3a966a479b77f1f94ec3b7911dffd77",
-            "push",
-            True,
-        ],
-    ):
+    for name, value in pseudo.items():
         monkeypatch.setattr(cpp_linter.run, name, value)
+    if "GITHUB_EVENT_NAME" in pseudo and pseudo["GITHUB_EVENT_NAME"] == "pull_request":
+        monkeypatch.setattr(cpp_linter.run.Globals, "EVENT_PAYLOAD", dict(number=19))
     get_list_of_changed_files()
-    assert Globals.FILES
+    if not cpp_linter.run.IS_ON_RUNNER:
+        if get_diff().strip():
+            assert Globals.FILES
+        else:
+            assert not Globals.FILES
+    else:
+        assert Globals.FILES
 
 
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])
