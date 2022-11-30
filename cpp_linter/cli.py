@@ -71,7 +71,7 @@ arg = cli_arg_parser.add_argument(
     "--version",
     default="",
     help="""The desired version of the clang tools to use. Accepted options are
-strings which can be 8, 9, 10, 11, 12, 13, 14.
+strings which can be 8, 9, 10, 11, 12, 13, 14, 15.
 
 - Set this option to a blank string (``''``) to use the
   platform's default installed version.
