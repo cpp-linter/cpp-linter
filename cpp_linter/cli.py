@@ -127,7 +127,7 @@ arg = cli_arg_parser.add_argument(
     "-l",
     "--lines-changed-only",
     default=0,
-    type=lambda a: 2 if a.lower() == "true" else (1 if a.lower() == "diff" else 0),
+    type=lambda a: 2 if a.lower() == "true" else int(a.lower() == "diff"),
     help="""This controls what part of the files are analyzed.
 The following values are accepted:
 
