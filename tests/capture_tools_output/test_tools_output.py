@@ -95,7 +95,7 @@ def prep_tmp_dir(
     # Make a folder to download the needed files in the tests' temp folder. This is
     # meant to avoid re-downloading the same files for multiple tests run against the
     # same sample repo.
-    repo_cache = tmp_path.parent / repo
+    repo_cache = tmp_path.parent / repo / commit
     repo_cache.mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(str(repo_cache))
     filter_out_non_source_files(["c", "h"], [".github"], [], lines_changed_only)
