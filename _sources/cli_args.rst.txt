@@ -2,11 +2,11 @@ Command Line Interface Options
 ==============================
 
 
-.. cli-opt:: -h, --help
+.. std:option:: -h, --help
 
   -h, --help            show this help message and exit
 
-.. cli-opt:: -v, --verbosity
+.. std:option:: -v, --verbosity
 
   -v VERBOSITY, --verbosity VERBOSITY
                         This controls the action's verbosity in the workflow's logs.
@@ -16,7 +16,7 @@ Command Line Interface Options
                         
                         Defaults to level ``10`` (aka  ``logging.DEBUG``).
 
-.. cli-opt:: -p, --database
+.. std:option:: -p, --database
 
   -p DATABASE, --database DATABASE
                         The path that is used to read a compile command database.
@@ -27,7 +27,7 @@ Command Line Interface Options
                         https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html for an
                         example of setting up Clang Tooling on a source tree.
 
-.. cli-opt:: -s, --style
+.. std:option:: -s, --style
 
   -s STYLE, --style STYLE
                         The style rules to use (defaults to ``llvm``).
@@ -37,7 +37,7 @@ Command Line Interface Options
                         - Set this to a blank string (``""``) to disable using clang-format
                           entirely.
 
-.. cli-opt:: -c, --tidy-checks
+.. std:option:: -c, --tidy-checks
 
   -c TIDY_CHECKS, --tidy-checks TIDY_CHECKS
                         A comma-separated list of globs with optional ``-`` prefix.
@@ -57,11 +57,11 @@ Command Line Interface Options
                         
                         See also clang-tidy docs for more info.
 
-.. cli-opt:: -V, --version
+.. std:option:: -V, --version
 
   -V VERSION, --version VERSION
                         The desired version of the clang tools to use. Accepted options are
-                        strings which can be 8, 9, 10, 11, 12, 13, 14.
+                        strings which can be 8, 9, 10, 11, 12, 13, 14, 15.
                         
                         - Set this option to a blank string (``''``) to use the
                           platform's default installed version.
@@ -71,7 +71,7 @@ Command Line Interface Options
                         
                         Default is a blank string.
 
-.. cli-opt:: -e, --extensions
+.. std:option:: -e, --extensions
 
   -e EXTENSIONS, --extensions EXTENSIONS
                         The file extensions to analyze.
@@ -79,7 +79,7 @@ Command Line Interface Options
                         
                             c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx
 
-.. cli-opt:: -r, --repo-root
+.. std:option:: -r, --repo-root
 
   -r REPO_ROOT, --repo-root REPO_ROOT
                         The relative path to the repository root directory. This path is
@@ -88,7 +88,7 @@ Command Line Interface Options
                         
                         The default value is ``.``
 
-.. cli-opt:: -i, --ignore
+.. std:option:: -i, --ignore
 
   -i IGNORE, --ignore IGNORE
                         Set this option with path(s) to ignore (or not ignore).
@@ -97,7 +97,7 @@ Command Line Interface Options
                         - There is no need to use ``./`` for each entry; a blank string (``''``)
                           represents the repo-root path.
                         - This can also have files, but the file's path (relative to
-                          the :cli-opt:`repo-root`) has to be specified with the filename.
+                          the :std:option:`--repo-root`) has to be specified with the filename.
                         - Submodules are automatically ignored. Hidden directories (beginning
                           with a ``.``) are also ignored automatically.
                         - Prefix a path with ``!`` to explicitly not ignore it. This can be
@@ -105,7 +105,7 @@ Command Line Interface Options
                         - Glob patterns are not supported here. All asterisk characters (``*``)
                           are literal.
 
-.. cli-opt:: -l, --lines-changed-only
+.. std:option:: -l, --lines-changed-only
 
   -l LINES_CHANGED_ONLY, --lines-changed-only LINES_CHANGED_ONLY
                         This controls what part of the files are analyzed.
@@ -118,12 +118,12 @@ Command Line Interface Options
                         
                         Defaults to ``false``.
 
-.. cli-opt:: -f, --files-changed-only
+.. std:option:: -f, --files-changed-only
 
   -f FILES_CHANGED_ONLY, --files-changed-only FILES_CHANGED_ONLY
                         Set this option to false to analyze any source files in the repo.
                         This is automatically enabled if
-                        :cli-opt:`lines-changed-only` is enabled.
+                        :std:option:`--lines-changed-only` is enabled.
                         
                         .. note::
                             The ``GITHUB_TOKEN`` should be supplied when running on a
@@ -135,10 +135,10 @@ Command Line Interface Options
                         
                         Defaults to ``false``.
 
-.. cli-opt:: -t, --thread-comments
+.. std:option:: -t, --thread-comments
 
   -t THREAD_COMMENTS, --thread-comments THREAD_COMMENTS
-                        Set this option to false to disable the use of
+                        Set this option to true or false to enable or disable the use of
                         thread comments as feedback.
                         
                         .. note::
@@ -156,7 +156,7 @@ Command Line Interface Options
                         
                         Defaults to ``false``.
 
-.. cli-opt:: -a, --file-annotations
+.. std:option:: -a, --file-annotations
 
   -a FILE_ANNOTATIONS, --file-annotations FILE_ANNOTATIONS
                         Set this option to false to disable the use of
@@ -164,7 +164,7 @@ Command Line Interface Options
                         
                         Defaults to ``true``.
 
-.. cli-opt:: -x, --extra-arg
+.. std:option:: -x, --extra-arg
 
   -x EXTRA_ARG, --extra-arg EXTRA_ARG
                         A string of extra arguments passed to clang-tidy for use as

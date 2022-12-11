@@ -33,7 +33,7 @@
       
     
         <link rel="stylesheet" type="text/css" href="../../_static/google_fonts.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/stylesheets/sphinx_immaterial_theme.e10f1df50225cf229.min.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/stylesheets/sphinx_immaterial_theme.c067037dd3d9452f1.min.css" />
         <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -360,7 +360,7 @@
   
     <li class="md-nav__item">
       <a href="../../API-Reference/cpp_linter.html" class="md-nav__link">
-        <span class="md-ellipsis">Base module</span>
+        <span class="md-ellipsis">__<wbr>init__<wbr> module</span>
       </a>
     </li>
   
@@ -375,7 +375,7 @@
   
     <li class="md-nav__item">
       <a href="../../API-Reference/cpp_linter.run.html" class="md-nav__link">
-        <span class="md-ellipsis">Run module</span>
+        <span class="md-ellipsis">run module</span>
       </a>
     </li>
   
@@ -442,6 +442,21 @@
 
             
           
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.git.html" class="md-nav__link">
+        <span class="md-ellipsis">git module</span>
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -484,30 +499,28 @@
 
 <span class="sd">.. seealso::</span>
 
-<span class="sd">    - `github rest API reference for pulls</span>
-<span class="sd">      &lt;https://docs.github.com/en/rest/reference/pulls&gt;`_</span>
-<span class="sd">    - `github rest API reference for repos</span>
-<span class="sd">      &lt;https://docs.github.com/en/rest/reference/repos&gt;`_</span>
-<span class="sd">    - `github rest API reference for issues</span>
-<span class="sd">      &lt;https://docs.github.com/en/rest/reference/issues&gt;`_</span>
+<span class="sd">    - `github rest API reference for pulls &lt;https://docs.github.com/en/rest/pulls&gt;`_</span>
+<span class="sd">    - `github rest API reference for commits &lt;https://docs.github.com/en/rest/commits&gt;`_</span>
+<span class="sd">    - `github rest API reference for repos &lt;https://docs.github.com/en/rest/repos&gt;`_</span>
+<span class="sd">    - `github rest API reference for issues &lt;https://docs.github.com/en/rest/issues&gt;`_</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">configparser</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">Globals</span><span class="p">,</span>
     <span class="n">GlobalParser</span><span class="p">,</span>
-    <span class="n">logging</span><span class="p">,</span>
     <span class="n">logger</span><span class="p">,</span>
     <span class="n">GITHUB_TOKEN</span><span class="p">,</span>
     <span class="n">GITHUB_SHA</span><span class="p">,</span>
-    <span class="n">API_HEADERS</span><span class="p">,</span>
+    <span class="n">make_headers</span><span class="p">,</span>
     <span class="n">IS_ON_RUNNER</span><span class="p">,</span>
     <span class="n">log_response_msg</span><span class="p">,</span>
     <span class="n">range_of_changed_lines</span><span class="p">,</span>
@@ -517,7 +530,8 @@
 <span class="kn">from</span> <span class="nn">.clang_format_xml</span> <span class="kn">import</span> <span class="n">parse_format_replacements_xml</span>
 <span class="kn">from</span> <span class="nn">.clang_tidy</span> <span class="kn">import</span> <span class="n">parse_tidy_output</span><span class="p">,</span> <span class="n">TidyNotification</span>
 <span class="kn">from</span> <span class="nn">.thread_comments</span> <span class="kn">import</span> <span class="n">remove_bot_comments</span><span class="p">,</span> <span class="n">list_diff_comments</span>  <span class="c1"># , get_review_id</span>
-
+<span class="kn">from</span> <span class="nn">.git</span> <span class="kn">import</span> <span class="n">get_diff</span><span class="p">,</span> <span class="n">parse_diff</span>
+<span class="kn">from</span> <span class="nn">.cli</span> <span class="kn">import</span> <span class="n">cli_arg_parser</span>
 
 <span class="c1"># global constant variables</span>
 <span class="n">GITHUB_EVENT_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GITHUB_EVENT_PATH&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
@@ -527,214 +541,6 @@
 <span class="n">GITHUB_WORKSPACE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;GITHUB_WORKSPACE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 <span class="n">IS_USING_DOCKER</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;USING_CLANG_TOOLS_DOCKER&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CLANG_VERSIONS&quot;</span><span class="p">))</span>
 <span class="n">RUNNER_WORKSPACE</span> <span class="o">=</span> <span class="s2">&quot;/github/workspace&quot;</span> <span class="k">if</span> <span class="n">IS_USING_DOCKER</span> <span class="k">else</span> <span class="n">GITHUB_WORKSPACE</span>
-
-<span class="c1"># setup CLI args</span>
-<span class="n">cli_arg_parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-    <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">[:</span> <span class="vm">__doc__</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;If executed from&quot;</span><span class="p">)],</span>
-    <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">arg</span> <span class="o">=</span> <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-v&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--verbosity&quot;</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;This controls the action&#39;s verbosity in the workflow&#39;s logs.</span>
-<span class="s2">Supported options are defined by the `logging-level &lt;logging-levels&gt;`_.</span>
-<span class="s2">This option does not affect the verbosity of resulting</span>
-<span class="s2">thread comments or file annotations.</span>
-
-<span class="s2">Defaults to level ``</span><span class="si">%(default)s</span><span class="s2">`` (aka  &quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;``logging.</span><span class="si">{</span><span class="n">logging</span><span class="o">.</span><span class="n">getLevelName</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="p">)</span><span class="si">}</span><span class="s2">``).&quot;</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-p&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--database&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The path that is used to read a compile command database.</span>
-<span class="s2">For example, it can be a CMake build directory in which a file named</span>
-<span class="s2">compile_commands.json exists (set ``CMAKE_EXPORT_COMPILE_COMMANDS`` to ``ON``).</span>
-<span class="s2">When no build path is specified, a search for compile_commands.json will be</span>
-<span class="s2">attempted through all parent paths of the first input file. See</span>
-<span class="s2">https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html for an</span>
-<span class="s2">example of setting up Clang Tooling on a source tree.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-s&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--style&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;llvm&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The style rules to use (defaults to ``</span><span class="si">%(default)s</span><span class="s2">``).</span>
-
-<span class="s2">- Set this to ``file`` to have clang-format use the closest relative</span>
-<span class="s2">  .clang-format file.</span>
-<span class="s2">- Set this to a blank string (``&quot;&quot;``) to disable using clang-format</span>
-<span class="s2">  entirely.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-c&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--tidy-checks&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,&quot;</span>
-    <span class="s2">&quot;clang-analyzer-*,cppcoreguidelines-*&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;A comma-separated list of globs with optional ``-`` prefix.</span>
-<span class="s2">Globs are processed in order of appearance in the list.</span>
-<span class="s2">Globs without ``-`` prefix add checks with matching names to the set,</span>
-<span class="s2">globs with the ``-`` prefix remove checks with matching names from the set of</span>
-<span class="s2">enabled checks. This option&#39;s value is appended to the value of the &#39;Checks&#39;</span>
-<span class="s2">option in a .clang-tidy file (if any).</span>
-
-<span class="s2">- It is possible to disable clang-tidy entirely by setting this option to ``&#39;-*&#39;``.</span>
-<span class="s2">- It is also possible to rely solely on a .clang-tidy config file by</span>
-<span class="s2">  specifying this option as a blank string (``&#39;&#39;``).</span>
-
-<span class="s2">The defaults is::</span>
-
-<span class="s2">    </span><span class="si">%(default)s</span><span class="s2"></span>
-
-<span class="s2">See also clang-tidy docs for more info.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">arg</span> <span class="o">=</span> <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-V&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--version&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The desired version of the clang tools to use. Accepted options are</span>
-<span class="s2">strings which can be 8, 9, 10, 11, 12, 13, 14.</span>
-
-<span class="s2">- Set this option to a blank string (``&#39;&#39;``) to use the</span>
-<span class="s2">  platform&#39;s default installed version.</span>
-<span class="s2">- This value can also be a path to where the clang tools are</span>
-<span class="s2">  installed (if using a custom install location). All paths specified</span>
-<span class="s2">  here are converted to absolute.</span>
-
-<span class="s2">Default is &quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="s2">&quot;a blank string.&quot;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">default</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;``</span><span class="si">{</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="si">}</span><span class="s2">``.&quot;</span>
-<span class="n">arg</span> <span class="o">=</span> <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-e&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--extensions&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;cpp&quot;</span><span class="p">,</span> <span class="s2">&quot;hpp&quot;</span><span class="p">,</span> <span class="s2">&quot;cc&quot;</span><span class="p">,</span> <span class="s2">&quot;hh&quot;</span><span class="p">,</span> <span class="s2">&quot;c++&quot;</span><span class="p">,</span> <span class="s2">&quot;h++&quot;</span><span class="p">,</span> <span class="s2">&quot;cxx&quot;</span><span class="p">,</span> <span class="s2">&quot;hxx&quot;</span><span class="p">],</span>
-    <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="p">[</span><span class="n">ext</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)],</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The file extensions to analyze.</span>
-<span class="s2">This comma-separated string defaults to::</span>
-
-<span class="s2">    &quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--repo-root&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;The relative path to the repository root directory. This path is</span>
-<span class="s2">relative to the runner&#39;s ``GITHUB_WORKSPACE`` environment variable (or</span>
-<span class="s2">the current working directory if not using a CI runner).</span>
-
-<span class="s2">The default value is ``</span><span class="si">%(default)s</span><span class="s2">``&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-i&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--ignore&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;.github&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set this option with path(s) to ignore (or not ignore).</span>
-
-<span class="s2">- In the case of multiple paths, you can use ``|`` to separate each path.</span>
-<span class="s2">- There is no need to use ``./`` for each entry; a blank string (``&#39;&#39;``)</span>
-<span class="s2">  represents the repo-root path.</span>
-<span class="s2">- This can also have files, but the file&#39;s path (relative to</span>
-<span class="s2">  the :cli-opt:`repo-root`) has to be specified with the filename.</span>
-<span class="s2">- Submodules are automatically ignored. Hidden directories (beginning</span>
-<span class="s2">  with a ``.``) are also ignored automatically.</span>
-<span class="s2">- Prefix a path with ``!`` to explicitly not ignore it. This can be</span>
-<span class="s2">  applied to a submodule&#39;s path (if desired) but not hidden directories.</span>
-<span class="s2">- Glob patterns are not supported here. All asterisk characters (``*``)</span>
-<span class="s2">  are literal.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">arg</span> <span class="o">=</span> <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-l&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--lines-changed-only&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span> <span class="k">else</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;diff&quot;</span> <span class="k">else</span> <span class="mi">0</span><span class="p">),</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;This controls what part of the files are analyzed.</span>
-<span class="s2">The following values are accepted:</span>
-
-<span class="s2">- false: All lines in a file are analyzed.</span>
-<span class="s2">- true: Only lines in the diff that contain additions are analyzed.</span>
-<span class="s2">- diff: All lines in the diff are analyzed (including unchanged</span>
-<span class="s2">  lines but not subtractions).</span>
-
-<span class="s2">Defaults to &quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="k">assert</span> <span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-<span class="n">arg</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;``</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">default</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">``.&quot;</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-f&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--files-changed-only&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">input</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set this option to false to analyze any source files in the repo.</span>
-<span class="s2">This is automatically enabled if</span>
-<span class="s2">:cli-opt:`lines-changed-only` is enabled.</span>
-
-<span class="s2">.. note::</span>
-<span class="s2">    The ``GITHUB_TOKEN`` should be supplied when running on a</span>
-<span class="s2">    private repository with this option enabled, otherwise the runner</span>
-<span class="s2">    does not not have the privilege to list the changed files for an event.</span>
-
-<span class="s2">    See `Authenticating with the GITHUB_TOKEN</span>
-<span class="s2">    &lt;https://docs.github.com/en/actions/reference/authentication-in-a-workflow&gt;`_</span>
-
-<span class="s2">Defaults to ``</span><span class="si">%(default)s</span><span class="s2">``.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-t&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--thread-comments&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">input</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set this option to false to disable the use of</span>
-<span class="s2">thread comments as feedback.</span>
-
-<span class="s2">.. note::</span>
-<span class="s2">    To use thread comments, the ``GITHUB_TOKEN`` (provided by</span>
-<span class="s2">    Github to each repository) must be declared as an environment</span>
-<span class="s2">    variable.</span>
-
-<span class="s2">    See `Authenticating with the GITHUB_TOKEN</span>
-<span class="s2">    &lt;https://docs.github.com/en/actions/reference/authentication-in-a-workflow&gt;`_</span>
-
-<span class="s2">.. hint::</span>
-<span class="s2">    If run on a private repository, then this feature is</span>
-<span class="s2">    disabled because the GitHub REST API behaves</span>
-<span class="s2">    differently for thread comments on a private repository.</span>
-
-<span class="s2">Defaults to ``</span><span class="si">%(default)s</span><span class="s2">``.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-a&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--file-annotations&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">input</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set this option to false to disable the use of</span>
-<span class="s2">file annotations as feedback.</span>
-
-<span class="s2">Defaults to ``</span><span class="si">%(default)s</span><span class="s2">``.&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-    <span class="s2">&quot;-x&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;--extra-arg&quot;</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
-    <span class="n">action</span><span class="o">=</span><span class="s2">&quot;append&quot;</span><span class="p">,</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;A string of extra arguments passed to clang-tidy for use as</span>
-<span class="s2">compiler arguments. This can be specified more than once for each</span>
-<span class="s2">additional argument. Recommend using quotes around the value and</span>
-<span class="s2">avoid using spaces between name and value (use ``=`` instead):</span>
-
-<span class="s2">.. code-block:: shell</span>
-
-<span class="s2">    cpp-linter --extra-arg=&quot;-std=c++17&quot; --extra-arg=&quot;-Wall&quot;</span>
-
-<span class="s2">Defaults to ``&#39;</span><span class="si">%(default)s</span><span class="s2">&#39;``.</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="p">,</span>
-<span class="p">)</span>
 
 
 <div class="viewcode-block" id="set_exit_code"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.set_exit_code">[docs]</a><span class="k">def</span> <span class="nf">set_exit_code</span><span class="p">(</span><span class="n">override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -750,7 +556,7 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GITHUB_OUTPUT&quot;</span><span class="p">],</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">env_file</span><span class="p">:</span>
             <span class="n">env_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;checks-failed=</span><span class="si">{</span><span class="n">exit_code</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="c1"># not executed on a github CI runner; ignore this error when executed locally</span>
         <span class="k">pass</span>
     <span class="k">return</span> <span class="n">exit_code</span></div>
@@ -808,41 +614,28 @@
 
 
 <div class="viewcode-block" id="get_list_of_changed_files"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.get_list_of_changed_files">[docs]</a><span class="k">def</span> <span class="nf">get_list_of_changed_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Fetch the JSON payload of the event&#39;s changed files. Sets the</span>
+    <span class="sd">&quot;&quot;&quot;Fetch a list of the event&#39;s changed files. Sets the</span>
 <span class="sd">    :attr:`~cpp_linter.Globals.FILES` attribute.&quot;&quot;&quot;</span>
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Get list of specified source files&quot;</span><span class="p">)</span>
-    <span class="n">files_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GITHUB_API_URL</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="n">GITHUB_REPOSITORY</span><span class="si">}</span><span class="s2">/&quot;</span>
-    <span class="k">if</span> <span class="n">GITHUB_EVENT_NAME</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span><span class="p">:</span>
-        <span class="n">files_link</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;pulls/</span><span class="si">{</span><span class="n">Globals</span><span class="o">.</span><span class="n">EVENT_PAYLOAD</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/files&quot;</span>
+    <span class="k">if</span> <span class="n">IS_ON_RUNNER</span><span class="p">:</span>
+        <span class="n">files_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">GITHUB_API_URL</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="n">GITHUB_REPOSITORY</span><span class="si">}</span><span class="s2">/&quot;</span>
+        <span class="k">if</span> <span class="n">GITHUB_EVENT_NAME</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span><span class="p">:</span>
+            <span class="n">files_link</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;pulls/</span><span class="si">{</span><span class="n">Globals</span><span class="o">.</span><span class="n">EVENT_PAYLOAD</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">GITHUB_EVENT_NAME</span> <span class="o">!=</span> <span class="s2">&quot;push&quot;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Triggered on unsupported event &#39;</span><span class="si">%s</span><span class="s2">&#39;. Behaving like a push event.&quot;</span><span class="p">,</span>
+                    <span class="n">GITHUB_EVENT_NAME</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">files_link</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;commits/</span><span class="si">{</span><span class="n">GITHUB_SHA</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching files list from url: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">files_link</span><span class="p">)</span>
+        <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">files_link</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(</span><span class="n">use_diff</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">log_response_msg</span><span class="p">()</span>
+        <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span><span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">GITHUB_EVENT_NAME</span> <span class="o">!=</span> <span class="s2">&quot;push&quot;</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Triggered on unsupported event &#39;</span><span class="si">%s</span><span class="s2">&#39;. Behaving like a push event.&quot;</span><span class="p">,</span>
-                <span class="n">GITHUB_EVENT_NAME</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="n">files_link</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;commits/</span><span class="si">{</span><span class="n">GITHUB_SHA</span><span class="si">}</span><span class="s2">&quot;</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching files list from url: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">files_link</span><span class="p">)</span>
-    <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">files_link</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">API_HEADERS</span><span class="p">)</span>
-    <span class="n">log_response_msg</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">GITHUB_EVENT_NAME</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span><span class="p">:</span>
-        <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span> <span class="o">=</span> <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span> <span class="o">=</span> <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;files&quot;</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="consolidate_list_to_ranges"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.consolidate_list_to_ranges">[docs]</a><span class="k">def</span> <span class="nf">consolidate_list_to_ranges</span><span class="p">(</span><span class="n">just_numbers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;A helper function to `filter_out_non_source_files()` that is only used when</span>
-<span class="sd">    extracting the lines from a diff that contain additions.&quot;&quot;&quot;</span>
-    <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">just_numbers</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="p">:</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">n</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">!=</span> <span class="n">just_numbers</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
-            <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">just_numbers</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">n</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">just_numbers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span></div>
+        <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span><span class="n">get_diff</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="filter_out_non_source_files"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.filter_out_non_source_files">[docs]</a><span class="k">def</span> <span class="nf">filter_out_non_source_files</span><span class="p">(</span>
@@ -851,12 +644,14 @@
     <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Exclude undesired files (specified by user input &#39;extensions&#39;). This filter</span>
-<span class="sd">    applies to the event&#39;s :attr:`~cpp_linter.Globals.FILES` attribute.</span>
+    <span class="sd">&quot;&quot;&quot;Exclude undesired files (specified by user input :std:option:`--extensions`).</span>
+<span class="sd">    This filtering is applied to the :attr:`~cpp_linter.Globals.FILES` attribute.</span>
 
 <span class="sd">    :param ext_list: A list of file extensions that are to be examined.</span>
 <span class="sd">    :param ignored: A list of paths to explicitly ignore.</span>
 <span class="sd">    :param not_ignored: A list of paths to explicitly not ignore.</span>
+<span class="sd">    :param lines_changed_only: A flag used for additional filtering based on what lines</span>
+<span class="sd">        are changed in the file(s).</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        True if there are files to check. False will invoke a early exit (in</span>
@@ -864,50 +659,19 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span>
+        <span class="k">if</span> <span class="p">(</span>  <span class="c1"># pylint: disable=too-many-boolean-expressions</span>
             <span class="n">PurePath</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ext_list</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;removed&quot;</span><span class="p">)</span>
             <span class="ow">and</span> <span class="p">(</span>
                 <span class="ow">not</span> <span class="n">is_file_in_list</span><span class="p">(</span><span class="n">ignored</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">],</span> <span class="s2">&quot;ignored&quot;</span><span class="p">)</span>
                 <span class="ow">or</span> <span class="n">is_file_in_list</span><span class="p">(</span><span class="n">not_ignored</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">],</span> <span class="s2">&quot;not ignored&quot;</span><span class="p">)</span>
             <span class="p">)</span>
-        <span class="p">):</span>
-            <span class="k">if</span> <span class="s2">&quot;patch&quot;</span> <span class="ow">in</span> <span class="n">file</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="c1"># get diff details for the file&#39;s changes</span>
-                <span class="c1"># ranges is a list of start/end line numbers shown in the diff</span>
-                <span class="n">ranges</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="c1"># additions is a list line numbers in the diff containing additions</span>
-                <span class="n">additions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="n">line_numb_in_diff</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;patch&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">):</span>
-                        <span class="n">additions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_numb_in_diff</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;@@ -&quot;</span><span class="p">):</span>
-                        <span class="n">hunk</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; +&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot; @@&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-                        <span class="n">start_line</span><span class="p">,</span> <span class="n">hunk_length</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">hunk</span><span class="p">]</span>
-                        <span class="n">ranges</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start_line</span><span class="p">,</span> <span class="n">hunk_length</span> <span class="o">+</span> <span class="n">start_line</span><span class="p">])</span>
-                        <span class="n">line_numb_in_diff</span> <span class="o">=</span> <span class="n">start_line</span>
-                    <span class="k">elif</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
-                        <span class="n">line_numb_in_diff</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">file</span><span class="p">[</span><span class="s2">&quot;line_filter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">diff_chunks</span><span class="o">=</span><span class="n">ranges</span><span class="p">,</span>
-                    <span class="n">lines_added</span><span class="o">=</span><span class="n">consolidate_list_to_ranges</span><span class="p">(</span><span class="n">additions</span><span class="p">),</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;added&quot;</span><span class="p">:</span>
-                <span class="c1"># check all lines in newly created files</span>
-                <span class="n">total_line_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;additions&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
-                <span class="n">file</span><span class="p">[</span><span class="s2">&quot;line_filter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">diff_chunks</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_line_count</span><span class="p">]],</span>
-                    <span class="n">lines_added</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_line_count</span><span class="p">]],</span>
-                <span class="p">)</span>
-
-            <span class="c1"># conditionally include file if lines changed warrant attention</span>
-            <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">and</span> <span class="p">(</span>
                 <span class="p">(</span><span class="n">lines_changed_only</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;line_filter&quot;</span><span class="p">][</span><span class="s2">&quot;diff_chunks&quot;</span><span class="p">])</span>
                 <span class="ow">or</span> <span class="p">(</span><span class="n">lines_changed_only</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;line_filter&quot;</span><span class="p">][</span><span class="s2">&quot;lines_added&quot;</span><span class="p">])</span>
                 <span class="ow">or</span> <span class="ow">not</span> <span class="n">lines_changed_only</span>
-            <span class="p">):</span>
-                <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No source files need checking!&quot;</span><span class="p">)</span>
@@ -938,8 +702,10 @@
         <span class="n">file_name</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">])</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">file_name</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not find </span><span class="si">%s</span><span class="s2">! Did you checkout the repo?&quot;</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading file from url: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;raw_url&quot;</span><span class="p">])</span>
-            <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s2">&quot;raw_url&quot;</span><span class="p">])</span>
+            <span class="n">raw_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://github.com/</span><span class="si">{</span><span class="n">GITHUB_REPOSITORY</span><span class="si">}</span><span class="s2">/raw/</span><span class="si">{</span><span class="n">GITHUB_SHA</span><span class="si">}</span><span class="s2">/&quot;</span>
+            <span class="n">raw_url</span> <span class="o">+=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">],</span> <span class="n">safe</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading file from url: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">raw_url</span><span class="p">)</span>
+            <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">raw_url</span><span class="p">)</span>
             <span class="c1"># retain the repo&#39;s original structure</span>
             <span class="n">Path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">file_name</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">file_name</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
@@ -1230,7 +996,7 @@
         <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">})</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;payload body:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">}))</span>
         <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-            <span class="n">comments_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">API_HEADERS</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span>
+            <span class="n">comments_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span>
         <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> response from POSTing comment&quot;</span><span class="p">,</span> <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span>
@@ -1293,7 +1059,7 @@
         <span class="k">if</span> <span class="n">comment_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
                 <span class="n">comments_url</span> <span class="o">+</span> <span class="n">comment_id</span><span class="p">,</span>
-                <span class="n">headers</span><span class="o">=</span><span class="n">API_HEADERS</span><span class="p">,</span>
+                <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span>
                 <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]}),</span>
             <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -1305,7 +1071,7 @@
             <span class="n">log_response_msg</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-                <span class="n">reviews_url</span> <span class="o">+</span> <span class="s2">&quot;comments&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">API_HEADERS</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+                <span class="n">reviews_url</span> <span class="o">+</span> <span class="s2">&quot;comments&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> from POSTing review comment </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -1336,7 +1102,7 @@
             <span class="s2">&quot;payload body:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-            <span class="n">comments_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">API_HEADERS</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span>
+            <span class="n">comments_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span>
         <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> from POSTing comment&quot;</span><span class="p">,</span> <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
         <span class="n">log_response_msg</span><span class="p">()</span>
@@ -1373,6 +1139,14 @@
 
 <span class="sd">    :param style: The chosen code style guidelines. The value &#39;file&#39; is replaced with</span>
 <span class="sd">        &#39;custom style&#39;.</span>
+<span class="sd">    :param file_annotations: A flag that corresponds to the</span>
+<span class="sd">        :std:option:`--file-annotations` CLI option.</span>
+<span class="sd">    :param lines_changed_only: Corresponds to the :std:option:`--lines-changed-only` CLI</span>
+<span class="sd">        option.</span>
+
+<span class="sd">        - ``0`` means all lines.</span>
+<span class="sd">        - ``1`` means only lines in the diff chunks.</span>
+<span class="sd">        - ``2`` means only lines in the diff with additions.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        A boolean describing if any annotations were made.</span>
@@ -1418,7 +1192,7 @@
 <span class="sd">    ``not_ignored`` lists of strings.</span>
 
 <span class="sd">    :param paths: This argument conforms to the input value of CLI arg</span>
-<span class="sd">        :cli-opt:`ignore`.</span>
+<span class="sd">        :std:option:`--ignore`.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        Returns a tuple of lists in which each list is a set of strings.</span>

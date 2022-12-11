@@ -33,7 +33,7 @@
       
     
         <link rel="stylesheet" type="text/css" href="../_static/google_fonts.css" />
-        <link rel="stylesheet" type="text/css" href="../_static/stylesheets/sphinx_immaterial_theme.e10f1df50225cf229.min.css" />
+        <link rel="stylesheet" type="text/css" href="../_static/stylesheets/sphinx_immaterial_theme.c067037dd3d9452f1.min.css" />
         <link rel="stylesheet" type="text/css" href="../_static/extra_css.css" />
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -369,7 +369,7 @@
   
     <li class="md-nav__item">
       <a href="cpp_linter.html" class="md-nav__link">
-        <span class="md-ellipsis">Base module</span>
+        <span class="md-ellipsis">__<wbr>init__<wbr> module</span>
       </a>
     </li>
   
@@ -384,7 +384,7 @@
   
     <li class="md-nav__item">
       <a href="cpp_linter.run.html" class="md-nav__link">
-        <span class="md-ellipsis">Run module</span>
+        <span class="md-ellipsis">run module</span>
       </a>
     </li>
   
@@ -631,6 +631,21 @@
 
             
           
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.git.html" class="md-nav__link">
+        <span class="md-ellipsis">git module</span>
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -824,7 +839,7 @@
                   
 
 
-<h1 id="clang-format-xml-module">clang_format_xml module<a class="headerlink" href="#clang-format-xml-module" title="Permalink to this heading">¶</a></h1>
+<h1 id="clang-format-xml-module"><code class="docutils literal notranslate"><span class="pre">clang_format_xml</span></code> module<a class="headerlink" href="#clang-format-xml-module" title="Permalink to this heading">¶</a></h1>
 <div class="info admonition">
 <p class="admonition-title">Info</p>
 <p>This API is experimental and not actually used in production.</p>
@@ -923,7 +938,7 @@ on a single line.</p>
 <span class="sig-name descname"><span class="pre">log_command</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_format_xml.XMLFixit.log_command.style" title="cpp_linter.clang_format_xml.XMLFixit.log_command.style (Python parameter) — The chosen code style guidelines."><span class="n"><span class="pre">style</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_format_xml.XMLFixit.log_command.line_filter" title="cpp_linter.clang_format_xml.XMLFixit.log_command.line_filter (Python parameter) — A list of lines numbers used to narrow notifications."><span class="n"><span class="pre">line_filter</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span></span><a class="reference internal" href="../_modules/cpp_linter/clang_format_xml.html#XMLFixit.log_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_format_xml.XMLFixit.log_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Output a notification as a github log command.</p>
 <div class="seealso admonition">
-<p class="admonition-title">See also</p>
+<p class="admonition-title">Seealso</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-an-error-message">An error message</a></p></li>
 <li><p><a class="reference external" href="https://docs.github.com/en/actions/learn-github-actions/workflow-commands-for-github-actions#setting-a-warning-message">A warning message</a></p></li>

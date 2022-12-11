@@ -21,6 +21,7 @@
    API-Reference/cpp_linter.clang_tidy_yml
    API-Reference/cpp_linter.clang_format_xml
    API-Reference/cpp_linter.thread_comments
+   API-Reference/cpp_linter.git
 
 Indices and tables
 ==================

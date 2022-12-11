@@ -33,7 +33,7 @@
       
     
         <link rel="stylesheet" type="text/css" href="_static/google_fonts.css" />
-        <link rel="stylesheet" type="text/css" href="_static/stylesheets/sphinx_immaterial_theme.e10f1df50225cf229.min.css" />
+        <link rel="stylesheet" type="text/css" href="_static/stylesheets/sphinx_immaterial_theme.c067037dd3d9452f1.min.css" />
         <link rel="stylesheet" type="text/css" href="_static/extra_css.css" />
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cli-opt-help" class="md-skip">
+        <a href="#cmdoption-h" class="md-skip">
           Skip to content
         </a>
       
@@ -356,99 +356,99 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-help" class="md-nav__link">
-    <span title="help (Command Line Interface option) — show this help message and exit" class="md-ellipsis">help</span>
+  <a href="#cmdoption-h" class="md-nav__link">
+    <span title="-h (program option)" class="md-ellipsis">-<wbr>h, --<wbr>help</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-verbosity" class="md-nav__link">
-    <span title="verbosity (Command Line Interface option) — This controls the action&#39;s verbosity in the workflow&#39;s logs. Supported options are defined by the logging-level. This option does not affect the verbosity of resulting thread comments or file annotations." class="md-ellipsis">verbosity</span>
+  <a href="#cmdoption-v" class="md-nav__link">
+    <span title="-v (program option)" class="md-ellipsis">-<wbr>v, --<wbr>verbosity</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-database" class="md-nav__link">
-    <span title="database (Command Line Interface option) — The path that is used to read a compile command database. For example, it can be a CMake build directory in which a file named compile_commands.json exists (set CMAKE_EXPORT_COMPILE_COMMANDS to ON). When no build path is specified, a search for compile_commands.json will be attempted through all parent paths of the first input file. See https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html for an example of setting up Clang Tooling on a source tree." class="md-ellipsis">database</span>
+  <a href="#cmdoption-p" class="md-nav__link">
+    <span title="-p (program option)" class="md-ellipsis">-<wbr>p, --<wbr>database</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-style" class="md-nav__link">
-    <span title="style (Command Line Interface option) — The style rules to use (defaults to llvm)." class="md-ellipsis">style</span>
+  <a href="#cmdoption-s" class="md-nav__link">
+    <span title="-s (program option)" class="md-ellipsis">-<wbr>s, --<wbr>style</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-tidy-checks" class="md-nav__link">
-    <span title="tidy-checks (Command Line Interface option) — A comma-separated list of globs with optional - prefix. Globs are processed in order of appearance in the list. Globs without - prefix add checks with matching names to the set, globs with the - prefix remove checks with matching names from the set of enabled checks. This option&#39;s value is appended to the value of the &#39;Checks&#39; option in a .clang-tidy file (if any)." class="md-ellipsis">tidy-<wbr>checks</span>
+  <a href="#cmdoption-c" class="md-nav__link">
+    <span title="-c (program option)" class="md-ellipsis">-<wbr>c, --<wbr>tidy-<wbr>checks</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-version" class="md-nav__link">
-    <span title="version (Command Line Interface option) — The desired version of the clang tools to use. Accepted options are strings which can be 8, 9, 10, 11, 12, 13, 14." class="md-ellipsis">version</span>
+  <a href="#cmdoption-V" class="md-nav__link">
+    <span title="-V (program option)" class="md-ellipsis">-<wbr>V, --<wbr>version</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-extensions" class="md-nav__link">
-    <span title="extensions (Command Line Interface option) — The file extensions to analyze. This comma-separated string defaults to:" class="md-ellipsis">extensions</span>
+  <a href="#cmdoption-e" class="md-nav__link">
+    <span title="-e (program option)" class="md-ellipsis">-<wbr>e, --<wbr>extensions</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-repo-root" class="md-nav__link">
-    <span title="repo-root (Command Line Interface option) — The relative path to the repository root directory. This path is relative to the runner&#39;s GITHUB_WORKSPACE environment variable (or the current working directory if not using a CI runner)." class="md-ellipsis">repo-<wbr>root</span>
+  <a href="#cmdoption-r" class="md-nav__link">
+    <span title="-r (program option)" class="md-ellipsis">-<wbr>r, --<wbr>repo-<wbr>root</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-ignore" class="md-nav__link">
-    <span title="ignore (Command Line Interface option) — Set this option with path(s) to ignore (or not ignore)." class="md-ellipsis">ignore</span>
+  <a href="#cmdoption-i" class="md-nav__link">
+    <span title="-i (program option)" class="md-ellipsis">-<wbr>i, --<wbr>ignore</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-lines-changed-only" class="md-nav__link">
-    <span title="lines-changed-only (Command Line Interface option) — This controls what part of the files are analyzed. The following values are accepted:" class="md-ellipsis">lines-<wbr>changed-<wbr>only</span>
+  <a href="#cmdoption-l" class="md-nav__link">
+    <span title="-l (program option)" class="md-ellipsis">-<wbr>l, --<wbr>lines-<wbr>changed-<wbr>only</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-files-changed-only" class="md-nav__link">
-    <span title="files-changed-only (Command Line Interface option) — Set this option to false to analyze any source files in the repo. This is automatically enabled if lines-changed-only is enabled." class="md-ellipsis">files-<wbr>changed-<wbr>only</span>
+  <a href="#cmdoption-f" class="md-nav__link">
+    <span title="-f (program option)" class="md-ellipsis">-<wbr>f, --<wbr>files-<wbr>changed-<wbr>only</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-thread-comments" class="md-nav__link">
-    <span title="thread-comments (Command Line Interface option) — Set this option to false to disable the use of thread comments as feedback." class="md-ellipsis">thread-<wbr>comments</span>
+  <a href="#cmdoption-t" class="md-nav__link">
+    <span title="-t (program option)" class="md-ellipsis">-<wbr>t, --<wbr>thread-<wbr>comments</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-file-annotations" class="md-nav__link">
-    <span title="file-annotations (Command Line Interface option) — Set this option to false to disable the use of file annotations as feedback." class="md-ellipsis">file-<wbr>annotations</span>
+  <a href="#cmdoption-a" class="md-nav__link">
+    <span title="-a (program option)" class="md-ellipsis">-<wbr>a, --<wbr>file-<wbr>annotations</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-extra-arg" class="md-nav__link">
-    <span title="extra-arg (Command Line Interface option) — A string of extra arguments passed to clang-tidy for use as compiler arguments. This can be specified more than once for each additional argument. Recommend using quotes around the value and avoid using spaces between name and value (use = instead):" class="md-ellipsis">extra-<wbr>arg</span>
+  <a href="#cmdoption-x" class="md-nav__link">
+    <span title="-x (program option)" class="md-ellipsis">-<wbr>x, --<wbr>extra-<wbr>arg</span>
   </a>
   
 </li>
@@ -496,7 +496,7 @@
   
     <li class="md-nav__item">
       <a href="API-Reference/cpp_linter.html" class="md-nav__link">
-        <span class="md-ellipsis">Base module</span>
+        <span class="md-ellipsis">__<wbr>init__<wbr> module</span>
       </a>
     </li>
   
@@ -511,7 +511,7 @@
   
     <li class="md-nav__item">
       <a href="API-Reference/cpp_linter.run.html" class="md-nav__link">
-        <span class="md-ellipsis">Run module</span>
+        <span class="md-ellipsis">run module</span>
       </a>
     </li>
   
@@ -578,6 +578,21 @@
 
             
           
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="API-Reference/cpp_linter.git.html" class="md-nav__link">
+        <span class="md-ellipsis">git module</span>
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -609,99 +624,99 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-help" class="md-nav__link">
-    <span title="help (Command Line Interface option) — show this help message and exit" class="md-ellipsis">help</span>
+  <a href="#cmdoption-h" class="md-nav__link">
+    <span title="-h (program option)" class="md-ellipsis">-<wbr>h, --<wbr>help</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-verbosity" class="md-nav__link">
-    <span title="verbosity (Command Line Interface option) — This controls the action&#39;s verbosity in the workflow&#39;s logs. Supported options are defined by the logging-level. This option does not affect the verbosity of resulting thread comments or file annotations." class="md-ellipsis">verbosity</span>
+  <a href="#cmdoption-v" class="md-nav__link">
+    <span title="-v (program option)" class="md-ellipsis">-<wbr>v, --<wbr>verbosity</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-database" class="md-nav__link">
-    <span title="database (Command Line Interface option) — The path that is used to read a compile command database. For example, it can be a CMake build directory in which a file named compile_commands.json exists (set CMAKE_EXPORT_COMPILE_COMMANDS to ON). When no build path is specified, a search for compile_commands.json will be attempted through all parent paths of the first input file. See https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html for an example of setting up Clang Tooling on a source tree." class="md-ellipsis">database</span>
+  <a href="#cmdoption-p" class="md-nav__link">
+    <span title="-p (program option)" class="md-ellipsis">-<wbr>p, --<wbr>database</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-style" class="md-nav__link">
-    <span title="style (Command Line Interface option) — The style rules to use (defaults to llvm)." class="md-ellipsis">style</span>
+  <a href="#cmdoption-s" class="md-nav__link">
+    <span title="-s (program option)" class="md-ellipsis">-<wbr>s, --<wbr>style</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-tidy-checks" class="md-nav__link">
-    <span title="tidy-checks (Command Line Interface option) — A comma-separated list of globs with optional - prefix. Globs are processed in order of appearance in the list. Globs without - prefix add checks with matching names to the set, globs with the - prefix remove checks with matching names from the set of enabled checks. This option&#39;s value is appended to the value of the &#39;Checks&#39; option in a .clang-tidy file (if any)." class="md-ellipsis">tidy-<wbr>checks</span>
+  <a href="#cmdoption-c" class="md-nav__link">
+    <span title="-c (program option)" class="md-ellipsis">-<wbr>c, --<wbr>tidy-<wbr>checks</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-version" class="md-nav__link">
-    <span title="version (Command Line Interface option) — The desired version of the clang tools to use. Accepted options are strings which can be 8, 9, 10, 11, 12, 13, 14." class="md-ellipsis">version</span>
+  <a href="#cmdoption-V" class="md-nav__link">
+    <span title="-V (program option)" class="md-ellipsis">-<wbr>V, --<wbr>version</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-extensions" class="md-nav__link">
-    <span title="extensions (Command Line Interface option) — The file extensions to analyze. This comma-separated string defaults to:" class="md-ellipsis">extensions</span>
+  <a href="#cmdoption-e" class="md-nav__link">
+    <span title="-e (program option)" class="md-ellipsis">-<wbr>e, --<wbr>extensions</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-repo-root" class="md-nav__link">
-    <span title="repo-root (Command Line Interface option) — The relative path to the repository root directory. This path is relative to the runner&#39;s GITHUB_WORKSPACE environment variable (or the current working directory if not using a CI runner)." class="md-ellipsis">repo-<wbr>root</span>
+  <a href="#cmdoption-r" class="md-nav__link">
+    <span title="-r (program option)" class="md-ellipsis">-<wbr>r, --<wbr>repo-<wbr>root</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-ignore" class="md-nav__link">
-    <span title="ignore (Command Line Interface option) — Set this option with path(s) to ignore (or not ignore)." class="md-ellipsis">ignore</span>
+  <a href="#cmdoption-i" class="md-nav__link">
+    <span title="-i (program option)" class="md-ellipsis">-<wbr>i, --<wbr>ignore</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-lines-changed-only" class="md-nav__link">
-    <span title="lines-changed-only (Command Line Interface option) — This controls what part of the files are analyzed. The following values are accepted:" class="md-ellipsis">lines-<wbr>changed-<wbr>only</span>
+  <a href="#cmdoption-l" class="md-nav__link">
+    <span title="-l (program option)" class="md-ellipsis">-<wbr>l, --<wbr>lines-<wbr>changed-<wbr>only</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-files-changed-only" class="md-nav__link">
-    <span title="files-changed-only (Command Line Interface option) — Set this option to false to analyze any source files in the repo. This is automatically enabled if lines-changed-only is enabled." class="md-ellipsis">files-<wbr>changed-<wbr>only</span>
+  <a href="#cmdoption-f" class="md-nav__link">
+    <span title="-f (program option)" class="md-ellipsis">-<wbr>f, --<wbr>files-<wbr>changed-<wbr>only</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-thread-comments" class="md-nav__link">
-    <span title="thread-comments (Command Line Interface option) — Set this option to false to disable the use of thread comments as feedback." class="md-ellipsis">thread-<wbr>comments</span>
+  <a href="#cmdoption-t" class="md-nav__link">
+    <span title="-t (program option)" class="md-ellipsis">-<wbr>t, --<wbr>thread-<wbr>comments</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-file-annotations" class="md-nav__link">
-    <span title="file-annotations (Command Line Interface option) — Set this option to false to disable the use of file annotations as feedback." class="md-ellipsis">file-<wbr>annotations</span>
+  <a href="#cmdoption-a" class="md-nav__link">
+    <span title="-a (program option)" class="md-ellipsis">-<wbr>a, --<wbr>file-<wbr>annotations</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#cli-opt-extra-arg" class="md-nav__link">
-    <span title="extra-arg (Command Line Interface option) — A string of extra arguments passed to clang-tidy for use as compiler arguments. This can be specified more than once for each additional argument. Recommend using quotes around the value and avoid using spaces between name and value (use = instead):" class="md-ellipsis">extra-<wbr>arg</span>
+  <a href="#cmdoption-x" class="md-nav__link">
+    <span title="-x (program option)" class="md-ellipsis">-<wbr>x, --<wbr>extra-<wbr>arg</span>
   </a>
   
 </li>
@@ -721,9 +736,9 @@
 
 
 <h1 id="command-line-interface-options">Command Line Interface Options<a class="headerlink" href="#command-line-interface-options" title="Permalink to this heading">¶</a></h1>
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-help">
-<span class="pre">-h</span><a class="headerlink" href="#cli-opt-help" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">help</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-h">
+<span id="cmdoption-help"></span><span class="sig-name descname"><span class="pre">-h</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--help</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-h" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></dt>
 <dd><p>show this help message and exit</p>
@@ -731,9 +746,9 @@
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-verbosity">
-<span class="pre">-v</span><a class="headerlink" href="#cli-opt-verbosity" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">verbosity</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-v">
+<span id="cmdoption-verbosity"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--verbosity</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-v" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-v <var>VERBOSITY</var></span>, <span class="option">--verbosity <var>VERBOSITY</var></span></kbd></dt>
 <dd><p>This controls the action’s verbosity in the workflow’s logs.
@@ -745,9 +760,9 @@ thread comments or file annotations.</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-database">
-<span class="pre">-p</span><a class="headerlink" href="#cli-opt-database" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">database</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-p">
+<span id="cmdoption-database"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--database</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-p" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-p <var>DATABASE</var></span>, <span class="option">--database <var>DATABASE</var></span></kbd></dt>
 <dd><p>The path that is used to read a compile command database.
@@ -761,9 +776,9 @@ example of setting up Clang Tooling on a source tree.</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-style">
-<span class="pre">-s</span><a class="headerlink" href="#cli-opt-style" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">style</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-s">
+<span id="cmdoption-style"></span><span class="sig-name descname"><span class="pre">-s</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--style</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-s" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-s <var>STYLE</var></span>, <span class="option">--style <var>STYLE</var></span></kbd></dt>
 <dd><p>The style rules to use (defaults to <code class="docutils literal notranslate"><span class="pre">llvm</span></code>).</p>
@@ -777,9 +792,9 @@ entirely.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-tidy-checks">
-<span class="pre">-c</span><a class="headerlink" href="#cli-opt-tidy-checks" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">tidy-checks</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-c">
+<span id="cmdoption-tidy-checks"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--tidy-checks</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-c" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-c <var>TIDY_CHECKS</var></span>, <span class="option">--tidy-checks <var>TIDY_CHECKS</var></span></kbd></dt>
 <dd><p>A comma-separated list of globs with optional <code class="docutils literal notranslate"><span class="pre">-</span></code> prefix.
@@ -802,13 +817,13 @@ specifying this option as a blank string (<code class="docutils literal notransl
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-version">
-<span class="pre">-V</span><a class="headerlink" href="#cli-opt-version" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">version</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-V">
+<span id="cmdoption-version"></span><span class="sig-name descname"><span class="pre">-V</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--version</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-V" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-V <var>VERSION</var></span>, <span class="option">--version <var>VERSION</var></span></kbd></dt>
 <dd><p>The desired version of the clang tools to use. Accepted options are
-strings which can be 8, 9, 10, 11, 12, 13, 14.</p>
+strings which can be 8, 9, 10, 11, 12, 13, 14, 15.</p>
 <ul class="simple">
 <li><p>Set this option to a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>) to use the
 platform’s default installed version.</p></li>
@@ -821,9 +836,9 @@ here are converted to absolute.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-extensions">
-<span class="pre">-e</span><a class="headerlink" href="#cli-opt-extensions" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">extensions</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-e">
+<span id="cmdoption-extensions"></span><span class="sig-name descname"><span class="pre">-e</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--extensions</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-e" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-e <var>EXTENSIONS</var></span>, <span class="option">--extensions <var>EXTENSIONS</var></span></kbd></dt>
 <dd><p>The file extensions to analyze.
@@ -835,9 +850,9 @@ This comma-separated string defaults to:</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-repo-root">
-<span class="pre">-r</span><a class="headerlink" href="#cli-opt-repo-root" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">repo-root</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-r">
+<span id="cmdoption-repo-root"></span><span class="sig-name descname"><span class="pre">-r</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--repo-root</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-r" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-r <var>REPO_ROOT</var></span>, <span class="option">--repo-root <var>REPO_ROOT</var></span></kbd></dt>
 <dd><p>The relative path to the repository root directory. This path is
@@ -848,9 +863,9 @@ the current working directory if not using a CI runner).</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-ignore">
-<span class="pre">-i</span><a class="headerlink" href="#cli-opt-ignore" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">ignore</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-i">
+<span id="cmdoption-ignore"></span><span class="sig-name descname"><span class="pre">-i</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--ignore</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-i" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-i <var>IGNORE</var></span>, <span class="option">--ignore <var>IGNORE</var></span></kbd></dt>
 <dd><p>Set this option with path(s) to ignore (or not ignore).</p>
@@ -859,7 +874,7 @@ the current working directory if not using a CI runner).</p>
 <li><p>There is no need to use <code class="docutils literal notranslate"><span class="pre">./</span></code> for each entry; a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>)
 represents the repo-root path.</p></li>
 <li><p>This can also have files, but the file’s path (relative to
-the <a class="reference internal" href="#cli-opt-repo-root" title="repo-root (Command Line Interface option) — The relative path to the repository root directory. This path is relative to the runner's GITHUB_WORKSPACE environment variable (or the current working directory if not using a CI runner)."><code class="xref std std-cli-opt docutils literal notranslate"><span class="pre">repo-root</span></code></a>) has to be specified with the filename.</p></li>
+the <a class="reference internal" href="#cmdoption-r"><code class="xref std std-option docutils literal notranslate"><span class="pre">--repo-root</span></code></a>) has to be specified with the filename.</p></li>
 <li><p>Submodules are automatically ignored. Hidden directories (beginning
 with a <code class="docutils literal notranslate"><span class="pre">.</span></code>) are also ignored automatically.</p></li>
 <li><p>Prefix a path with <code class="docutils literal notranslate"><span class="pre">!</span></code> to explicitly not ignore it. This can be
@@ -871,9 +886,9 @@ are literal.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-lines-changed-only">
-<span class="pre">-l</span><a class="headerlink" href="#cli-opt-lines-changed-only" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">lines-changed-only</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-l">
+<span id="cmdoption-lines-changed-only"></span><span class="sig-name descname"><span class="pre">-l</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--lines-changed-only</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-l" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-l <var>LINES_CHANGED_ONLY</var></span>, <span class="option">--lines-changed-only <var>LINES_CHANGED_ONLY</var></span></kbd></dt>
 <dd><p>This controls what part of the files are analyzed.
@@ -889,14 +904,14 @@ lines but not subtractions).</p></li>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-files-changed-only">
-<span class="pre">-f</span><a class="headerlink" href="#cli-opt-files-changed-only" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">files-changed-only</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-f">
+<span id="cmdoption-files-changed-only"></span><span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--files-changed-only</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-f" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-f <var>FILES_CHANGED_ONLY</var></span>, <span class="option">--files-changed-only <var>FILES_CHANGED_ONLY</var></span></kbd></dt>
 <dd><p>Set this option to false to analyze any source files in the repo.
 This is automatically enabled if
-<a class="reference internal" href="#cli-opt-lines-changed-only" title="lines-changed-only (Command Line Interface option) — This controls what part of the files are analyzed. The following values are accepted:"><code class="xref std std-cli-opt docutils literal notranslate"><span class="pre">lines-changed-only</span></code></a> is enabled.</p>
+<a class="reference internal" href="#cmdoption-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lines-changed-only</span></code></a> is enabled.</p>
 <div class="note admonition">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> should be supplied when running on a
@@ -909,12 +924,12 @@ does not not have the privilege to list the changed files for an event.</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-thread-comments">
-<span class="pre">-t</span><a class="headerlink" href="#cli-opt-thread-comments" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">thread-comments</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-t">
+<span id="cmdoption-thread-comments"></span><span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--thread-comments</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-t" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-t <var>THREAD_COMMENTS</var></span>, <span class="option">--thread-comments <var>THREAD_COMMENTS</var></span></kbd></dt>
-<dd><p>Set this option to false to disable the use of
+<dd><p>Set this option to true or false to enable or disable the use of
 thread comments as feedback.</p>
 <div class="note admonition">
 <p class="admonition-title">Note</p>
@@ -934,9 +949,9 @@ differently for thread comments on a private repository.</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-file-annotations">
-<span class="pre">-a</span><a class="headerlink" href="#cli-opt-file-annotations" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">file-annotations</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-a">
+<span id="cmdoption-file-annotations"></span><span class="sig-name descname"><span class="pre">-a</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--file-annotations</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-a" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-a <var>FILE_ANNOTATIONS</var></span>, <span class="option">--file-annotations <var>FILE_ANNOTATIONS</var></span></kbd></dt>
 <dd><p>Set this option to false to disable the use of
@@ -946,9 +961,9 @@ file annotations as feedback.</p>
 </dl>
 </dd></dl>
 
-<dl class="std cli-opt objdesc">
-<dt class="sig sig-object highlight std" id="cli-opt-extra-arg">
-<span class="pre">-x</span><a class="headerlink" href="#cli-opt-extra-arg" title="Permalink to this definition">¶</a><br /><span class="pre">--</span><span class="sig-name descname"><span class="pre">extra-arg</span></span><br /></dt>
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-x">
+<span id="cmdoption-extra-arg"></span><span class="sig-name descname"><span class="pre">-x</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--extra-arg</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-x" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-x <var>EXTRA_ARG</var></span>, <span class="option">--extra-arg <var>EXTRA_ARG</var></span></kbd></dt>
 <dd><p>A string of extra arguments passed to clang-tidy for use as
@@ -1005,13 +1020,13 @@ avoid using spaces between name and value (use <code class="docutils literal not
       
       
         
-        <a href="API-Reference/cpp_linter.html" class="md-footer__link md-footer__link--next" aria-label="Next: Base module" rel="next">
+        <a href="API-Reference/cpp_linter.html" class="md-footer__link md-footer__link--next" aria-label="Next: __init__ module" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Base module
+              __init__ module
             </div>
           </div>
           <div class="md-footer__button md-icon">

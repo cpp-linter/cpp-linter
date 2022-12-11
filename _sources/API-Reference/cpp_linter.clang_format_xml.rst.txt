@@ -1,5 +1,5 @@
-clang_format_xml module
-=======================
+``clang_format_xml`` module
+===========================
 
 .. admonition:: Info
     :class: info
