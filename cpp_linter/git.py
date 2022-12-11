@@ -34,9 +34,7 @@ def get_diff(parents: int = 1) -> str:
     head = "HEAD"
     base = get_sha(parents)
     logger.info("getting diff between %s...%s", head, base)
-    result = subprocess.run(
-        ["git", "status", "-v"], capture_output=True, check=True
-    )
+    result = subprocess.run(["git", "status", "-v"], capture_output=True, check=True)
     diff_start = result.stdout.find(b"diff --git")
     Path(f"{head}...{base[:6]}.diff").write_bytes(result.stdout[diff_start:])
     return result.stdout[diff_start:].decode(encoding="utf-8")
@@ -65,6 +63,8 @@ def consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
 
 DIFF_FILE_DELIMITER = re.compile(r"^diff --git a/.*$", re.MULTILINE)
 DIFF_FILE_NAME = re.compile(r"^\+\+\+\sb?/(.*)$", re.MULTILINE)
+DIFF_RENAMED_FILE = re.compile(r"^rename to (.*)$", re.MULTILINE)
+DIFF_BINARY_FILE = re.compile(r"^Binary\sfiles\s", re.MULTILINE)
 HUNK_INFO = re.compile(r"@@\s\-\d+,\d+\s\+(\d+,\d+)\s@@", re.MULTILINE)
 
 
@@ -80,19 +80,32 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
     # logger.debug("full diff:\n%s", full_diff.strip("\n"))
     file_diffs = DIFF_FILE_DELIMITER.split(full_diff.lstrip("\n"))
     for diff in file_diffs:
-        if not diff or diff.startswith("deleted file"):
+        if not diff or diff.lstrip().startswith("deleted file"):
             continue
-        filename_match = DIFF_FILE_NAME.search(diff)
-        assert filename_match is not None
+        first_hunk = HUNK_INFO.search(diff)
+        hunk_start = -1 if first_hunk is None else first_hunk.start()
+        diff_front_matter = diff[:hunk_start]
+        filename_match = DIFF_FILE_NAME.search(diff_front_matter)
+        if filename_match is None:
+            # check for renamed file name
+            rename_match = DIFF_RENAMED_FILE.search(diff_front_matter)
+            if rename_match is not None and diff.lstrip().startswith("similarity"):
+                filename_match = rename_match
+            else:
+                # We may need to compensate for other instances where the filename is
+                # not directly after `+++ b/`. Binary files are another example of this.
+                if DIFF_BINARY_FILE.search(diff_front_matter) is None:
+                    # log the case and hope it helps in the future
+                    logger.warning(
+                        "Unrecognized diff starting with:\n%s",
+                        "\n".join(diff_front_matter.splitlines()),
+                    )
+                continue
         filename = filename_match.groups(0)[0]
         file_objects.append(dict(filename=filename))
-        first_hunk = HUNK_INFO.search(diff)
         if first_hunk is None:
             continue
-        patch = diff[first_hunk.start() :]
-        # patch info not needed as we will be getting what we need from the diff here
-        # file_objects[-1]["patch"] = patch
-        ranges, additions = parse_patch(patch)
+        ranges, additions = parse_patch(diff[first_hunk.start() :])
         file_objects[-1]["line_filter"] = dict(
             diff_chunks=ranges,
             lines_added=consolidate_list_to_ranges(additions),
