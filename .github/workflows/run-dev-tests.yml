@@ -39,33 +39,25 @@ jobs:
       fail-fast: false
       matrix:
         py: ['3.7', '3.8', '3.9', '3.10']
-        os: ['windows-latest', ubuntu-latest]
-        version: ['13', '12', '11', '10', '9', '8', '7']
+        os: ['windows-latest', ubuntu-22.04]
+        version: ['15', '14', '13', '12', '11', '10', '9', '8', '7']
         include:
-          - tools_dir: 'N/A'
+          # mark all matrix jobs as "need to install clang-tools"
+          - tools_dir: 'temp'
+
+          # mark certain matrix jobs as "use natively installed clang-tools"
           - os: 'windows-latest'
-            version: '10'
-            tools_dir: temp
-          - os: 'windows-latest'
-            version: '10'
-            tools_dir: temp
-          - os: 'windows-latest'
-            version: '11'
-            tools_dir: temp
-          - os: 'windows-latest'
-            version: '12'
-            tools_dir: temp
-          - os: 'ubuntu-latest'
+            version: '14'
+            tools_dir: 'N/A'
+          - os: 'ubuntu-22.04'
+            version: '14'
+            tools_dir: 'N/A'
+          - os: 'ubuntu-22.04'
             version: '13'
-            tools_dir: temp
-          # - version: '14'
-          #   tools_dir: temp
-          - version: '7'
-            tools_dir: temp
-          - version: '8'
-            tools_dir: temp
-          - version: '9'
-            tools_dir: temp
+            tools_dir: 'N/A'
+          - os: 'ubuntu-22.04'
+            version: '12'
+            tools_dir: 'N/A'
 
     runs-on: ${{ matrix.os }}
     steps:

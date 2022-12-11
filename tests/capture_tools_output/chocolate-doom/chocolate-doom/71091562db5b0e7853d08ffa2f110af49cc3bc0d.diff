@@ -1,0 +1,107 @@
+diff --git a/src/hexen/info.c b/src/hexen/info.c
+index e0dbf5004..e88433a4c 100644
+--- a/src/hexen/info.c
++++ b/src/hexen/info.c
+@@ -143,7 +143,6 @@ void A_ShedShard(mobj_t *actor);
+ void A_AddPlayerCorpse(mobj_t *actor);
+ void A_SkullPop(mobj_t *actor);
+ void A_FreezeDeath(mobj_t *actor);
+-void A_FreezeDeathChunks(mobj_t *actor);
+ void A_CheckBurnGone(mobj_t *actor);
+ void A_CheckSkullFloor(mobj_t *actor);
+ void A_CheckSkullDone(mobj_t *actor);
+@@ -180,7 +179,6 @@ void A_WraithMissile(mobj_t *actor);
+ void A_WraithFX2(mobj_t *actor);
+ void A_MinotaurFade1(mobj_t *actor);
+ void A_MinotaurFade2(mobj_t *actor);
+-void A_MinotaurLook(mobj_t *actor);
+ void A_MinotaurChase(mobj_t *actor);
+ void A_MinotaurRoam(mobj_t *actor);
+ void A_MinotaurAtk1(mobj_t *actor);
+@@ -250,14 +248,7 @@ void A_FastChase(mobj_t *actor);
+ void A_FighterAttack(mobj_t *actor);
+ void A_ClericAttack(mobj_t *actor);
+ void A_MageAttack(mobj_t *actor);
+-void A_SorcSpinBalls(mobj_t *actor);
+-void A_SpeedBalls(mobj_t *actor);
+-void A_SpawnFizzle(mobj_t *actor);
+-void A_SorcBossAttack(mobj_t *actor);
+-void A_SorcBallOrbit(mobj_t *actor);
+ void A_SorcBallPop(mobj_t *actor);
+-void A_BounceCheck(mobj_t *actor);
+-void A_SorcFX1Seek(mobj_t *actor);
+ void A_SorcFX2Split(mobj_t *actor);
+ void A_SorcFX2Orbit(mobj_t *actor);
+ void A_SorcererBishopEntry(mobj_t *actor);
+diff --git a/src/hexen/p_enemy.c b/src/hexen/p_enemy.c
+index 080476ad8..c5a4ee694 100644
+--- a/src/hexen/p_enemy.c
++++ b/src/hexen/p_enemy.c
+@@ -1102,7 +1102,6 @@ void A_MinotaurFade2(mobj_t * actor)
+ //
+ //----------------------------------------------------------------------------
+
+-void A_MinotaurLook(mobj_t * actor);
+
+ // Check the age of the minotaur and stomp it after MAULATORTICS of time
+ // have passed. Returns false if killed.
+@@ -3854,8 +3853,6 @@ void A_IceGuyMissilePuff(mobj_t * actor)
+
+ void A_IceGuyDie(mobj_t * actor)
+ {
+-    void A_FreezeDeathChunks(mobj_t * actor);
+-
+     actor->momx = 0;
+     actor->momy = 0;
+     actor->momz = 0;
+@@ -3932,22 +3929,6 @@ void A_IceGuyMissileExplode(mobj_t * actor)
+ #define BALL2_ANGLEOFFSET	(ANG_MAX/3)
+ #define BALL3_ANGLEOFFSET	((ANG_MAX/3)*2)
+
+-void A_SorcBallOrbit(mobj_t * actor);
+-void A_SorcSpinBalls(mobj_t * actor);
+-void A_SpeedBalls(mobj_t * actor);
+-void A_SlowBalls(mobj_t * actor);
+-void A_StopBalls(mobj_t * actor);
+-void A_AccelBalls(mobj_t * actor);
+-void A_DecelBalls(mobj_t * actor);
+-void A_SorcBossAttack(mobj_t * actor);
+-void A_SpawnFizzle(mobj_t * actor);
+-void A_CastSorcererSpell(mobj_t * actor);
+-void A_SorcUpdateBallAngle(mobj_t * actor);
+-void A_BounceCheck(mobj_t * actor);
+-void A_SorcFX1Seek(mobj_t * actor);
+-void A_SorcOffense1(mobj_t * actor);
+-void A_SorcOffense2(mobj_t * actor);
+-
+
+ // Spawn spinning balls above head - actor is sorcerer
+ void A_SorcSpinBalls(mobj_t * actor)
+diff --git a/src/hexen/p_local.h b/src/hexen/p_local.h
+index 158556c41..f7bcf5735 100644
+--- a/src/hexen/p_local.h
++++ b/src/hexen/p_local.h
+@@ -194,6 +194,23 @@ void A_Explode(mobj_t *actor);
+ void A_CHolyAttack3(mobj_t *actor);
+ void A_FSwordAttack2(mobj_t *actor);
+ void A_MStaffAttack2(mobj_t *actor);
++void A_FreezeDeathChunks(mobj_t *actor);
++void A_SorcBallOrbit(mobj_t *actor);
++void A_SorcSpinBalls(mobj_t *actor);
++void A_SpeedBalls(mobj_t *actor);
++void A_SlowBalls(mobj_t *actor);
++void A_StopBalls(mobj_t *actor);
++void A_AccelBalls(mobj_t *actor);
++void A_DecelBalls(mobj_t *actor);
++void A_SorcBossAttack(mobj_t *actor);
++void A_SpawnFizzle(mobj_t *actor);
++void A_CastSorcererSpell(mobj_t *actor);
++void A_SorcUpdateBallAngle(mobj_t *actor);
++void A_BounceCheck(mobj_t *actor);
++void A_SorcFX1Seek(mobj_t *actor);
++void A_SorcOffense1(mobj_t *actor);
++void A_SorcOffense2(mobj_t *actor);
++void A_MinotaurLook(mobj_t *actor);
+
+
+ // ***** P_MAPUTL *****

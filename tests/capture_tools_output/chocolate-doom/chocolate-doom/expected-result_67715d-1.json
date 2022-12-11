@@ -1,0 +1,239 @@
+[
+  {
+    "filename": "opl/opl.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          50,
+          59
+        ]
+      ],
+      "lines_added": [
+        [
+          53,
+          54
+        ],
+        [
+          55,
+          56
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "opl/opl_sdl.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          33,
+          43
+        ],
+        [
+          515,
+          520
+        ]
+      ],
+      "lines_added": [
+        [
+          36,
+          40
+        ],
+        [
+          518,
+          520
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "pcsound/pcsound.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          56,
+          65
+        ]
+      ],
+      "lines_added": [
+        [
+          59,
+          60
+        ],
+        [
+          61,
+          62
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "pcsound/pcsound_sdl.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          24,
+          34
+        ],
+        [
+          252,
+          257
+        ]
+      ],
+      "lines_added": [
+        [
+          27,
+          31
+        ],
+        [
+          255,
+          257
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "src/i_musicpack.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          44,
+          57
+        ],
+        [
+          106,
+          112
+        ],
+        [
+          1381,
+          1464
+        ]
+      ],
+      "lines_added": [
+        [
+          47,
+          54
+        ],
+        [
+          1384,
+          1464
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "src/i_sdlmusic.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          44,
+          50
+        ],
+        [
+          125,
+          150
+        ],
+        [
+          594,
+          599
+        ]
+      ],
+      "lines_added": [
+        [
+          128,
+          147
+        ],
+        [
+          597,
+          599
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "src/i_sdlsound.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          41,
+          62
+        ],
+        [
+          92,
+          98
+        ],
+        [
+          1141,
+          1146
+        ]
+      ],
+      "lines_added": [
+        [
+          44,
+          59
+        ],
+        [
+          1144,
+          1146
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "src/i_sound.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          99,
+          108
+        ],
+        [
+          110,
+          119
+        ]
+      ],
+      "lines_added": [
+        [
+          102,
+          103
+        ],
+        [
+          104,
+          105
+        ],
+        [
+          113,
+          114
+        ],
+        [
+          115,
+          116
+        ]
+      ]
+    }
+  },
+  {
+    "filename": "src/net_sdl.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          33,
+          43
+        ],
+        [
+          380,
+          442
+        ]
+      ],
+      "lines_added": [
+        [
+          36,
+          40
+        ],
+        [
+          383,
+          442
+        ]
+      ]
+    }
+  }
+]

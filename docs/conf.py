@@ -4,6 +4,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import sys
 import re
 from pathlib import Path
 import io
@@ -11,7 +12,10 @@ from docutils.nodes import Node
 from sphinx import addnodes
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
-from cpp_linter.run import cli_arg_parser
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from cpp_linter.cli import cli_arg_parser
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -91,34 +95,28 @@ object_description_options = [
     ("py:parameter", dict(include_in_toc=False)),
 ]
 
+sphinx_immaterial_custom_admonitions = [
+    {
+        "name": "seealso",
+        "color": (215, 59, 205),
+        "icon": "octicons/eye-24",
+        "override": True,
+    },
+    {
+        "name": "note",
+        "icon": "material/file-document-edit-outline",
+        "override": True,
+    }
+]
+for name in ("hint", "tip", "important"):
+    sphinx_immaterial_custom_admonitions.append(
+        dict(name=name, icon="material/school", override=True)
+    )
+
 # -- Parse CLI args from `-h` output -------------------------------------
-
-
-def parse_cli_option(env: BuildEnvironment, sig: str, sig_node: Node):
-    """parse the given signature of a CLI option and
-    return the docutil nodes accordingly."""
-    opt_names = sig.split(", ")
-    sig_node["is_multiline"] = True
-    for i, opt_name in enumerate(opt_names):
-        name = addnodes.desc_signature_line("", "--" if i else opt_name)
-        if not i:
-            name["add_permalink"] = True
-        else:
-            name += addnodes.desc_name(opt_name, opt_name.lstrip("-"))
-        sig_node += name
-    # print(sig_node.pformat())
-    return opt_names[-1].lstrip("-")
-
 
 def setup(app: Sphinx):
     """Generate a doc from the executable script's ``--help`` output."""
-    app.add_object_type(
-        "cli-opt",
-        "cli-opt",
-        objname="Command Line Interface option",
-        indextemplate="pair: %s; Command Line Interface option",
-        parse_node=parse_cli_option,
-    )
 
     with io.StringIO() as help_out:
         cli_arg_parser.print_help(help_out)
@@ -133,7 +131,7 @@ def setup(app: Sphinx):
         match = CLI_OPT_NAME.search(line)
         if match is not None:
             # print(match.groups())
-            doc += "\n.. cli-opt:: " + ", ".join(match.groups()) + "\n\n"
+            doc += "\n.. std:option:: " + ", ".join(match.groups()) + "\n\n"
         doc += line + "\n"
     cli_doc = Path(app.srcdir, "cli_args.rst")
     cli_doc.unlink(missing_ok=True)

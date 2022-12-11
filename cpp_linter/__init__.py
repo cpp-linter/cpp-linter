@@ -26,7 +26,7 @@ try:
 except ImportError:  # pragma: no cover
     logging.basicConfig()
 
-#: The logging.Logger object used for outputting data.
+#: The :py:class:`logging.Logger` object used for outputting data.
 logger = logging.getLogger("CPP Linter")
 if not FOUND_RICH_LIB:
     logger.debug("rich module not found")
@@ -35,12 +35,22 @@ if not FOUND_RICH_LIB:
 IS_ON_RUNNER = bool(os.getenv("CI"))
 GITHUB_SHA = os.getenv("GITHUB_SHA", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", os.getenv("GIT_REST_API", ""))
-API_HEADERS = {
-    "Accept": "application/vnd.github.v3.text+json",
-}
-if GITHUB_TOKEN:
-    API_HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
 IS_ON_WINDOWS = platform.system().lower() == "windows"
+
+
+def make_headers(use_diff: bool = False) -> Dict[str, str]:
+    """Create a `dict` for use in REST API headers.
+
+    :param use_diff: A flag to indicate that the returned format should be in diff
+        syntax.
+    :returns: A `dict` to be used as headers in `requests` API calls.
+    """
+    headers = {
+        "Accept": "application/vnd.github." + ("diff" if use_diff else "text+json"),
+    }
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"token {GITHUB_TOKEN}"
+    return headers
 
 
 class Globals:
@@ -99,13 +109,13 @@ def range_of_changed_lines(
     :param file_obj: The file's JSON object.
     :param lines_changed_only: A flag to indicate the focus of certain lines.
 
-        - ``0``: focuses on all lines in file.
+        - ``0``: focuses on all lines in a file(s).
         - ``1``: focuses on any lines shown in the event's diff (may include
           unchanged lines).
         - ``2``: focuses strictly on lines in the diff that contain additions.
-    :param get_ranges: A flag to return sequence a list of sequences representing
-        `range()` parameters. Defaults to `False` since this is only required when
-        constructing clang-tidy CLI arguments.
+    :param get_ranges: A flag to return a list of sequences representing
+        :py:class:`range` parameters. Defaults to `False` since this is only
+        required when constructing clang-tidy or clang-format CLI arguments.
     :returns:
         A list of line numbers for which to give attention. If ``get_ranges`` is
         asserted, then the returned list will be a list of ranges.

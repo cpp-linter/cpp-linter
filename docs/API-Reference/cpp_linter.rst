@@ -1,5 +1,5 @@
-Base module
-===========
+``__init__`` module
+===================
 
 .. automodule:: cpp_linter
     :members:

@@ -7,6 +7,8 @@ clang_tidy_output.yml
 clang_format_output.xml
 event_payload.json
 comments.json
+*.diff
+!tests/capture_tools_output/*/*/*.diff
 
 #### ignores for Python
 # Byte-compiled / optimized / DLL files
@@ -58,8 +60,6 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-tests/*/test*.json
-tests/**/*.c
 
 # Translations
 *.mo

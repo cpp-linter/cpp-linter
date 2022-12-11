@@ -7,7 +7,7 @@ from . import (
     Globals,
     GlobalParser,
     logger,
-    API_HEADERS,
+    make_headers,
     GITHUB_SHA,
     log_response_msg,
     range_of_changed_lines,
@@ -37,7 +37,7 @@ def remove_bot_comments(comments_url: str, user_id: int):
             # remove other outdated comments but don't remove the last comment
             Globals.response_buffer = requests.delete(
                 comment["url"],
-                headers=API_HEADERS,
+                headers=make_headers(),
             )
             logger.info(
                 "Got %d from DELETE %s",
@@ -118,7 +118,11 @@ def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
 
 def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
     """Aggregate a list of json contents representing advice from clang-format
-    suggestions."""
+    suggestions.
+
+    :param lines_changed_only: A flag indicating the focus of the advice that
+        should be headed.
+    """
     results = []
     for fmt_advice, file in zip(GlobalParser.format_advice, Globals.FILES):
 
@@ -226,7 +230,7 @@ def get_review_id(reviews_url: str, user_id: int) -> Optional[int]:
     if review_id is None:  # create a PR review
         Globals.response_buffer = requests.post(
             reviews_url,
-            headers=API_HEADERS,
+            headers=make_headers(),
             data=json.dumps(
                 {
                     "body": "<!-- cpp linter action -->\n"

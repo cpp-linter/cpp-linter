@@ -16,6 +16,7 @@ from cpp_linter.run import (
     list_source_files,
     get_list_of_changed_files,
 )
+from cpp_linter.git import get_diff
 
 
 def test_exit_override(tmp_path: Path):
@@ -55,7 +56,7 @@ def test_start_group(caplog: pytest.LogCaptureFixture):
 @pytest.mark.parametrize(
     "url",
     [
-        ("https://api.github.com/users/cpp-linter/starred"),
+        ("https://github.com/orgs/cpp-linter/repositories"),
         pytest.param(("https://github.com/cpp-linter/repo"), marks=pytest.mark.xfail),
     ],
 )
@@ -84,7 +85,36 @@ def test_list_src_files(
     assert list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
 
 
-def test_get_changed_files(caplog: pytest.LogCaptureFixture):
+@pytest.mark.parametrize(
+    "pseudo,expected_url",
+    [
+        (
+            dict(
+                GITHUB_REPOSITORY="cpp-linter/test-cpp-linter-action",
+                GITHUB_SHA="708a1371f3a966a479b77f1f94ec3b7911dffd77",
+                GITHUB_EVENT_NAME="unknown",  # let coverage include logged warning
+                IS_ON_RUNNER=True,
+            ),
+            "{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/commits/{GITHUB_SHA}",
+        ),
+        (
+            dict(
+                GITHUB_REPOSITORY="cpp-linter/test-cpp-linter-action",
+                GITHUB_EVENT_NAME="pull_request",
+                IS_ON_RUNNER=True,
+            ),
+            "{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{number}",
+        ),
+        (dict(IS_ON_RUNNER=False), ""),
+    ],
+    ids=["push", "pull_request", "local_dev"],
+)
+def test_get_changed_files(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    pseudo: dict,
+    expected_url: str,
+):
     """test getting a list of changed files for an event.
 
     This is expected to fail if a github token not supplied as an env var.
@@ -92,13 +122,31 @@ def test_get_changed_files(caplog: pytest.LogCaptureFixture):
     execute anyway.
     """
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    cpp_linter.run.GITHUB_REPOSITORY = "cpp-linter/test-cpp-linter-action"
-    cpp_linter.run.GITHUB_SHA = "76adde5367196cd57da5bef49a4f09af6175fd3f"
-    cpp_linter.run.GITHUB_EVENT_NAME = "push"
+    # setup test to act as though executed in user's repo's CI
+    for name, value in pseudo.items():
+        monkeypatch.setattr(cpp_linter.run, name, value)
+    if "GITHUB_EVENT_NAME" in pseudo and pseudo["GITHUB_EVENT_NAME"] == "pull_request":
+        monkeypatch.setattr(cpp_linter.run.Globals, "EVENT_PAYLOAD", dict(number=19))
+
+    def fake_get(url: str, *args, **kwargs):  # pylint: disable=unused-argument
+        """Consume the url and return a blank response."""
+        assert (
+            expected_url.format(
+                number=19, GITHUB_API_URL=cpp_linter.run.GITHUB_API_URL, **pseudo
+            )
+            == url
+        )
+        fake_response = requests.Response()
+        fake_response.url = url
+        fake_response.status_code = 211
+        fake_response._content = b""  # pylint: disable=protected-access
+        return fake_response
+
+    monkeypatch.setattr(requests, "get", fake_get)
+    monkeypatch.setattr(cpp_linter.run, "get_diff", lambda *args: "")
+
     get_list_of_changed_files()
-    # pylint: disable=no-member
-    assert Globals.FILES
-    # pylint: enable=no-member
+    assert not Globals.FILES
 
 
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])

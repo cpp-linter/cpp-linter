@@ -1,0 +1,19 @@
+[
+  {
+    "filename": "p_enemy.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          1,
+          5404
+        ]
+      ],
+      "lines_added": [
+        [
+          1,
+          5404
+        ]
+      ]
+    }
+  }
+]

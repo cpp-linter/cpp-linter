@@ -1,0 +1,4 @@
+---
+# this repo doesn't use clang-tidy
+# the purpose of this test is to a large diff with many changes.
+Checks: '-*'

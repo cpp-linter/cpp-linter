@@ -1,0 +1,59 @@
+[
+  {
+    "filename": "src/hexen/info.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          143,
+          149
+        ],
+        [
+          179,
+          185
+        ],
+        [
+          248,
+          255
+        ]
+      ],
+      "lines_added": []
+    }
+  },
+  {
+    "filename": "src/hexen/p_enemy.c",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          1102,
+          1108
+        ],
+        [
+          3853,
+          3859
+        ],
+        [
+          3929,
+          3935
+        ]
+      ],
+      "lines_added": []
+    }
+  },
+  {
+    "filename": "src/hexen/p_local.h",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          194,
+          217
+        ]
+      ],
+      "lines_added": [
+        [
+          197,
+          214
+        ]
+      ]
+    }
+  }
+]
