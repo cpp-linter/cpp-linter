@@ -3,7 +3,7 @@ related to parsing diff output into a list of changed files."""
 from pathlib import Path
 import re
 import subprocess
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Optional
 from . import logger
 
 
@@ -68,6 +68,27 @@ DIFF_BINARY_FILE = re.compile(r"^Binary\sfiles\s", re.MULTILINE)
 HUNK_INFO = re.compile(r"@@\s\-\d+,\d+\s\+(\d+,\d+)\s@@", re.MULTILINE)
 
 
+def _get_filename_from_diff(front_matter: str) -> Optional[re.Match]:
+    """Get the filename from content in the given diff front matter."""
+    filename_match = DIFF_FILE_NAME.search(front_matter)
+    if filename_match is not None:
+        return filename_match
+
+    # check for renamed file name
+    rename_match = DIFF_RENAMED_FILE.search(front_matter)
+    if rename_match is not None and front_matter.lstrip().startswith("similarity"):
+        return rename_match
+    # We may need to compensate for other instances where the filename is
+    # not directly after `+++ b/`. Binary files are another example of this.
+    if DIFF_BINARY_FILE.search(front_matter) is None:
+        # log the case and hope it helps in the future
+        logger.warning(
+            "Unrecognized diff starting with:\n%s",
+            "\n".join(front_matter.splitlines()),
+        )
+    return None
+
+
 def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
     """Parse a given diff into file objects.
 
@@ -85,22 +106,9 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
         first_hunk = HUNK_INFO.search(diff)
         hunk_start = -1 if first_hunk is None else first_hunk.start()
         diff_front_matter = diff[:hunk_start]
-        filename_match = DIFF_FILE_NAME.search(diff_front_matter)
+        filename_match = _get_filename_from_diff(diff_front_matter)
         if filename_match is None:
-            # check for renamed file name
-            rename_match = DIFF_RENAMED_FILE.search(diff_front_matter)
-            if rename_match is not None and diff.lstrip().startswith("similarity"):
-                filename_match = rename_match
-            else:
-                # We may need to compensate for other instances where the filename is
-                # not directly after `+++ b/`. Binary files are another example of this.
-                if DIFF_BINARY_FILE.search(diff_front_matter) is None:
-                    # log the case and hope it helps in the future
-                    logger.warning(
-                        "Unrecognized diff starting with:\n%s",
-                        "\n".join(diff_front_matter.splitlines()),
-                    )
-                continue
+            continue
         filename = filename_match.groups(0)[0]
         file_objects.append(dict(filename=filename))
         if first_hunk is None:
