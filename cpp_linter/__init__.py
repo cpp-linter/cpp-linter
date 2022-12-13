@@ -37,6 +37,9 @@ GITHUB_SHA = os.getenv("GITHUB_SHA", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", os.getenv("GIT_REST_API", ""))
 IS_ON_WINDOWS = platform.system().lower() == "windows"
 CACHE_PATH = ".cpp-linter_cache"
+CLANG_FORMAT_XML = "clang_format_output.xml"
+CLANG_TIDY_YML = "clang_tidy_output.yml"
+CLANG_TIDY_STDOUT = "clang_tidy_report.txt"
 
 
 def make_headers(use_diff: bool = False) -> Dict[str, str]:

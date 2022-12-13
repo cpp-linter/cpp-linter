@@ -2,7 +2,7 @@
 from pathlib import PurePath
 from typing import List, Optional
 import xml.etree.ElementTree as ET
-from . import GlobalParser, get_line_cnt_from_cols, CACHE_PATH
+from . import GlobalParser, get_line_cnt_from_cols, CACHE_PATH, CLANG_FORMAT_XML
 
 
 class FormatReplacement:
@@ -125,7 +125,7 @@ def parse_format_replacements_xml(src_filename: str):
     :param src_filename: The source file's name for which the contents of the xml
             file exported by clang-tidy.
     """
-    tree = ET.parse(f"{CACHE_PATH}/clang_format_output.xml")
+    tree = ET.parse(f"{CACHE_PATH}/{CLANG_FORMAT_XML}")
     fixit = XMLFixit(src_filename)
     for child in tree.getroot():
         if child.tag == "replacement":

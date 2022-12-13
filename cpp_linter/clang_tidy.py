@@ -2,7 +2,7 @@
 from pathlib import Path, PurePath
 import re
 from typing import Tuple, Union, List, cast
-from . import GlobalParser, CACHE_PATH
+from . import GlobalParser, CACHE_PATH, CLANG_TIDY_STDOUT
 
 NOTE_HEADER = re.compile(r"^(.*):(\d+):(\d+):\s(\w+):(.*)\[(.*)\]$")
 
@@ -99,7 +99,7 @@ def parse_tidy_output() -> None:
     """Parse clang-tidy output in a file created from stdout. The results are
     saved to :attr:`~cpp_linter.GlobalParser.tidy_notes`."""
     notification = None
-    tidy_out = Path(CACHE_PATH, "clang_tidy_report.txt").read_text(encoding="utf-8")
+    tidy_out = Path(CACHE_PATH, CLANG_TIDY_STDOUT).read_text(encoding="utf-8")
     for line in tidy_out.splitlines():
         match = re.match(NOTE_HEADER, line)
         if match is not None:

@@ -27,6 +27,9 @@ from . import (
     make_headers,
     IS_ON_RUNNER,
     CACHE_PATH,
+    CLANG_FORMAT_XML,
+    CLANG_TIDY_YML,
+    CLANG_TIDY_STDOUT,
     log_response_msg,
     range_of_changed_lines,
     assemble_version_exec,
@@ -299,13 +302,13 @@ def run_clang_tidy(
     """
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
-        Path("clang_tidy_report.txt").write_bytes(b"")
+        Path(CLANG_TIDY_STDOUT).write_bytes(b"")
         return
     Path(CACHE_PATH).mkdir(exist_ok=True)
     filename = PurePath(filename).as_posix()
     cmds = [
         assemble_version_exec("clang-tidy", version),
-        f"--export-fixes={CACHE_PATH}/clang_tidy_output.yml",
+        f"--export-fixes={CACHE_PATH}/{CLANG_TIDY_YML}",
     ]
     if checks:
         cmds.append(f"-checks={checks}")
@@ -326,12 +329,12 @@ def run_clang_tidy(
         cmds.append(f"--extra-arg={extra_arg}")
     cmds.append(filename)
     # clear yml file's content before running clang-tidy
-    Path(CACHE_PATH, "clang_tidy_output.yml").write_bytes(b"")
+    Path(CACHE_PATH, CLANG_TIDY_YML).write_bytes(b"")
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
-    Path(CACHE_PATH, "clang_tidy_report.txt").write_bytes(results.stdout)
+    Path(CACHE_PATH, CLANG_TIDY_STDOUT).write_bytes(results.stdout)
     logger.debug("Output from clang-tidy:\n%s", results.stdout.decode())
-    if Path(CACHE_PATH, "clang_tidy_output.yml").stat().st_size:
+    if Path(CACHE_PATH, CLANG_TIDY_YML).stat().st_size:
         parse_tidy_suggestions_yml()  # get clang-tidy fixes from yml
     if results.stderr:
         logger.debug(
@@ -357,7 +360,7 @@ def run_clang_format(
         diff info.
     """
     if not style:  # if `style` == ""
-        Path(CACHE_PATH, "clang_format_output.xml").write_bytes(b"")
+        Path(CACHE_PATH, CLANG_FORMAT_XML).write_bytes(b"")
         return  # clear any previous output and exit
     Path(CACHE_PATH).mkdir(exist_ok=True)
     cmds = [
@@ -374,7 +377,7 @@ def run_clang_format(
     cmds.append(PurePath(filename).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
-    Path(CACHE_PATH, "clang_format_output.xml").write_bytes(results.stdout)
+    Path(CACHE_PATH, CLANG_FORMAT_XML).write_bytes(results.stdout)
     if results.returncode:
         logger.debug(
             "%s raised the following error(s):\n%s", cmds[0], results.stderr.decode()
@@ -398,7 +401,7 @@ def create_comment_body(
         `make_annotations()` after `capture_clang_tools_output()` is finished.
     """
     ranges = range_of_changed_lines(file_obj, lines_changed_only)
-    clang_tidy_report = Path(CACHE_PATH, "clang_tidy_report.txt")
+    clang_tidy_report = Path(CACHE_PATH, CLANG_TIDY_STDOUT)
     if clang_tidy_report.exists() and clang_tidy_report.stat().st_size:
         parse_tidy_output()  # get clang-tidy fixes from stdout
         comment_output = ""
@@ -414,7 +417,7 @@ def create_comment_body(
             Globals.PAYLOAD_TIDY += comment_output
         GlobalParser.tidy_notes.clear()  # empty list to avoid duplicated output
 
-    clang_format_output = Path(CACHE_PATH, "clang_format_output.xml")
+    clang_format_output = Path(CACHE_PATH, CLANG_FORMAT_XML)
     if clang_format_output.exists() and clang_format_output.stat().st_size:
         parse_format_replacements_xml(PurePath(filename).as_posix())
         if GlobalParser.format_advice and GlobalParser.format_advice[-1].replaced_lines:
