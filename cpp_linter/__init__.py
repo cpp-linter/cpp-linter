@@ -40,6 +40,7 @@ CACHE_PATH = ".cpp-linter_cache"
 CLANG_FORMAT_XML = "clang_format_output.xml"
 CLANG_TIDY_YML = "clang_tidy_output.yml"
 CLANG_TIDY_STDOUT = "clang_tidy_report.txt"
+CHANGED_FILES_JSON = "changed_files.json"
 
 
 def make_headers(use_diff: bool = False) -> Dict[str, str]:

@@ -30,6 +30,7 @@ from . import (
     CLANG_FORMAT_XML,
     CLANG_TIDY_YML,
     CLANG_TIDY_STDOUT,
+    CHANGED_FILES_JSON,
     log_response_msg,
     range_of_changed_lines,
     assemble_version_exec,
@@ -192,7 +193,7 @@ def filter_out_non_source_files(
     if not IS_ON_RUNNER:  # if not executed on a github runner
         # dump altered json of changed files
         Path(CACHE_PATH).mkdir(exist_ok=True)
-        Path(CACHE_PATH, ".changed_files.json").write_text(
+        Path(CACHE_PATH, CHANGED_FILES_JSON).write_text(
             json.dumps(Globals.FILES, indent=2),
             encoding="utf-8",
         )

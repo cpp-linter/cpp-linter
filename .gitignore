@@ -1,5 +1,5 @@
 # local dev artifacts
-.changed_files.json
+changed_files.json
 clang_format*.txt
 clang_tidy*.txt
 clang_tidy_output.yml
