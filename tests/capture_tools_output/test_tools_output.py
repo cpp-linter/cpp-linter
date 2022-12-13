@@ -98,13 +98,15 @@ def prep_tmp_dir(
     repo_cache = tmp_path.parent / repo / commit
     repo_cache.mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(str(repo_cache))
-    filter_out_non_source_files(["c", "h"], [".github"], [], lines_changed_only)
+    filter_out_non_source_files(
+        ["c", "h", "hpp", "cpp"], [".github"], [], lines_changed_only
+    )
     cpp_linter.run.verify_files_are_present()
     repo_path = tmp_path / repo.split("/")[1]
     shutil.copytree(
         str(repo_cache),
         str(repo_path),
-        ignore=shutil.ignore_patterns("\\.changed_files.json"),
+        ignore=shutil.ignore_patterns(f"{cpp_linter.CACHE_PATH}/**"),
     )
     monkeypatch.chdir(repo_path)
 

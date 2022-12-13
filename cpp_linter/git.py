@@ -4,7 +4,7 @@ from pathlib import Path
 import re
 import subprocess
 from typing import Tuple, List, Dict, Any, Optional
-from . import logger
+from . import logger, CACHE_PATH
 
 
 def get_sha(parent: int = 1) -> str:
@@ -36,7 +36,9 @@ def get_diff(parents: int = 1) -> str:
     logger.info("getting diff between %s...%s", head, base)
     result = subprocess.run(["git", "status", "-v"], capture_output=True, check=True)
     diff_start = result.stdout.find(b"diff --git")
-    Path(f"{head}...{base[:6]}.diff").write_bytes(result.stdout[diff_start:])
+    Path(CACHE_PATH, f"{head}...{base[:6]}.diff").write_bytes(
+        result.stdout[diff_start:]
+    )
     return result.stdout[diff_start:].decode(encoding="utf-8")
 
 

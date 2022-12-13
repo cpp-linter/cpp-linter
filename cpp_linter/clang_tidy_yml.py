@@ -2,7 +2,7 @@
 from pathlib import Path, PurePath
 from typing import List, cast, Dict, Any
 import yaml
-from . import GlobalParser, get_line_cnt_from_cols, logger
+from . import GlobalParser, get_line_cnt_from_cols, logger, CLANG_TIDY_YML
 
 
 CWD_HEADER_GUARD = bytes(
@@ -87,7 +87,7 @@ def parse_tidy_suggestions_yml():
     """Read a YAML file from clang-tidy and create a list of suggestions from it.
     Output is saved to :attr:`~cpp_linter.GlobalParser.tidy_advice`.
     """
-    yml_file = Path("clang_tidy_output.yml").read_text(encoding="utf-8")
+    yml_file = CLANG_TIDY_YML.read_text(encoding="utf-8")
     yml = yaml.safe_load(yml_file)
     fixit = YMLFixit(yml["MainSourceFile"])
 
