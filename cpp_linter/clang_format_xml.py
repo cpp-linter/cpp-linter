@@ -2,7 +2,7 @@
 from pathlib import PurePath
 from typing import List, Optional
 import xml.etree.ElementTree as ET
-from . import GlobalParser, get_line_cnt_from_cols
+from . import GlobalParser, get_line_cnt_from_cols, CACHE_PATH
 
 
 class FormatReplacement:
@@ -86,8 +86,14 @@ class XMLFixit:
         :param line_filter: A list of lines numbers used to narrow notifications.
         """
         if style not in (
-            "llvm", "gnu", "google", "chromium", "microsoft", "mozilla", "webkit"
-            ):
+            "llvm",
+            "gnu",
+            "google",
+            "chromium",
+            "microsoft",
+            "mozilla",
+            "webkit",
+        ):
             # potentially the style parameter could be a str of JSON/YML syntax
             style = "Custom"
         else:
@@ -119,7 +125,7 @@ def parse_format_replacements_xml(src_filename: str):
     :param src_filename: The source file's name for which the contents of the xml
             file exported by clang-tidy.
     """
-    tree = ET.parse("clang_format_output.xml")
+    tree = ET.parse(f"{CACHE_PATH}/clang_format_output.xml")
     fixit = XMLFixit(src_filename)
     for child in tree.getroot():
         if child.tag == "replacement":

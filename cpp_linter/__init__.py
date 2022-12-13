@@ -36,6 +36,7 @@ IS_ON_RUNNER = bool(os.getenv("CI"))
 GITHUB_SHA = os.getenv("GITHUB_SHA", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", os.getenv("GIT_REST_API", ""))
 IS_ON_WINDOWS = platform.system().lower() == "windows"
+CACHE_PATH = ".cpp-linter_cache"
 
 
 def make_headers(use_diff: bool = False) -> Dict[str, str]:
