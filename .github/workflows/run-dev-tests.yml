@@ -2,6 +2,7 @@ name: "Check python code"
 
 on:
   push:
+    branches: [main]
     paths:
       - "**.py"
       - "**requirements*.txt"
@@ -9,7 +10,8 @@ on:
       - ".github/workflows/run-dev-tests.yml"
       - "!docs/**"
   pull_request:
-    types: opened
+    # types: opened
+    branches: [main]
     paths:
       - "**.py"
       - "**requirements*.txt"
@@ -99,7 +101,7 @@ jobs:
       - run: coverage report && coverage xml
 
       - uses: codecov/codecov-action@v3
-        if: matrix.os == 'ubuntu-latest' && matrix.version == '12' && matrix.py == '3.10'
+        if: matrix.os == 'ubuntu-22.04' && matrix.version == '12' && matrix.py == '3.10'
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: ./coverage.xml
