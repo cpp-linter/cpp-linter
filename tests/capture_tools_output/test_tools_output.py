@@ -106,7 +106,7 @@ def prep_tmp_dir(
     shutil.copytree(
         str(repo_cache),
         str(repo_path),
-        ignore=shutil.ignore_patterns(f"\\.{cpp_linter.CACHE_PATH}/**"),
+        ignore=shutil.ignore_patterns(f"{cpp_linter.CACHE_PATH}/**"),
     )
     monkeypatch.chdir(repo_path)
 
