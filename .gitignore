@@ -1,15 +1,5 @@
 # local dev artifacts
-changed_files.json
-clang_format*.txt
-clang_tidy*.txt
-clang_tidy_output.yml
-clang_format_output.xml
-event_payload.json
-comments.json
-*.diff
-!tests/capture_tools_output/*/*/*.diff
 .cpp-linter_cache/
-
 act.exe
 
 #### ignores for Python

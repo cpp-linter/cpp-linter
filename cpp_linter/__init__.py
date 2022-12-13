@@ -36,11 +36,11 @@ IS_ON_RUNNER = bool(os.getenv("CI"))
 GITHUB_SHA = os.getenv("GITHUB_SHA", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", os.getenv("GIT_REST_API", ""))
 IS_ON_WINDOWS = platform.system().lower() == "windows"
-CACHE_PATH = ".cpp-linter_cache"
-CLANG_FORMAT_XML = "clang_format_output.xml"
-CLANG_TIDY_YML = "clang_tidy_output.yml"
-CLANG_TIDY_STDOUT = "clang_tidy_report.txt"
-CHANGED_FILES_JSON = "changed_files.json"
+CACHE_PATH = Path(os.getenv("CPP_LINTER_CACHE", ".cpp-linter_cache"))
+CLANG_FORMAT_XML = CACHE_PATH / "clang_format_output.xml"
+CLANG_TIDY_YML = CACHE_PATH / "clang_tidy_output.yml"
+CLANG_TIDY_STDOUT = CACHE_PATH / "clang_tidy_report.txt"
+CHANGED_FILES_JSON = CACHE_PATH / "changed_files.json"
 
 
 def make_headers(use_diff: bool = False) -> Dict[str, str]:
