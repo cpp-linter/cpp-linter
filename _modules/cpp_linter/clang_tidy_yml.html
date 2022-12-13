@@ -498,7 +498,7 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">GlobalParser</span><span class="p">,</span> <span class="n">get_line_cnt_from_cols</span><span class="p">,</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">GlobalParser</span><span class="p">,</span> <span class="n">get_line_cnt_from_cols</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">CLANG_TIDY_YML</span>
 
 
 <span class="n">CWD_HEADER_GUARD</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span>
@@ -583,7 +583,7 @@
     <span class="sd">&quot;&quot;&quot;Read a YAML file from clang-tidy and create a list of suggestions from it.</span>
 <span class="sd">    Output is saved to :attr:`~cpp_linter.GlobalParser.tidy_advice`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">yml_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;clang_tidy_output.yml&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="n">yml_file</span> <span class="o">=</span> <span class="n">CLANG_TIDY_YML</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
     <span class="n">yml</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">yml_file</span><span class="p">)</span>
     <span class="n">fixit</span> <span class="o">=</span> <span class="n">YMLFixit</span><span class="p">(</span><span class="n">yml</span><span class="p">[</span><span class="s2">&quot;MainSourceFile&quot;</span><span class="p">])</span>
 
