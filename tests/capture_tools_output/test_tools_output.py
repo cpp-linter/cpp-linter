@@ -49,6 +49,8 @@ def _translate_lines_changed_only_value(value: int) -> str:
 def flush_prior_artifacts():
     """flush output from any previous tests"""
     cpp_linter.Globals.OUTPUT = ""
+    cpp_linter.Globals.TIDY_COMMENT = ""
+    cpp_linter.Globals.FORMAT_COMMENT = ""
     cpp_linter.Globals.FILES.clear()
     cpp_linter.GlobalParser.format_advice.clear()
     cpp_linter.GlobalParser.tidy_advice.clear()
@@ -339,3 +341,23 @@ def test_diff_comment(
             continue
         ranges = cpp_linter.range_of_changed_lines(file, lines_changed_only)
         assert comment["line"] in ranges
+
+
+def test_LGTM_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify the comment is affirmative when no attention is warranted."""
+    monkeypatch.chdir(str(tmp_path))
+    flush_prior_artifacts()
+    # monkeypatch.setattr(cpp_linter.Globals, "OUTPUT", "")
+    # monkeypatch.setattr(cpp_linter.Globals, "FILES", [])
+
+    # this call essentially does nothing with the file system
+    capture_clang_tools_output(
+        version=CLANG_VERSION,
+        checks="-*",
+        style="",
+        lines_changed_only=0,
+        database="",
+        repo_root="",
+        extra_args=[],
+    )
+    assert "No problems need attention." in cpp_linter.Globals.OUTPUT
