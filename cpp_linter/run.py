@@ -476,17 +476,18 @@ def capture_clang_tools_output(
         create_comment_body(filename, file, lines_changed_only, tidy_notes)
 
     if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
-        Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!"
+        Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!\n"
         if Globals.FORMAT_COMMENT:
             Globals.OUTPUT += (
-                "<details><summary>clang-format reports: <strong>"
-                + f"{len(GlobalParser.format_advice)} file(s) not formatted</strong>\n"
-                + f"\n{Globals.FORMAT_COMMENT}\n\n</details>"
+                "\n<details><summary>clang-format reports: <strong>"
+                + f"{len(GlobalParser.format_advice)} file(s) not formatted</strong>"
+                + f"</summary>\n\n{Globals.FORMAT_COMMENT}\n\n</details>"
             )
         if Globals.TIDY_COMMENT:
             Globals.OUTPUT += (
-                f"<details><summary>clang-tidy reports: <strong>{len(tidy_notes)} "
-                + f"concern(s)</strong>\n\n{Globals.TIDY_COMMENT}\n\n</details>"
+                f"\n<details><summary>clang-tidy reports: <strong>{len(tidy_notes)} "
+                + f"concern(s)</strong></summary>\n\n{Globals.TIDY_COMMENT}\n\n"
+                + "</details>"
             )
     else:
         Globals.OUTPUT += ":heavy_check_mark:\nNo problems need attention."
