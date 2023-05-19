@@ -18,7 +18,7 @@ jobs:
       - name: Build docs
         run: sphinx-build docs docs/_build/html
 
-      - name: Deploy to gh-pages
+      - name: upload docs build as artifact
         uses: actions/upload-artifact@v3
         with:
           name: "cpp-linter_docs"
