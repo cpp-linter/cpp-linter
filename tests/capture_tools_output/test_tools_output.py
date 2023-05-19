@@ -181,11 +181,10 @@ def match_file_json(filename: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-RECORD_FILE = re.compile(r".*file=(.*?),.*")
+RECORD_FILE = re.compile(r"^::\w+\sfile=([\/\w\-\\\.\s]+),.*$")
 FORMAT_RECORD = re.compile(r"Run clang-format on ")
-FORMAT_RECORD_LINES = re.compile(r".*\(lines (.*)\).*")
 TIDY_RECORD = re.compile(r":\d+:\d+ \[.*\]::")
-TIDY_RECORD_LINE = re.compile(r".*,line=(\d+).*")
+TIDY_RECORD_LINE = re.compile(r"^::\w+\sfile=[\/\w\-\\\.\s]+,line=(\d+),.*$")
 
 
 @pytest.mark.parametrize(
@@ -224,10 +223,8 @@ def test_format_annotations(
     )
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if FORMAT_RECORD.search(message) is not None:
-            lines = [
-                int(l.strip())
-                for l in FORMAT_RECORD_LINES.sub("\\1", message).split(",")
-            ]
+            line_list = message[message.find("style guidelines. (lines ") + 25:-1]
+            lines = [int(l.strip()) for l in line_list.split(",")]
             file = match_file_json(RECORD_FILE.sub("\\1", message).replace("\\", "/"))
             if file is None:
                 continue
@@ -343,12 +340,10 @@ def test_diff_comment(
         assert comment["line"] in ranges
 
 
-def test_LGTM_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    """Verify the comment is affirmative when no attention is warranted."""
+def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify the comment is affirmative when no attention is needed."""
     monkeypatch.chdir(str(tmp_path))
     flush_prior_artifacts()
-    # monkeypatch.setattr(cpp_linter.Globals, "OUTPUT", "")
-    # monkeypatch.setattr(cpp_linter.Globals, "FILES", [])
 
     # this call essentially does nothing with the file system
     capture_clang_tools_output(
