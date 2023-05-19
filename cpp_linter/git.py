@@ -112,14 +112,14 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
         if filename_match is None:
             continue
         filename = filename_match.groups(0)[0]
-        file_objects.append(dict(filename=filename))
+        file_objects.append({"filename": filename})
         if first_hunk is None:
             continue
         ranges, additions = parse_patch(diff[first_hunk.start() :])
-        file_objects[-1]["line_filter"] = dict(
-            diff_chunks=ranges,
-            lines_added=consolidate_list_to_ranges(additions),
-        )
+        file_objects[-1]["line_filter"] = {
+            "diff_chunks": ranges,
+            "lines_added": consolidate_list_to_ranges(additions),
+        }
     return file_objects
 
 

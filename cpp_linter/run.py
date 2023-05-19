@@ -249,7 +249,7 @@ def list_source_files(
                 if not is_file_in_list(
                     ignored_paths, file_path, "ignored"
                 ) or is_file_in_list(not_ignored, file_path, "not ignored"):
-                    Globals.FILES.append(dict(filename=file_path))
+                    Globals.FILES.append({"filename": file_path})
 
     if Globals.FILES:
         logger.info(
@@ -318,9 +318,10 @@ def run_clang_tidy(
         if not PurePath(database).is_absolute():
             database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
         cmds.append(database)
-    line_ranges = dict(
-        name=filename, lines=range_of_changed_lines(file_obj, lines_changed_only, True)
-    )
+    line_ranges = {
+        "name": filename,
+        "lines": range_of_changed_lines(file_obj, lines_changed_only, True),
+    }
     if line_ranges["lines"]:
         # logger.info("line_filter = %s", json.dumps([line_ranges]))
         cmds.append(f"--line-filter={json.dumps([line_ranges])}")
