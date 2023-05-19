@@ -490,8 +490,8 @@ def capture_clang_tools_output(
             )
     else:
         Globals.OUTPUT += ":heavy_check_mark:\nNo problems need attention."
-    Globals.OUTPUT += "Have any feedback or feature suggestions? [Share it here.]"
-    Globals.OUTPUT += "(https://github.com/cpp-linter/cpp-linter/issues)"
+    Globals.OUTPUT += "\n\nHave any feedback or feature suggestions? [Share it here.]"
+    Globals.OUTPUT += "(https://github.com/cpp-linter/cpp-linter-action/issues)"
 
     GlobalParser.tidy_notes = tidy_notes[:]  # restore cache of notifications
 
@@ -820,6 +820,9 @@ def main():
         )
     if args.thread_comments and thread_comments_allowed:
         post_results(False)  # False is hard-coded to disable diff comments.
+    if args.step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+            summary.write(f"\n{Globals.OUTPUT}\n")
     set_exit_code(
         int(
             make_annotations(args.style, args.file_annotations, args.lines_changed_only)

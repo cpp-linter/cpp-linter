@@ -183,6 +183,16 @@ thread comments as feedback.
 Defaults to ``%(default)s``.""",
 )
 cli_arg_parser.add_argument(
+    "-w",
+    "--step-summary",
+    default="false",
+    type=lambda input: input.lower() == "true",
+    help="""Set this option to true or false to enable or disable the use of
+a workflow step summary when the run has concluded.
+
+Defaults to ``%(default)s``.""",
+)
+cli_arg_parser.add_argument(
     "-a",
     "--file-annotations",
     default="true",
