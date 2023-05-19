@@ -61,9 +61,10 @@ def make_headers(use_diff: bool = False) -> Dict[str, str]:
 class Globals:
     """Global variables for re-use (non-constant)."""
 
-    PAYLOAD_TIDY: str = ""
+    TIDY_COMMENT: str = ""
     """The accumulated output of clang-tidy (gets appended to OUTPUT)"""
-    OUTPUT: str = ""
+    FORMAT_COMMENT: str = ""
+    OUTPUT: str = "<!-- cpp linter action -->\n# Cpp-Linter Report "
     """The accumulated body of the resulting comment that gets posted."""
     FILES: List[Dict[str, Any]] = []
     """The responding payload containing info about changed files."""

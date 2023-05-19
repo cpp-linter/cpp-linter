@@ -406,16 +406,13 @@ def create_comment_body(
     if CLANG_TIDY_STDOUT.exists() and CLANG_TIDY_STDOUT.stat().st_size:
         parse_tidy_output()  # get clang-tidy fixes from stdout
         comment_output = ""
-        if Globals.PAYLOAD_TIDY:
-            Globals.PAYLOAD_TIDY += "<hr></details>"
         for fix in GlobalParser.tidy_notes:
             if lines_changed_only and fix.line not in ranges:
                 continue
             comment_output += repr(fix)
             tidy_notes.append(fix)
         if comment_output:
-            Globals.PAYLOAD_TIDY += f"<details><summary>{filename}</summary><br>\n"
-            Globals.PAYLOAD_TIDY += comment_output
+            Globals.TIDY_COMMENT += f"- {filename}\n\n{comment_output}"
         GlobalParser.tidy_notes.clear()  # empty list to avoid duplicated output
 
     if CLANG_FORMAT_XML.exists() and CLANG_FORMAT_XML.stat().st_size:
@@ -431,10 +428,7 @@ def create_comment_body(
                         should_comment = True
                         break
             if should_comment:
-                if not Globals.OUTPUT:
-                    Globals.OUTPUT = "<!-- cpp linter action -->\n## :scroll: "
-                    Globals.OUTPUT += "Run `clang-format` on the following files\n"
-                Globals.OUTPUT += f"- [ ] {file_obj['filename']}\n"
+                Globals.FORMAT_COMMENT += f"- {file_obj['filename']}\n"
 
 
 def capture_clang_tools_output(
@@ -481,13 +475,24 @@ def capture_clang_tools_output(
 
         create_comment_body(filename, file, lines_changed_only, tidy_notes)
 
-    if Globals.PAYLOAD_TIDY:
-        if not Globals.OUTPUT:
-            Globals.OUTPUT = "<!-- cpp linter action -->\n"
-        else:
-            Globals.OUTPUT += "\n---\n"
-        Globals.OUTPUT += "## :speech_balloon: Output from `clang-tidy`\n"
-        Globals.OUTPUT += Globals.PAYLOAD_TIDY
+    if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
+        Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!"
+        if Globals.FORMAT_COMMENT:
+            Globals.OUTPUT += (
+                "<details><summary>clang-format reports: <strong>"
+                + f"{len(GlobalParser.format_advice)} file(s) not formatted</strong>\n"
+                + f"\n{Globals.FORMAT_COMMENT}\n\n</details>"
+            )
+        if Globals.TIDY_COMMENT:
+            Globals.OUTPUT += (
+                f"<details><summary>clang-tidy reports: <strong>{len(tidy_notes)} "
+                + f"concern(s)</strong>\n\n{Globals.TIDY_COMMENT}\n\n</details>"
+            )
+    else:
+        Globals.OUTPUT += ":heavy_check_mark:\nNo problems need attention."
+    Globals.OUTPUT += "Have any feedback or feature suggestions? [Share it here.]"
+    Globals.OUTPUT += "(https://github.com/cpp-linter/cpp-linter/issues)"
+
     GlobalParser.tidy_notes = tidy_notes[:]  # restore cache of notifications
 
 
