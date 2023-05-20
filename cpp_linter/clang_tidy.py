@@ -61,7 +61,7 @@ class TidyNotification:
             f"<strong>{self.filename}:{self.line}:{self.cols}:</strong> "
             + f"{self.note_type}: [{self.diagnostic}]\n> {self.note_info}"
             + f"\n\n{concerned_code}\n",
-            "   "
+            "   ",
         )
 
     def log_command(self) -> str:

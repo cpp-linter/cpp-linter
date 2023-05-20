@@ -8,7 +8,7 @@ from cpp_linter import logger
 import cpp_linter.run
 from cpp_linter.run import run_clang_tidy
 
-CLANG_TIDY_COMMAND = re.compile(r"\"clang-tidy(.*)(?:\")")
+CLANG_TIDY_COMMAND = re.compile(r'"clang-tidy(.*)"')
 
 ABS_DB_PATH = str(Path("tests/demo").resolve())
 
