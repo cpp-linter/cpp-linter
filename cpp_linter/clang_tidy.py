@@ -5,7 +5,7 @@ import re
 from typing import Tuple, Union, List, cast
 from . import GlobalParser, CLANG_TIDY_STDOUT
 
-NOTE_HEADER = re.compile(r"^([^:]+):(\d+):(\d+):\s(\w+):(.*)\[([a-z\d\-]+)\]$")
+NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
 
 
 class TidyNotification:
