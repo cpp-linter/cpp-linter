@@ -1173,12 +1173,11 @@
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">advice</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
         <span class="n">line_filter</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">range_of_changed_lines</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">file_annotations</span><span class="p">:</span>
-                <span class="n">output</span> <span class="o">=</span> <span class="n">advice</span><span class="o">.</span><span class="n">log_command</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">line_filter</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-                    <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span> <span class="ow">and</span> <span class="n">file_annotations</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">advice</span><span class="o">.</span><span class="n">log_command</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">line_filter</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">GlobalParser</span><span class="o">.</span><span class="n">tidy_notes</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">lines_changed_only</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
