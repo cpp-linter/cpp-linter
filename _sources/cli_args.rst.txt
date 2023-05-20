@@ -156,6 +156,14 @@ Command Line Interface Options
                         
                         Defaults to ``false``.
 
+.. std:option:: -w, --step-summary
+
+  -w STEP_SUMMARY, --step-summary STEP_SUMMARY
+                        Set this option to true or false to enable or disable the use of
+                        a workflow step summary when the run has concluded.
+                        
+                        Defaults to ``false``.
+
 .. std:option:: -a, --file-annotations
 
   -a FILE_ANNOTATIONS, --file-annotations FILE_ANNOTATIONS

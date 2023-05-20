@@ -32,8 +32,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="_static/google_fonts.css" />
-        <link rel="stylesheet" type="text/css" href="_static/stylesheets/sphinx_immaterial_theme.c067037dd3d9452f1.min.css" />
+        <link rel="stylesheet" type="text/css" href="_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
         <link rel="stylesheet" type="text/css" href="_static/extra_css.css" />
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -440,6 +439,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmdoption-w" class="md-nav__link">
+    <span title="-w (program option)" class="md-ellipsis">-<wbr>w, --<wbr>step-<wbr>summary</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cmdoption-a" class="md-nav__link">
     <span title="-a (program option)" class="md-ellipsis">-<wbr>a, --<wbr>file-<wbr>annotations</span>
   </a>
@@ -708,6 +714,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmdoption-w" class="md-nav__link">
+    <span title="-w (program option)" class="md-ellipsis">-<wbr>w, --<wbr>step-<wbr>summary</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cmdoption-a" class="md-nav__link">
     <span title="-a (program option)" class="md-ellipsis">-<wbr>a, --<wbr>file-<wbr>annotations</span>
   </a>
@@ -950,6 +963,18 @@ differently for thread comments on a private repository.</p>
 </dd></dl>
 
 <dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-w">
+<span id="cmdoption-step-summary"></span><span class="sig-name descname"><span class="pre">-w</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--step-summary</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-w" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="option-list">
+<dt><kbd><span class="option">-w <var>STEP_SUMMARY</var></span>, <span class="option">--step-summary <var>STEP_SUMMARY</var></span></kbd></dt>
+<dd><p>Set this option to true or false to enable or disable the use of
+a workflow step summary when the run has concluded.</p>
+<p>Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option objdesc">
 <dt class="sig sig-object highlight std" id="cmdoption-a">
 <span id="cmdoption-file-annotations"></span><span class="sig-name descname"><span class="pre">-a</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--file-annotations</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-a" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="option-list">
@@ -970,7 +995,7 @@ file annotations as feedback.</p>
 compiler arguments. This can be specified more than once for each
 additional argument. Recommend using quotes around the value and
 avoid using spaces between name and value (use <code class="docutils literal notranslate"><span class="pre">=</span></code> instead):</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter --extra-arg<span class="o">=</span><span class="s2">&quot;-std=c++17&quot;</span> --extra-arg<span class="o">=</span><span class="s2">&quot;-Wall&quot;</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter<span class="w"> </span>--extra-arg<span class="o">=</span><span class="s2">&quot;-std=c++17&quot;</span><span class="w"> </span>--extra-arg<span class="o">=</span><span class="s2">&quot;-Wall&quot;</span>
 </code></pre></div>
 </div>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">'[]'</span></code>.</p>
@@ -1050,7 +1075,7 @@ avoid using spaces between name and value (use <code class="docutils literal not
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    5.3.0.
+    7.0.1.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -1068,9 +1093,8 @@ avoid using spaces between name and value (use <code class="docutils literal not
     
     <script id="__config" type="application/json">{"base": ".", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
-    
-      <script src="_static/javascripts/bundle.444abb77.min.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+      
+        <script src="_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
     
   </body>
 </html>

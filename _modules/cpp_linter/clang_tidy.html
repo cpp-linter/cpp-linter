@@ -32,8 +32,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/google_fonts.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/stylesheets/sphinx_immaterial_theme.c067037dd3d9452f1.min.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
         <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -496,15 +495,16 @@
 <h1>Source code for cpp_linter.clang_tidy</h1><div class="highlight"><pre>
 <span></span><code><span class="sd">&quot;&quot;&quot;Parse output from clang-tidy&#39;s stdout&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
+<span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">indent</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">GlobalParser</span><span class="p">,</span> <span class="n">CLANG_TIDY_STDOUT</span>
 
-<span class="n">NOTE_HEADER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.*):(\d+):(\d+):\s(\w+):(.*)\[(.*)\]$&quot;</span><span class="p">)</span>
+<span class="n">NOTE_HEADER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.+):(\d+):(\d+):\s(\w+):(.*)\[(.*)\]$&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TidyNotification"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy.html#cpp_linter.clang_tidy.TidyNotification">[docs]</a><span class="k">class</span> <span class="nc">TidyNotification</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a object that decodes info from the clang-tidy output&#39;s initial line that</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a object that decodes info from the clang-tidy output&#39;s initial line that</span>
 <span class="sd">    details a specific notification.</span>
 
 <span class="sd">    :param notification_line: The first line in the notification parsed into a</span>
@@ -552,21 +552,15 @@
                 <span class="n">PurePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">),</span>
                 <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">),</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="s2">&quot;&lt;details open&gt;</span><span class="se">\n</span><span class="s2">&lt;summary&gt;&lt;strong&gt;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">:&lt;/strong&gt; </span><span class="si">{}</span><span class="s2">: [</span><span class="si">{}</span><span class="s2">]&quot;</span>
-            <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&gt; </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&lt;/summary&gt;&lt;p&gt;</span><span class="se">\n\n</span><span class="si">{}</span><span class="s2">&lt;/p&gt;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">note_type</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">note_info</span><span class="p">,</span>
-                <span class="n">concerned_code</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">indent</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;&lt;strong&gt;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="si">}</span><span class="s2">:&lt;/strong&gt; &quot;</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">note_type</span><span class="si">}</span><span class="s2">: [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnostic</span><span class="si">}</span><span class="s2">]</span><span class="se">\n</span><span class="s2">&gt; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">note_info</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="si">{</span><span class="n">concerned_code</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;   &quot;</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="TidyNotification.log_command"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy.html#cpp_linter.clang_tidy.TidyNotification.log_command">[docs]</a>    <span class="k">def</span> <span class="nf">log_command</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Output the notification as a github log command.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Output the notification as a github log command.</span>
 
 <span class="sd">        .. seealso::</span>
 
@@ -592,7 +586,7 @@
 
 
 <div class="viewcode-block" id="parse_tidy_output"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy.html#cpp_linter.clang_tidy.parse_tidy_output">[docs]</a><span class="k">def</span> <span class="nf">parse_tidy_output</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Parse clang-tidy output in a file created from stdout. The results are</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse clang-tidy output in a file created from stdout. The results are</span>
 <span class="sd">    saved to :attr:`~cpp_linter.GlobalParser.tidy_notes`.&quot;&quot;&quot;</span>
     <span class="n">notification</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">tidy_out</span> <span class="o">=</span> <span class="n">CLANG_TIDY_STDOUT</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
@@ -646,7 +640,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    5.3.0.
+    7.0.1.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -664,9 +658,8 @@
     
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
-    
-      <script src="../../_static/javascripts/bundle.444abb77.min.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      
+        <script src="../../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
     
   </body>
 </html>

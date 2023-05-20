@@ -32,8 +32,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../_static/google_fonts.css" />
-        <link rel="stylesheet" type="text/css" href="../_static/stylesheets/sphinx_immaterial_theme.c067037dd3d9452f1.min.css" />
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
         <link rel="stylesheet" type="text/css" href="../_static/extra_css.css" />
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -540,7 +539,7 @@
 
 
 <div class="viewcode-block" id="make_headers"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.make_headers">[docs]</a><span class="k">def</span> <span class="nf">make_headers</span><span class="p">(</span><span class="n">use_diff</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Create a `dict` for use in REST API headers.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a `dict` for use in REST API headers.</span>
 
 <span class="sd">    :param use_diff: A flag to indicate that the returned format should be in diff</span>
 <span class="sd">        syntax.</span>
@@ -555,38 +554,39 @@
 
 
 <div class="viewcode-block" id="Globals"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.Globals">[docs]</a><span class="k">class</span> <span class="nc">Globals</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Global variables for re-use (non-constant).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Global variables for re-use (non-constant).&quot;&quot;&quot;</span>
 
-    <span class="n">PAYLOAD_TIDY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="sd">&quot;&quot;&quot;The accumulated output of clang-tidy (gets appended to OUTPUT)&quot;&quot;&quot;</span>
-    <span class="n">OUTPUT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="sd">&quot;&quot;&quot;The accumulated body of the resulting comment that gets posted.&quot;&quot;&quot;</span>
+    <span class="n">TIDY_COMMENT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The accumulated output of clang-tidy (gets appended to OUTPUT)&quot;&quot;&quot;</span>
+    <span class="n">FORMAT_COMMENT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">OUTPUT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&lt;!-- cpp linter action --&gt;</span><span class="se">\n</span><span class="s2"># Cpp-Linter Report &quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The accumulated body of the resulting comment that gets posted.&quot;&quot;&quot;</span>
     <span class="n">FILES</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="sd">&quot;&quot;&quot;The responding payload containing info about changed files.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The responding payload containing info about changed files.&quot;&quot;&quot;</span>
     <span class="n">EVENT_PAYLOAD</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="sd">&quot;&quot;&quot;The parsed JSON of the event payload.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The parsed JSON of the event payload.&quot;&quot;&quot;</span>
     <span class="n">response_buffer</span><span class="p">:</span> <span class="n">Response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">()</span>
-    <span class="sd">&quot;&quot;&quot;A shared response object for `requests` module.&quot;&quot;&quot;</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A shared response object for `requests` module.&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="GlobalParser"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.GlobalParser">[docs]</a><span class="k">class</span> <span class="nc">GlobalParser</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Global variables specific to output parsers. Each element in each of the</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Global variables specific to output parsers. Each element in each of the</span>
 <span class="sd">    following attributes represents a clang-tool&#39;s output for 1 source file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">tidy_notes</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[TidyNotification]</span>
-    <span class="sd">&quot;&quot;&quot;This can only be a `list` of type</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This can only be a `list` of type</span>
 <span class="sd">    :class:`~cpp_linter.clang_tidy.TidyNotification`.&quot;&quot;&quot;</span>
     <span class="n">tidy_advice</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[YMLFixit]</span>
-    <span class="sd">&quot;&quot;&quot;This can only be a `list` of type :class:`~cpp_linter.clang_tidy_yml.YMLFixit`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This can only be a `list` of type :class:`~cpp_linter.clang_tidy_yml.YMLFixit`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">format_advice</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: List[XMLFixit]</span>
-    <span class="sd">&quot;&quot;&quot;This can only be a `list` of type :class:`~cpp_linter.clang_format_xml.XMLFixit`.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This can only be a `list` of type :class:`~cpp_linter.clang_format_xml.XMLFixit`.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="get_line_cnt_from_cols"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.get_line_cnt_from_cols">[docs]</a><span class="k">def</span> <span class="nf">get_line_cnt_from_cols</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Gets a line count and columns offset from a file&#39;s absolute offset.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gets a line count and columns offset from a file&#39;s absolute offset.</span>
 
 <span class="sd">    :param file_path: Path to file.</span>
 <span class="sd">    :param offset: The byte offset to translate</span>
@@ -605,7 +605,7 @@
 <div class="viewcode-block" id="range_of_changed_lines"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.range_of_changed_lines">[docs]</a><span class="k">def</span> <span class="nf">range_of_changed_lines</span><span class="p">(</span>
     <span class="n">file_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">get_ranges</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]:</span>
-    <span class="sd">&quot;&quot;&quot;Assemble a list of lines changed.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Assemble a list of lines changed.</span>
 
 <span class="sd">    :param file_obj: The file&#39;s JSON object.</span>
 <span class="sd">    :param lines_changed_only: A flag to indicate the focus of certain lines.</span>
@@ -633,7 +633,7 @@
 
 
 <div class="viewcode-block" id="log_response_msg"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.log_response_msg">[docs]</a><span class="k">def</span> <span class="nf">log_response_msg</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Output the response buffer&#39;s message on a failed request.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Output the response buffer&#39;s message on a failed request.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        A bool describing if response&#39;s status code was less than 400.</span>
@@ -649,7 +649,7 @@
 
 
 <div class="viewcode-block" id="assemble_version_exec"><a class="viewcode-back" href="../API-Reference/cpp_linter.html#cpp_linter.assemble_version_exec">[docs]</a><span class="k">def</span> <span class="nf">assemble_version_exec</span><span class="p">(</span><span class="n">tool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">specified_version</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Assembles the command to the executable of the given clang tool based on given</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Assembles the command to the executable of the given clang tool based on given</span>
 <span class="sd">    version information.</span>
 
 <span class="sd">    :param tool_name: The name of the clang tool to be executed.</span>
@@ -709,7 +709,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    5.3.0.
+    7.0.1.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -727,9 +727,8 @@
     
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
-    
-      <script src="../_static/javascripts/bundle.444abb77.min.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+      
+        <script src="../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
     
   </body>
 </html>
