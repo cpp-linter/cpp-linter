@@ -105,13 +105,13 @@ def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
                 body += suggestion
 
             results.append(
-                dict(
-                    body=body,
-                    commit_id=GITHUB_SHA,
-                    line=diag.line,
-                    path=fixit.filename,
-                    side="RIGHT",
-                )
+                {
+                    "body": body,
+                    "commit_id": GITHUB_SHA,
+                    "line": diag.line,
+                    "path": fixit.filename,
+                    "side": "RIGHT",
+                }
             )
     return results
 
@@ -162,13 +162,13 @@ def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
 
             # create a suggestion from clang-format advice
             results.append(
-                dict(
-                    body=body,
-                    commit_id=GITHUB_SHA,
-                    line=fixed_line.line,
-                    path=fmt_advice.filename,
-                    side="RIGHT",
-                )
+                {
+                    "body": body,
+                    "commit_id": GITHUB_SHA,
+                    "line": fixed_line.line,
+                    "path": fmt_advice.filename,
+                    "side": "RIGHT",
+                }
             )
     return results
 

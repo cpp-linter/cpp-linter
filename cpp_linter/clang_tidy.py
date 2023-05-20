@@ -1,10 +1,11 @@
 """Parse output from clang-tidy's stdout"""
 from pathlib import Path, PurePath
+from textwrap import indent
 import re
 from typing import Tuple, Union, List, cast
 from . import GlobalParser, CLANG_TIDY_STDOUT
 
-NOTE_HEADER = re.compile(r"^(.*):(\d+):(\d+):\s(\w+):(.*)\[(.*)\]$")
+NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[(.*)\]$")
 
 
 class TidyNotification:
@@ -56,17 +57,11 @@ class TidyNotification:
                 PurePath(self.filename).suffix.lstrip("."),
                 "\n".join(self.fixit_lines),
             )
-        return (
-            "<details open>\n<summary><strong>{}:{}:{}:</strong> {}: [{}]"
-            "\n\n> {}\n</summary><p>\n\n{}</p>\n</details>\n\n".format(
-                self.filename,
-                self.line,
-                self.cols,
-                self.note_type,
-                self.diagnostic,
-                self.note_info,
-                concerned_code,
-            )
+        return indent(
+            f"<strong>{self.filename}:{self.line}:{self.cols}:</strong> "
+            + f"{self.note_type}: [{self.diagnostic}]\n> {self.note_info}"
+            + f"\n\n{concerned_code}\n",
+            "   "
         )
 
     def log_command(self) -> str:

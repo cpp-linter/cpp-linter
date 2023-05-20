@@ -249,7 +249,7 @@ def list_source_files(
                 if not is_file_in_list(
                     ignored_paths, file_path, "ignored"
                 ) or is_file_in_list(not_ignored, file_path, "not ignored"):
-                    Globals.FILES.append(dict(filename=file_path))
+                    Globals.FILES.append({"filename": file_path})
 
     if Globals.FILES:
         logger.info(
@@ -318,9 +318,10 @@ def run_clang_tidy(
         if not PurePath(database).is_absolute():
             database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
         cmds.append(database)
-    line_ranges = dict(
-        name=filename, lines=range_of_changed_lines(file_obj, lines_changed_only, True)
-    )
+    line_ranges = {
+        "name": filename,
+        "lines": range_of_changed_lines(file_obj, lines_changed_only, True),
+    }
     if line_ranges["lines"]:
         # logger.info("line_filter = %s", json.dumps([line_ranges]))
         cmds.append(f"--line-filter={json.dumps([line_ranges])}")
@@ -405,16 +406,13 @@ def create_comment_body(
     if CLANG_TIDY_STDOUT.exists() and CLANG_TIDY_STDOUT.stat().st_size:
         parse_tidy_output()  # get clang-tidy fixes from stdout
         comment_output = ""
-        if Globals.PAYLOAD_TIDY:
-            Globals.PAYLOAD_TIDY += "<hr></details>"
         for fix in GlobalParser.tidy_notes:
             if lines_changed_only and fix.line not in ranges:
                 continue
             comment_output += repr(fix)
             tidy_notes.append(fix)
         if comment_output:
-            Globals.PAYLOAD_TIDY += f"<details><summary>{filename}</summary><br>\n"
-            Globals.PAYLOAD_TIDY += comment_output
+            Globals.TIDY_COMMENT += f"- {filename}\n\n{comment_output}"
         GlobalParser.tidy_notes.clear()  # empty list to avoid duplicated output
 
     if CLANG_FORMAT_XML.exists() and CLANG_FORMAT_XML.stat().st_size:
@@ -430,10 +428,7 @@ def create_comment_body(
                         should_comment = True
                         break
             if should_comment:
-                if not Globals.OUTPUT:
-                    Globals.OUTPUT = "<!-- cpp linter action -->\n## :scroll: "
-                    Globals.OUTPUT += "Run `clang-format` on the following files\n"
-                Globals.OUTPUT += f"- [ ] {file_obj['filename']}\n"
+                Globals.FORMAT_COMMENT += f"- {file_obj['filename']}\n"
 
 
 def capture_clang_tools_output(
@@ -480,13 +475,25 @@ def capture_clang_tools_output(
 
         create_comment_body(filename, file, lines_changed_only, tidy_notes)
 
-    if Globals.PAYLOAD_TIDY:
-        if not Globals.OUTPUT:
-            Globals.OUTPUT = "<!-- cpp linter action -->\n"
-        else:
-            Globals.OUTPUT += "\n---\n"
-        Globals.OUTPUT += "## :speech_balloon: Output from `clang-tidy`\n"
-        Globals.OUTPUT += Globals.PAYLOAD_TIDY
+    if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
+        Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!\n"
+        if Globals.FORMAT_COMMENT:
+            Globals.OUTPUT += (
+                "\n<details><summary>clang-format reports: <strong>"
+                + f"{len(GlobalParser.format_advice)} file(s) not formatted</strong>"
+                + f"</summary>\n\n{Globals.FORMAT_COMMENT}\n\n</details>"
+            )
+        if Globals.TIDY_COMMENT:
+            Globals.OUTPUT += (
+                f"\n<details><summary>clang-tidy reports: <strong>{len(tidy_notes)} "
+                + f"concern(s)</strong></summary>\n\n{Globals.TIDY_COMMENT}\n\n"
+                + "</details>"
+            )
+    else:
+        Globals.OUTPUT += ":heavy_check_mark:\nNo problems need attention."
+    Globals.OUTPUT += "\n\nHave any feedback or feature suggestions? [Share it here.]"
+    Globals.OUTPUT += "(https://github.com/cpp-linter/cpp-linter-action/issues)"
+
     GlobalParser.tidy_notes = tidy_notes[:]  # restore cache of notifications
 
 
@@ -814,6 +821,9 @@ def main():
         )
     if args.thread_comments and thread_comments_allowed:
         post_results(False)  # False is hard-coded to disable diff comments.
+    if args.step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+            summary.write(f"\n{Globals.OUTPUT}\n")
     set_exit_code(
         int(
             make_annotations(args.style, args.file_annotations, args.lines_changed_only)

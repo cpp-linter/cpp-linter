@@ -49,6 +49,8 @@ def _translate_lines_changed_only_value(value: int) -> str:
 def flush_prior_artifacts():
     """flush output from any previous tests"""
     cpp_linter.Globals.OUTPUT = ""
+    cpp_linter.Globals.TIDY_COMMENT = ""
+    cpp_linter.Globals.FORMAT_COMMENT = ""
     cpp_linter.Globals.FILES.clear()
     cpp_linter.GlobalParser.format_advice.clear()
     cpp_linter.GlobalParser.tidy_advice.clear()
@@ -179,11 +181,10 @@ def match_file_json(filename: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-RECORD_FILE = re.compile(r".*file=(.*?),.*")
+RECORD_FILE = re.compile(r"^::\w+\sfile=([\/\w\-\\\.\s]+),.*$")
 FORMAT_RECORD = re.compile(r"Run clang-format on ")
-FORMAT_RECORD_LINES = re.compile(r".*\(lines (.*)\).*")
 TIDY_RECORD = re.compile(r":\d+:\d+ \[.*\]::")
-TIDY_RECORD_LINE = re.compile(r".*,line=(\d+).*")
+TIDY_RECORD_LINE = re.compile(r"^::\w+\sfile=[\/\w\-\\\.\s]+,line=(\d+),.*$")
 
 
 @pytest.mark.parametrize(
@@ -222,10 +223,8 @@ def test_format_annotations(
     )
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if FORMAT_RECORD.search(message) is not None:
-            lines = [
-                int(l.strip())
-                for l in FORMAT_RECORD_LINES.sub("\\1", message).split(",")
-            ]
+            line_list = message[message.find("style guidelines. (lines ") + 25:-1]
+            lines = [int(l.strip()) for l in line_list.split(",")]
             file = match_file_json(RECORD_FILE.sub("\\1", message).replace("\\", "/"))
             if file is None:
                 continue
@@ -339,3 +338,21 @@ def test_diff_comment(
             continue
         ranges = cpp_linter.range_of_changed_lines(file, lines_changed_only)
         assert comment["line"] in ranges
+
+
+def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Verify the comment is affirmative when no attention is needed."""
+    monkeypatch.chdir(str(tmp_path))
+    flush_prior_artifacts()
+
+    # this call essentially does nothing with the file system
+    capture_clang_tools_output(
+        version=CLANG_VERSION,
+        checks="-*",
+        style="",
+        lines_changed_only=0,
+        database="",
+        repo_root="",
+        extra_args=[],
+    )
+    assert "No problems need attention." in cpp_linter.Globals.OUTPUT
