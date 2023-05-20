@@ -163,20 +163,20 @@ def test_lines_changed_only(
         #     json.dumps(cpp_linter.Globals.FILES, indent=2) + "\n", encoding="utf-8"
         # )
         test_result = json.loads(expected_results_json.read_text(encoding="utf-8"))
-        for file, result in zip(cpp_linter.Globals.FILES, test_result):
+        for file_obj, result in zip(cpp_linter.Globals.FILES, test_result):
             expected = result["line_filter"]["diff_chunks"]
-            assert file["line_filter"]["diff_chunks"] == expected
+            assert file_obj["line_filter"]["diff_chunks"] == expected
             expected = result["line_filter"]["lines_added"]
-            assert file["line_filter"]["lines_added"] == expected
+            assert file_obj["line_filter"]["lines_added"] == expected
     else:
         raise RuntimeError("test failed to find files")
 
 
 def match_file_json(filename: str) -> Optional[Dict[str, Any]]:
     """A helper function to match a given filename with a file's JSON object."""
-    for file in cpp_linter.Globals.FILES:
-        if file["filename"] == filename:
-            return file
+    for file_obj in cpp_linter.Globals.FILES:
+        if file_obj["filename"] == filename:
+            return file_obj
     print("file", filename, "not found in expected_result.json")
     return None
 
@@ -223,12 +223,14 @@ def test_format_annotations(
     )
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if FORMAT_RECORD.search(message) is not None:
-            line_list = message[message.find("style guidelines. (lines ") + 25:-1]
+            line_list = message[message.find("style guidelines. (lines ") + 25 : -1]
             lines = [int(l.strip()) for l in line_list.split(",")]
-            file = match_file_json(RECORD_FILE.sub("\\1", message).replace("\\", "/"))
-            if file is None:
+            file_obj = match_file_json(
+                RECORD_FILE.sub("\\1", message).replace("\\", "/")
+            )
+            if file_obj is None:
                 continue
-            ranges = cpp_linter.range_of_changed_lines(file, lines_changed_only)
+            ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 for line in lines:
                     assert line in ranges
@@ -281,10 +283,12 @@ def test_tidy_annotations(
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if TIDY_RECORD.search(message) is not None:
             line = int(TIDY_RECORD_LINE.sub("\\1", message))
-            file = match_file_json(RECORD_FILE.sub("\\1", message).replace("\\", "/"))
-            if file is None:
+            file_obj = match_file_json(
+                RECORD_FILE.sub("\\1", message).replace("\\", "/")
+            )
+            if file_obj is None:
                 continue
-            ranges = cpp_linter.range_of_changed_lines(file, lines_changed_only)
+            ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 assert line in ranges
         else:
@@ -330,13 +334,14 @@ def test_diff_comment(
         extra_args=[],
     )
     diff_comments = list_diff_comments(lines_changed_only)
-    # output = Path(__file__).parent / "diff_comments.json"
-    # output.write_text(json.dumps(diff_comments, indent=2), encoding="utf-8")
+    # the following can be used to manually inspect test results (if needed)
+    # #output = Path(__file__).parent / "diff_comments.json"
+    # #output.write_text(json.dumps(diff_comments, indent=2), encoding="utf-8")
     for comment in diff_comments:
-        file = match_file_json(cast(str, comment["path"]))
-        if file is None:
+        file_obj = match_file_json(cast(str, comment["path"]))
+        if file_obj is None:
             continue
-        ranges = cpp_linter.range_of_changed_lines(file, lines_changed_only)
+        ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
         assert comment["line"] in ranges
 
 

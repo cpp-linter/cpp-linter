@@ -5,7 +5,7 @@ import re
 from typing import Tuple, Union, List, cast
 from . import GlobalParser, CLANG_TIDY_STDOUT
 
-NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[(.*)\]$")
+NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
 
 
 class TidyNotification:
@@ -61,7 +61,7 @@ class TidyNotification:
             f"<strong>{self.filename}:{self.line}:{self.cols}:</strong> "
             + f"{self.note_type}: [{self.diagnostic}]\n> {self.note_info}"
             + f"\n\n{concerned_code}\n",
-            "   "
+            "   ",
         )
 
     def log_command(self) -> str:
