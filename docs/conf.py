@@ -1,4 +1,3 @@
-# pylint: disable=all
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -8,14 +7,11 @@ import sys
 import re
 from pathlib import Path
 import io
-from docutils.nodes import Node
-from sphinx import addnodes
 from sphinx.application import Sphinx
-from sphinx.environment import BuildEnvironment
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from cpp_linter.cli import cli_arg_parser
+from cpp_linter.cli import cli_arg_parser  # noqa: E402
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -106,7 +102,7 @@ sphinx_immaterial_custom_admonitions = [
         "name": "note",
         "icon": "material/file-document-edit-outline",
         "override": True,
-    }
+    },
 ]
 for name in ("hint", "tip", "important"):
     sphinx_immaterial_custom_admonitions.append(
@@ -114,6 +110,7 @@ for name in ("hint", "tip", "important"):
     )
 
 # -- Parse CLI args from `-h` output -------------------------------------
+
 
 def setup(app: Sphinx):
     """Generate a doc from the executable script's ``--help`` output."""
@@ -126,12 +123,18 @@ def setup(app: Sphinx):
         raise OSError("unrecognized output from `cpp-linter -h`")
     output = output[first_line.end(0) :]
     doc = "Command Line Interface Options\n==============================\n\n"
-    CLI_OPT_NAME = re.compile(r"^\s*(\-\w)\s?[A-Z_]*,\s(\-\-.*?)\s")
+    CLI_OPT_NAME = re.compile(r"^\s*(\-\w)\s?\{?[A-Za-z_,]*\}?,\s(\-\-.*?)\s")
     for line in output.splitlines():
         match = CLI_OPT_NAME.search(line)
         if match is not None:
             # print(match.groups())
             doc += "\n.. std:option:: " + ", ".join(match.groups()) + "\n\n"
+            options_match = re.search(
+                r"\-\w\s\{[a-zA-Z,]+\},\s\-\-[\w\-]+\s\{[a-zA-Z,]+\}", line
+            )
+            if options_match is not None:
+                new_txt = options_match.group()
+                line = line.replace(options_match.group(), f"``{new_txt}``")
         doc += line + "\n"
     cli_doc = Path(app.srcdir, "cli_args.rst")
     cli_doc.unlink(missing_ok=True)

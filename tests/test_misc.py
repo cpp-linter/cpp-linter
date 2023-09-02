@@ -16,7 +16,6 @@ from cpp_linter.run import (
     list_source_files,
     get_list_of_changed_files,
 )
-from cpp_linter.git import get_diff
 
 
 def test_exit_override(tmp_path: Path):

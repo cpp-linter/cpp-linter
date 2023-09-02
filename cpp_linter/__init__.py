@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, List, Dict, Tuple, Any, Union
 from requests import Response
 
 if TYPE_CHECKING:  # Used to avoid circular imports
-    from cpp_linter.clang_format_xml import XMLFixit
-    from cpp_linter.clang_tidy_yml import YMLFixit
-    from cpp_linter.clang_tidy import TidyNotification
+    from cpp_linter.clang_format_xml import XMLFixit  # noqa: F401
+    from cpp_linter.clang_tidy_yml import YMLFixit  # noqa: F401
+    from cpp_linter.clang_tidy import TidyNotification  # noqa: F401
 
 FOUND_RICH_LIB = False
 try:

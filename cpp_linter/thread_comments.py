@@ -18,7 +18,16 @@ def update_comment(
     comments_url: str, user_id: int, count: int, no_lgtm: bool, update_only: bool
 ):
     """Updates the comment for an existing comment or posts a new comment if
-    `update_only` is `False`.
+    ``update_only`` is `False`.
+
+
+    :param comments_url: The URL used to fetch the comments.
+    :param user_id: The user's account id number.
+    :param count: The number of comments to traverse.
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     """
     comment_id = remove_bot_comments(comments_url, user_id, count, not update_only)
     if comment_id is not None:
@@ -43,6 +52,9 @@ def remove_bot_comments(
 
     :param comments_url: The URL used to fetch the comments.
     :param user_id: The user's account id number.
+    :param count: The number of comments to traverse.
+    :param delete: A flag describing if first applicable bot comment should be deleted
+        or not.
     """
     logger.info("comments_url: %s", comments_url)
     page = 1

@@ -224,7 +224,7 @@ def test_format_annotations(
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if FORMAT_RECORD.search(message) is not None:
             line_list = message[message.find("style guidelines. (lines ") + 25 : -1]
-            lines = [int(l.strip()) for l in line_list.split(",")]
+            lines = [int(line.strip()) for line in line_list.split(",")]
             file_obj = match_file_json(
                 RECORD_FILE.sub("\\1", message).replace("\\", "/")
             )

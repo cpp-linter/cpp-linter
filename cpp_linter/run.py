@@ -168,7 +168,7 @@ def filter_out_non_source_files(
     """
     files = []
     for file in Globals.FILES:
-        if (  # pylint: disable=too-many-boolean-expressions
+        if (
             PurePath(file["filename"]).suffix.lstrip(".") in ext_list
             and (
                 not is_file_in_list(ignored, file["filename"], "ignored")
@@ -503,10 +503,10 @@ def post_push_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: b
     :param base_url: The root of the url used to interact with the REST API via
         `requests`.
     :param user_id: The user's account ID number.
-
-    :returns:
-        A bool describing if the linter checks passed. This is used as the action's
-        output value (a soft exit code).
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     """
     comments_url = base_url + f"commits/{GITHUB_SHA}/comments"
     # find comment count first (to traverse them all)
@@ -525,10 +525,10 @@ def post_pr_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: boo
     :param base_url: The root of the url used to interact with the REST API via
         `requests`.
     :param user_id: The user's account ID number.
-
-    :returns:
-        A bool describing if the linter checks passed. This is used as the action's
-        output value (a soft exit code).
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     """
     comments_url = base_url + f'issues/{Globals.EVENT_PAYLOAD["number"]}/comments'
     # find comment count first (to traverse them all)
@@ -544,6 +544,10 @@ def post_pr_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: boo
 def post_results(update_only: bool, no_lgtm: bool, user_id: int = 41898282):
     """Post action's results using REST API.
 
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     :param user_id: The user's account ID number. Defaults to the generic bot's ID.
     """
     if not GITHUB_TOKEN:

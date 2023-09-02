@@ -1,8 +1,8 @@
 coverage[toml]
 mypy
 pre-commit
-pylint
 pytest
 rich
+ruff
 types-PyYAML
 types-requests
