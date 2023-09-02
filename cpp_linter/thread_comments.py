@@ -14,7 +14,30 @@ from . import (
 )
 
 
-def remove_bot_comments(comments_url: str, user_id: int):
+def update_comment(
+    comments_url: str, user_id: int, count: int, no_lgtm: bool, update_only: bool
+):
+    """Updates the comment for an existing comment or posts a new comment if
+    `update_only` is `False`.
+    """
+    comment_id = remove_bot_comments(comments_url, user_id, count, not update_only)
+    if comment_id is not None:
+        comments_url += f"/{comment_id}"
+    if Globals.OUTPUT and not no_lgtm:
+        payload = json.dumps({"body": Globals.OUTPUT})
+        logger.debug("payload body:\n%s", json.dumps({"body": Globals.OUTPUT}))
+        Globals.response_buffer = requests.post(
+            comments_url, headers=make_headers(), data=payload
+        )
+        logger.info(
+            "Got %d response from POSTing comment", Globals.response_buffer.status_code
+        )
+        log_response_msg()
+
+
+def remove_bot_comments(
+    comments_url: str, user_id: int, count: int, delete: bool
+) -> Optional[int]:
     """Traverse the list of comments made by a specific user
     and remove all.
 
@@ -22,37 +45,46 @@ def remove_bot_comments(comments_url: str, user_id: int):
     :param user_id: The user's account id number.
     """
     logger.info("comments_url: %s", comments_url)
-    Globals.response_buffer = requests.get(comments_url)
-    if not log_response_msg():
-        return  # error getting comments for the thread; stop here
-    comments = Globals.response_buffer.json()
-    for comment in comments:
-        # only search for comments from the user's ID and
-        # whose comment body begins with a specific html comment
-        if (
-            int(comment["user"]["id"]) == user_id
-            # the specific html comment is our action's name
-            and comment["body"].startswith("<!-- cpp linter action -->")
-        ):
-            # remove other outdated comments but don't remove the last comment
-            Globals.response_buffer = requests.delete(
-                comment["url"],
-                headers=make_headers(),
+    page = 1
+    comment_id: Optional[int] = None
+    while count:
+        Globals.response_buffer = requests.get(comments_url + f"?page={page}")
+        if not log_response_msg():
+            return comment_id  # error getting comments for the thread; stop here
+        comments = cast(List[Dict[str, Any]], Globals.response_buffer.json())
+        page += 1
+        count -= len(comments)
+        for comment in comments:
+            # only search for comments from the user's ID and
+            # whose comment body begins with a specific html comment
+            if (
+                int(comment["user"]["id"]) == user_id
+                # the specific html comment is our action's name
+                and comment["body"].startswith("<!-- cpp linter action -->")
+            ):
+                if delete or (not delete and comment_id is not None):
+                    # remove all outdated comments if not updating
+                    # but don't remove the fist comment found if updating
+                    Globals.response_buffer = requests.delete(
+                        comment["url"],
+                        headers=make_headers(),
+                    )
+                    logger.info(
+                        "Got %d from DELETE %s",
+                        Globals.response_buffer.status_code,
+                        comment["url"][comment["url"].find(".com") + 4 :],
+                    )
+                    log_response_msg()
+            logger.debug(
+                "comment id %d from user %s (%d)",
+                comment["id"],
+                comment["user"]["login"],
+                comment["user"]["id"],
             )
-            logger.info(
-                "Got %d from DELETE %s",
-                Globals.response_buffer.status_code,
-                comment["url"][comment["url"].find(".com") + 4 :],
-            )
-            log_response_msg()
-        logger.debug(
-            "comment id %d from user %s (%d)",
-            comment["id"],
-            comment["user"]["login"],
-            comment["user"]["id"],
-        )
+            comment_id = cast(int, comment["id"])
     with open("comments.json", "w", encoding="utf-8") as json_comments:
         json.dump(comments, json_comments, indent=4)
+    return comment_id
 
 
 def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
@@ -125,7 +157,6 @@ def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
     """
     results = []
     for fmt_advice, file in zip(GlobalParser.format_advice, Globals.FILES):
-
         # get original code
         filename = Path(file["filename"])
         # the list of lines from the src file

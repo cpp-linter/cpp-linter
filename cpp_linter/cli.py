@@ -160,12 +160,27 @@ This is automatically enabled if
 Defaults to ``%(default)s``.""",
 )
 cli_arg_parser.add_argument(
+    "-g",
+    "--no-lgtm",
+    default="true",
+    type=lambda input: input.lower() == "true",
+    help="""Set this option to true or false to enable or disable the use of a
+thread comment that basically says 'Looks Good To Me' (when all checks pass).
+
+.. seealso::
+    The :std:option:`--thread-comments` option also notes further implications.
+
+Defaults to ``%(default)s``.""",
+)
+cli_arg_parser.add_argument(
     "-t",
     "--thread-comments",
     default="false",
-    type=lambda input: input.lower() == "true",
-    help="""Set this option to true or false to enable or disable the use of
-thread comments as feedback.
+    choices=['true', 'false', 'update'],
+    help="""Set this option to 'true' or 'false' to enable or disable the use of
+thread comments as feedback. Set this to 'update' to update an existing comment
+if one exists; the value 'true' will always delete an old comment and post a new one
+if necessary.
 
 .. note::
     To use thread comments, the ``GITHUB_TOKEN`` (provided by
