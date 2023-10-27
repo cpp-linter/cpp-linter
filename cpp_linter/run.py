@@ -152,7 +152,7 @@ def filter_out_non_source_files(
     ignored: List[str],
     not_ignored: List[str],
     lines_changed_only: int,
-) -> bool:
+):
     """Exclude undesired files (specified by user input :std:option:`--extensions`).
     This filtering is applied to the :attr:`~cpp_linter.Globals.FILES` attribute.
 
@@ -182,14 +182,14 @@ def filter_out_non_source_files(
         ):
             files.append(file)
 
+    Globals.FILES = files
     if not files:
         logger.info("No source files need checking!")
-        return False
-    logger.info(
-        "Giving attention to the following files:\n\t%s",
-        "\n\t".join([f["filename"] for f in files]),
-    )
-    Globals.FILES = files
+    else:
+        logger.info(
+            "Giving attention to the following files:\n\t%s",
+            "\n\t".join([f["filename"] for f in files]),
+        )
     if not IS_ON_RUNNER:  # if not executed on a github runner
         # dump altered json of changed files
         CACHE_PATH.mkdir(exist_ok=True)
@@ -197,7 +197,6 @@ def filter_out_non_source_files(
             json.dumps(Globals.FILES, indent=2),
             encoding="utf-8",
         )
-    return True
 
 
 def verify_files_are_present() -> None:
@@ -223,7 +222,7 @@ def verify_files_are_present() -> None:
 
 def list_source_files(
     ext_list: List[str], ignored_paths: List[str], not_ignored: List[str]
-) -> bool:
+):
     """Make a list of source files to be checked. The resulting list is stored in
     :attr:`~cpp_linter.Globals.FILES`.
 
@@ -258,8 +257,6 @@ def list_source_files(
         )
     else:
         logger.info("No source files found.")  # this might need to be warning
-        return False
-    return True
 
 
 def run_clang_tidy(
@@ -696,22 +693,19 @@ def main():
         logger.debug(json.dumps(Globals.EVENT_PAYLOAD))
         end_log_group()
 
-    exit_early = False
     if args.files_changed_only:
         get_list_of_changed_files()
-        exit_early = not filter_out_non_source_files(
+        filter_out_non_source_files(
             args.extensions,
             ignored,
             not_ignored,
             args.lines_changed_only,
         )
-        if not exit_early:
+        if Globals.FILES:
             verify_files_are_present()
     else:
-        exit_early = not list_source_files(args.extensions, ignored, not_ignored)
+        list_source_files(args.extensions, ignored, not_ignored)
     end_log_group()
-    if exit_early:
-        sys.exit(set_exit_code(0))
 
     capture_clang_tools_output(
         args.version,
@@ -735,7 +729,8 @@ def main():
         )
     if args.thread_comments != "false" and thread_comments_allowed:
         post_results(
-            update_only=args.thread_comments == "update", no_lgtm=args.no_lgtm,
+            update_only=args.thread_comments == "update",
+            no_lgtm=args.no_lgtm,
         )
     if args.step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:

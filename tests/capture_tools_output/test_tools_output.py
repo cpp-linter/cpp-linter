@@ -147,12 +147,13 @@ def test_lines_changed_only(
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     repo, commit = repo_commit_pair["repo"], repo_commit_pair["commit"]
     prep_repo(monkeypatch, repo, commit)
-    if filter_out_non_source_files(
+    filter_out_non_source_files(
         ext_list=extensions,
         ignored=[".github"],
         not_ignored=[],
         lines_changed_only=lines_changed_only,
-    ):
+    )
+    if cpp_linter.Globals.FILES:
         expected_results_json = (
             Path(__file__).parent
             / repo

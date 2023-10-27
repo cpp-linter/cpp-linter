@@ -65,10 +65,9 @@ def remove_bot_comments(
         if not log_response_msg():
             return comment_id  # error getting comments for the thread; stop here
         comments = cast(List[Dict[str, Any]], Globals.response_buffer.json())
-        with open(
-            f"{CACHE_PATH}/comments-pg{page}.json", "w", encoding="utf-8"
-        ) as json_comments:
-            json.dump(comments, json_comments, indent=2)
+        json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
+        json_comments.write_text(json.dumps(comments, indent=2), encoding="utf-8")
+
         page += 1
         count -= len(comments)
         for comment in comments:
