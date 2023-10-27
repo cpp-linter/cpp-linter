@@ -589,10 +589,11 @@ def make_annotations(
     )
     for advice, file in zip(GlobalParser.format_advice, files):
         line_filter = cast(List[int], range_of_changed_lines(file, lines_changed_only))
-        if advice.replaced_lines and file_annotations:
+        if advice.replaced_lines:
             output = advice.log_command(style, line_filter)
             if output is not None:
-                log_commander.info(output)
+                if file_annotations:
+                    log_commander.info(output)
                 count += 1
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
