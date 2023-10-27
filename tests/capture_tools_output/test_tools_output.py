@@ -100,6 +100,7 @@ def prep_tmp_dir(
     repo_cache = tmp_path.parent / repo / commit
     repo_cache.mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(str(repo_cache))
+    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
     filter_out_non_source_files(
         ["c", "h", "hpp", "cpp"], [".github"], [], lines_changed_only
     )
@@ -147,6 +148,7 @@ def test_lines_changed_only(
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     repo, commit = repo_commit_pair["repo"], repo_commit_pair["commit"]
     prep_repo(monkeypatch, repo, commit)
+    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
     filter_out_non_source_files(
         ext_list=extensions,
         ignored=[".github"],

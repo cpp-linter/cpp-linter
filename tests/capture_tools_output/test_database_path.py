@@ -34,6 +34,7 @@ def test_db_detection(
 ):
     """test clang-tidy using a implicit path to the compilation database."""
     monkeypatch.chdir(PurePath(__file__).parent.as_posix())
+    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
     demo_src = "../demo/demo.cpp"
     rel_root = str(Path(*Path(__file__).parts[-2:]))
     cpp_linter.run.RUNNER_WORKSPACE = (

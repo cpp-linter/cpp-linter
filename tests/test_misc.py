@@ -81,7 +81,8 @@ def test_list_src_files(
     Globals.FILES = []
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    assert list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
+    list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
+    assert Globals.FILES
 
 
 @pytest.mark.parametrize(

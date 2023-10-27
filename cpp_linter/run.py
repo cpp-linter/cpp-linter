@@ -192,7 +192,6 @@ def filter_out_non_source_files(
         )
     if not IS_ON_RUNNER:  # if not executed on a github runner
         # dump altered json of changed files
-        CACHE_PATH.mkdir(exist_ok=True)
         CHANGED_FILES_JSON.write_text(
             json.dumps(Globals.FILES, indent=2),
             encoding="utf-8",
@@ -298,7 +297,6 @@ def run_clang_tidy(
 
                 cpp-linter --extra-arg=-std=c++14 --extra-arg=-Wall
     """
-    CACHE_PATH.mkdir(exist_ok=True)
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
         CLANG_TIDY_STDOUT.write_bytes(b"")
@@ -358,7 +356,6 @@ def run_clang_format(
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
     """
-    CACHE_PATH.mkdir(exist_ok=True)
     if not style:  # if `style` == ""
         CLANG_FORMAT_XML.write_bytes(b"")
         return  # clear any previous output and exit
@@ -682,6 +679,7 @@ def main():
 
     # change working directory
     os.chdir(args.repo_root)
+    CACHE_PATH.mkdir(exist_ok=True)
 
     if GITHUB_EVENT_PATH:
         # load event's json info about the workflow run
