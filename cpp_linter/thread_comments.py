@@ -35,7 +35,7 @@ def update_comment(
         payload = json.dumps({"body": Globals.OUTPUT})
         logger.debug("payload body:\n%s", payload)
         if comment_id is not None:
-            comments_url += f"/{comment_id}"
+            comments_url = comment_id
             req_meth = requests.patch
         else:
             req_meth = requests.post
@@ -52,7 +52,7 @@ def update_comment(
 
 def remove_bot_comments(
     comments_url: str, user_id: int, count: int, delete: bool
-) -> Optional[int]:
+) -> Optional[str]:
     """Traverse the list of comments made by a specific user
     and remove all.
 
@@ -61,10 +61,12 @@ def remove_bot_comments(
     :param count: The number of comments to traverse.
     :param delete: A flag describing if first applicable bot comment should be deleted
         or not.
+
+    :returns: If updating a comment, this will return the comment URL.
     """
     logger.info("comments_url: %s", comments_url)
     page = 1
-    comment_id: Optional[int] = None
+    comment_id: Optional[str] = None
     while count:
         Globals.response_buffer = requests.get(comments_url + f"?page={page}")
         if not log_response_msg():
@@ -102,7 +104,7 @@ def remove_bot_comments(
                 comment["user"]["login"],
                 comment["user"]["id"],
             )
-            comment_id = cast(int, comment["id"])
+            comment_id = cast(str, comment["url"])
     return comment_id
 
 
