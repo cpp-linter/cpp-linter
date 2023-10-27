@@ -609,10 +609,12 @@ def make_annotations(
                 continue
             if note.line in line_filter or not line_filter:
                 count += 1
-                log_commander.info(note.log_command())
+                if file_annotations:
+                    log_commander.info(note.log_command())
         else:
             count += 1
-            log_commander.info(note.log_command())
+            if file_annotations:
+                log_commander.info(note.log_command())
     logger.info("Created %d annotations", count)
     return bool(count)
 
