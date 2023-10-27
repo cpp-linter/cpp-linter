@@ -16,7 +16,12 @@ from . import (
 
 
 def update_comment(
-    comments_url: str, user_id: int, count: int, no_lgtm: bool, update_only: bool
+    comments_url: str,
+    user_id: int,
+    count: int,
+    no_lgtm: bool,
+    update_only: bool,
+    is_lgtm: bool,
 ):
     """Updates the comment for an existing comment or posts a new comment if
     ``update_only`` is `False`.
@@ -30,7 +35,6 @@ def update_comment(
     :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
         if this is `False`, then an outdated bot comment will still be deleted.
     """
-    is_lgtm = GlobalParser.tidy_notes + GlobalParser.format_advice == 0
     comment_url = remove_bot_comments(
         comments_url, user_id, count, delete=not update_only or (is_lgtm and no_lgtm)
     )

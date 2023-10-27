@@ -491,7 +491,9 @@ def capture_clang_tools_output(
     GlobalParser.tidy_notes = tidy_notes[:]  # restore cache of notifications
 
 
-def post_push_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: bool):
+def post_push_comment(
+    base_url: str, user_id: int, update_only: bool, no_lgtm: bool, is_lgtm: bool
+):
     """POST action's results for a push event.
 
     :param base_url: The root of the url used to interact with the REST API via
@@ -510,10 +512,12 @@ def post_push_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: b
     log_response_msg()
     if Globals.response_buffer.status_code == 200:
         count = cast(int, Globals.response_buffer.json()["commit"]["comment_count"])
-        update_comment(comments_url, user_id, count, no_lgtm, update_only)
+        update_comment(comments_url, user_id, count, no_lgtm, update_only, is_lgtm)
 
 
-def post_pr_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: bool):
+def post_pr_comment(
+    base_url: str, user_id: int, update_only: bool, no_lgtm: bool, is_lgtm: bool
+):
     """POST action's results for a push event.
 
     :param base_url: The root of the url used to interact with the REST API via
@@ -532,10 +536,12 @@ def post_pr_comment(base_url: str, user_id: int, update_only: bool, no_lgtm: boo
     log_response_msg()
     if Globals.response_buffer.status_code == 200:
         count = cast(int, Globals.response_buffer.json()["comments"])
-        update_comment(comments_url, user_id, count, no_lgtm, update_only)
+        update_comment(comments_url, user_id, count, no_lgtm, update_only, is_lgtm)
 
 
-def post_results(update_only: bool, no_lgtm: bool, user_id: int = 41898282):
+def post_results(
+    update_only: bool, no_lgtm: bool, is_lgtm: bool, user_id: int = 41898282
+):
     """Post action's results using REST API.
 
     :param update_only: A flag that describes if the outdated bot comment should only be
@@ -550,9 +556,9 @@ def post_results(update_only: bool, no_lgtm: bool, user_id: int = 41898282):
 
     base_url = f"{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/"
     if GITHUB_EVENT_NAME == "pull_request":
-        post_pr_comment(base_url, user_id, update_only, no_lgtm)
+        post_pr_comment(base_url, user_id, update_only, no_lgtm, is_lgtm)
     elif GITHUB_EVENT_NAME == "push":
-        post_push_comment(base_url, user_id, update_only, no_lgtm)
+        post_push_comment(base_url, user_id, update_only, no_lgtm, is_lgtm)
 
 
 def make_annotations(
@@ -729,6 +735,7 @@ def main():
         post_results(
             update_only=args.thread_comments == "update",
             no_lgtm=args.no_lgtm,
+            is_lgtm=not checks_failed,
         )
     if args.step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
