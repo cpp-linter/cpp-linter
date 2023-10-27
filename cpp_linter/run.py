@@ -615,7 +615,7 @@ def make_annotations(
             count += 1
             if file_annotations:
                 log_commander.info(note.log_command())
-    logger.info("Created %d annotations", count)
+    logger.info("%d checks-failed", count)
     return bool(count)
 
 
