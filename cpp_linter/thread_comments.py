@@ -31,16 +31,21 @@ def update_comment(
         if this is `False`, then an outdated bot comment will still be deleted.
     """
     comment_id = remove_bot_comments(comments_url, user_id, count, not update_only)
-    if comment_id is not None:
-        comments_url += f"/{comment_id}"
     if Globals.OUTPUT and not no_lgtm:
         payload = json.dumps({"body": Globals.OUTPUT})
-        logger.debug("payload body:\n%s", json.dumps({"body": Globals.OUTPUT}))
-        Globals.response_buffer = requests.post(
+        logger.debug("payload body:\n%s", payload)
+        if comment_id is not None:
+            comments_url += f"/{comment_id}"
+            req_meth = requests.patch
+        else:
+            req_meth = requests.post
+        Globals.response_buffer = req_meth(
             comments_url, headers=make_headers(), data=payload
         )
         logger.info(
-            "Got %d response from POSTing comment", Globals.response_buffer.status_code
+            "Got %d response from %sing comment",
+            Globals.response_buffer.status_code,
+            "POST" if comment_id is None else "PATCH",
         )
         log_response_msg()
 
