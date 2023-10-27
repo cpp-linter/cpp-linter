@@ -735,7 +735,7 @@ def main():
         )
     if args.thread_comments != "false" and thread_comments_allowed:
         post_results(
-            args.thread_comments == "update", args.no_lgtm and not checks_failed
+            update_only=args.thread_comments == "update", no_lgtm=args.no_lgtm,
         )
     if args.step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
