@@ -66,11 +66,11 @@ def remove_bot_comments(
     """
     logger.info("comments_url: %s", comments_url)
     page = 1
-    comment_id: Optional[str] = None
+    comment_url: Optional[str] = None
     while count:
         Globals.response_buffer = requests.get(comments_url + f"?page={page}")
         if not log_response_msg():
-            return comment_id  # error getting comments for the thread; stop here
+            return comment_url  # error getting comments for the thread; stop here
         comments = cast(List[Dict[str, Any]], Globals.response_buffer.json())
         json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
         json_comments.write_text(json.dumps(comments, indent=2), encoding="utf-8")
@@ -85,27 +85,31 @@ def remove_bot_comments(
                 # the specific html comment is our action's name
                 and comment["body"].startswith("<!-- cpp linter action -->")
             ):
-                if delete or (not delete and comment_id is not None):
-                    # remove all outdated comments if not updating
-                    # but don't remove the fist comment found if updating
+                logger.debug(
+                    "comment id %d from user %s (%d)",
+                    comment["id"],
+                    comment["user"]["login"],
+                    comment["user"]["id"],
+                )
+                if delete or (not delete and comment_url is not None):
+                    # if not updating: remove all outdated comments
+                    # if updating: remove all outdated comments except the last one
+
+                    # use last saved comment_url (if not None) or current comment url
+                    url = comment_url or comment["url"]
                     Globals.response_buffer = requests.delete(
-                        comment["url"],
+                        url,
                         headers=make_headers(),
                     )
                     logger.info(
                         "Got %d from DELETE %s",
                         Globals.response_buffer.status_code,
-                        comment["url"][comment["url"].find(".com") + 4 :],
+                        url[url.find(".com") + 4 :],
                     )
                     log_response_msg()
-            logger.debug(
-                "comment id %d from user %s (%d)",
-                comment["id"],
-                comment["user"]["login"],
-                comment["user"]["id"],
-            )
-            comment_id = cast(str, comment["url"])
-    return comment_id
+                if not delete:
+                    comment_url = cast(str, comment["url"])
+    return comment_url
 
 
 def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
