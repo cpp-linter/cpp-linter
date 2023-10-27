@@ -30,22 +30,25 @@ def update_comment(
     :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
         if this is `False`, then an outdated bot comment will still be deleted.
     """
-    comment_id = remove_bot_comments(comments_url, user_id, count, not update_only)
-    if Globals.OUTPUT and not no_lgtm:
-        payload = json.dumps({"body": Globals.OUTPUT})
-        logger.debug("payload body:\n%s", payload)
-        if comment_id is not None:
-            comments_url = comment_id
+    is_lgtm = GlobalParser.tidy_notes + GlobalParser.format_advice == 0
+    comment_url = remove_bot_comments(
+        comments_url, user_id, count, delete=not update_only or (is_lgtm and no_lgtm)
+    )
+    if (is_lgtm and not no_lgtm) or not is_lgtm:
+        if comment_url is not None:
+            comments_url = comment_url
             req_meth = requests.patch
         else:
             req_meth = requests.post
+        payload = json.dumps({"body": Globals.OUTPUT})
+        logger.debug("payload body:\n%s", payload)
         Globals.response_buffer = req_meth(
             comments_url, headers=make_headers(), data=payload
         )
         logger.info(
             "Got %d response from %sing comment",
             Globals.response_buffer.status_code,
-            "POST" if comment_id is None else "PATCH",
+            "POST" if comment_url is None else "PATCH",
         )
         log_response_msg()
 
