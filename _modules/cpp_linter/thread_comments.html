@@ -32,8 +32,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.752ffd597a2cbce58.min.css?v=f1fa3a75" />
+        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css?v=cd45be07" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -509,7 +509,9 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="remove_bot_comments"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.remove_bot_comments">[docs]</a><span class="k">def</span> <span class="nf">remove_bot_comments</span><span class="p">(</span><span class="n">comments_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="remove_bot_comments">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.remove_bot_comments">[docs]</a>
+<span class="k">def</span> <span class="nf">remove_bot_comments</span><span class="p">(</span><span class="n">comments_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Traverse the list of comments made by a specific user</span>
 <span class="sd">    and remove all.</span>
 
@@ -550,7 +552,10 @@
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">comments</span><span class="p">,</span> <span class="n">json_comments</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="aggregate_tidy_advice"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.aggregate_tidy_advice">[docs]</a><span class="k">def</span> <span class="nf">aggregate_tidy_advice</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+
+<div class="viewcode-block" id="aggregate_tidy_advice">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.aggregate_tidy_advice">[docs]</a>
+<span class="k">def</span> <span class="nf">aggregate_tidy_advice</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate a list of json contents representing advice from clang-tidy</span>
 <span class="sd">    suggestions.</span>
 
@@ -611,7 +616,10 @@
     <span class="k">return</span> <span class="n">results</span></div>
 
 
-<div class="viewcode-block" id="aggregate_format_advice"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.aggregate_format_advice">[docs]</a><span class="k">def</span> <span class="nf">aggregate_format_advice</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+
+<div class="viewcode-block" id="aggregate_format_advice">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.aggregate_format_advice">[docs]</a>
+<span class="k">def</span> <span class="nf">aggregate_format_advice</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate a list of json contents representing advice from clang-format</span>
 <span class="sd">    suggestions.</span>
 
@@ -668,7 +676,10 @@
     <span class="k">return</span> <span class="n">results</span></div>
 
 
-<div class="viewcode-block" id="concatenate_comments"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.concatenate_comments">[docs]</a><span class="k">def</span> <span class="nf">concatenate_comments</span><span class="p">(</span>
+
+<div class="viewcode-block" id="concatenate_comments">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.concatenate_comments">[docs]</a>
+<span class="k">def</span> <span class="nf">concatenate_comments</span><span class="p">(</span>
     <span class="n">tidy_advice</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">:</span> <span class="nb">list</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Concatenate comments made to the same line of the same file.</span>
@@ -694,7 +705,10 @@
     <span class="k">return</span> <span class="n">tidy_advice</span> <span class="o">+</span> <span class="n">format_advice</span></div>
 
 
-<div class="viewcode-block" id="list_diff_comments"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.list_diff_comments">[docs]</a><span class="k">def</span> <span class="nf">list_diff_comments</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+
+<div class="viewcode-block" id="list_diff_comments">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.list_diff_comments">[docs]</a>
+<span class="k">def</span> <span class="nf">list_diff_comments</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate list of comments for use in the event&#39;s diff. This function assumes</span>
 <span class="sd">    that the CLI option ``--lines_changed_only`` is set to True.</span>
 
@@ -710,7 +724,10 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_review_id"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.get_review_id">[docs]</a><span class="k">def</span> <span class="nf">get_review_id</span><span class="p">(</span><span class="n">reviews_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+
+<div class="viewcode-block" id="get_review_id">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.get_review_id">[docs]</a>
+<span class="k">def</span> <span class="nf">get_review_id</span><span class="p">(</span><span class="n">reviews_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Dismiss all stale reviews (only the ones made by our bot).</span>
 
 <span class="sd">    :param reviews_url: The URL used to fetch the review comments.</span>
@@ -747,7 +764,10 @@
     <span class="k">return</span> <span class="n">review_id</span></div>
 
 
-<div class="viewcode-block" id="find_review"><a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.find_review">[docs]</a><span class="k">def</span> <span class="nf">find_review</span><span class="p">(</span><span class="n">reviews</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+
+<div class="viewcode-block" id="find_review">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.find_review">[docs]</a>
+<span class="k">def</span> <span class="nf">find_review</span><span class="p">(</span><span class="n">reviews</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Find a review created by a certain user ID.</span>
 
 <span class="sd">    :param reviews: the JSON object fetched via GIT REST API.</span>
@@ -766,6 +786,7 @@
 
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   review_id: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">review_id</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">review_id</span></div>
+
 </code></pre></div>
 
 
@@ -802,7 +823,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.0.1.
+    7.2.6.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -821,7 +842,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
-        <script src="../../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
+        <script src="../../_static/sphinx_immaterial_theme.1b5b7a2d5891aec19.min.js?v=1e7b0789"></script>
     
   </body>
 </html>

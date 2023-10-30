@@ -32,8 +32,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.752ffd597a2cbce58.min.css?v=f1fa3a75" />
+        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css?v=cd45be07" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -502,7 +502,9 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
 
 
-<div class="viewcode-block" id="get_sha"><a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.get_sha">[docs]</a><span class="k">def</span> <span class="nf">get_sha</span><span class="p">(</span><span class="n">parent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="get_sha">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.get_sha">[docs]</a>
+<span class="k">def</span> <span class="nf">get_sha</span><span class="p">(</span><span class="n">parent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Uses ``git`` to fetch the full SHA hash of the current commit.</span>
 
 <span class="sd">    .. note::</span>
@@ -520,7 +522,10 @@
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_diff"><a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.get_diff">[docs]</a><span class="k">def</span> <span class="nf">get_diff</span><span class="p">(</span><span class="n">parents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+<div class="viewcode-block" id="get_diff">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.get_diff">[docs]</a>
+<span class="k">def</span> <span class="nf">get_diff</span><span class="p">(</span><span class="n">parents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the diff info about a specified commit.</span>
 
 <span class="sd">    :param parents: The number of parent commits related to the current commit.</span>
@@ -537,7 +542,10 @@
     <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">[</span><span class="n">diff_start</span><span class="p">:]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="consolidate_list_to_ranges"><a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.consolidate_list_to_ranges">[docs]</a><span class="k">def</span> <span class="nf">consolidate_list_to_ranges</span><span class="p">(</span><span class="n">numbers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+
+<div class="viewcode-block" id="consolidate_list_to_ranges">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.consolidate_list_to_ranges">[docs]</a>
+<span class="k">def</span> <span class="nf">consolidate_list_to_ranges</span><span class="p">(</span><span class="n">numbers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A helper function to `filter_out_non_source_files()` and `parse_diff()` that is</span>
 <span class="sd">    only used when extracting the lines from a diff that contain additions.</span>
 
@@ -556,6 +564,7 @@
         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></div>
+
 
 
 <span class="n">DIFF_FILE_DELIMITER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^diff --git a/.*$&quot;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
@@ -586,7 +595,9 @@
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="parse_diff"><a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_diff">[docs]</a><span class="k">def</span> <span class="nf">parse_diff</span><span class="p">(</span><span class="n">full_diff</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<div class="viewcode-block" id="parse_diff">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_diff">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_diff</span><span class="p">(</span><span class="n">full_diff</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a given diff into file objects.</span>
 
 <span class="sd">    :param full_diff: The complete diff for an event.</span>
@@ -618,7 +629,10 @@
     <span class="k">return</span> <span class="n">file_objects</span></div>
 
 
-<div class="viewcode-block" id="parse_patch"><a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_patch">[docs]</a><span class="k">def</span> <span class="nf">parse_patch</span><span class="p">(</span><span class="n">full_patch</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+
+<div class="viewcode-block" id="parse_patch">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_patch">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_patch</span><span class="p">(</span><span class="n">full_patch</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a diff&#39;s patch accordingly.</span>
 
 <span class="sd">    :param full_patch: The entire patch of hunks for 1 file.</span>
@@ -648,6 +662,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">i</span><span class="p">:</span>  <span class="c1"># don&#39;t increment on first line</span>
                 <span class="n">line_numb_in_diff</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">ranges</span><span class="p">,</span> <span class="n">additions</span><span class="p">)</span></div>
+
 </code></pre></div>
 
 
@@ -684,7 +699,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.0.1.
+    7.2.6.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -703,7 +718,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
-        <script src="../../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
+        <script src="../../_static/sphinx_immaterial_theme.1b5b7a2d5891aec19.min.js?v=1e7b0789"></script>
     
   </body>
 </html>

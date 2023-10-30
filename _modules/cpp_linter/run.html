@@ -32,8 +32,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.752ffd597a2cbce58.min.css?v=f1fa3a75" />
+        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css?v=cd45be07" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -547,7 +547,9 @@
 <span class="n">RUNNER_WORKSPACE</span> <span class="o">=</span> <span class="s2">&quot;/github/workspace&quot;</span> <span class="k">if</span> <span class="n">IS_USING_DOCKER</span> <span class="k">else</span> <span class="n">GITHUB_WORKSPACE</span>
 
 
-<div class="viewcode-block" id="set_exit_code"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.set_exit_code">[docs]</a><span class="k">def</span> <span class="nf">set_exit_code</span><span class="p">(</span><span class="n">override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<div class="viewcode-block" id="set_exit_code">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.set_exit_code">[docs]</a>
+<span class="k">def</span> <span class="nf">set_exit_code</span><span class="p">(</span><span class="n">override</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the action&#39;s exit code.</span>
 
 <span class="sd">    :param override: The number to use when overriding the action&#39;s logic.</span>
@@ -566,6 +568,7 @@
     <span class="k">return</span> <span class="n">exit_code</span></div>
 
 
+
 <span class="c1"># setup a separate logger for using github log commands</span>
 <span class="n">log_commander</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;LOG COMMANDER&quot;</span><span class="p">)</span>  <span class="c1"># create a child of our logger obj</span>
 <span class="n">log_commander</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>  <span class="c1"># be sure that log commands are output</span>
@@ -575,7 +578,9 @@
 <span class="n">log_commander</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
 
 
-<div class="viewcode-block" id="start_log_group"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.start_log_group">[docs]</a><span class="k">def</span> <span class="nf">start_log_group</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="start_log_group">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.start_log_group">[docs]</a>
+<span class="k">def</span> <span class="nf">start_log_group</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Begin a collapsable group of log statements.</span>
 
 <span class="sd">    :param name: The name of the collapsable group</span>
@@ -583,12 +588,18 @@
     <span class="n">log_commander</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;::group::</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="end_log_group"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.end_log_group">[docs]</a><span class="k">def</span> <span class="nf">end_log_group</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="end_log_group">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.end_log_group">[docs]</a>
+<span class="k">def</span> <span class="nf">end_log_group</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;End a collapsable group of log statements.&quot;&quot;&quot;</span>
     <span class="n">log_commander</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;::endgroup::&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="is_file_in_list"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.is_file_in_list">[docs]</a><span class="k">def</span> <span class="nf">is_file_in_list</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="is_file_in_list">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.is_file_in_list">[docs]</a>
+<span class="k">def</span> <span class="nf">is_file_in_list</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine if a file is specified in a list of paths and/or filenames.</span>
 
 <span class="sd">    :param paths: A list of specified paths to compare with. This list can contain a</span>
@@ -617,7 +628,10 @@
     <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="get_list_of_changed_files"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.get_list_of_changed_files">[docs]</a><span class="k">def</span> <span class="nf">get_list_of_changed_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="get_list_of_changed_files">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.get_list_of_changed_files">[docs]</a>
+<span class="k">def</span> <span class="nf">get_list_of_changed_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch a list of the event&#39;s changed files. Sets the</span>
 <span class="sd">    :attr:`~cpp_linter.Globals.FILES` attribute.&quot;&quot;&quot;</span>
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Get list of specified source files&quot;</span><span class="p">)</span>
@@ -642,7 +656,10 @@
         <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span><span class="n">get_diff</span><span class="p">())</span></div>
 
 
-<div class="viewcode-block" id="filter_out_non_source_files"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.filter_out_non_source_files">[docs]</a><span class="k">def</span> <span class="nf">filter_out_non_source_files</span><span class="p">(</span>
+
+<div class="viewcode-block" id="filter_out_non_source_files">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.filter_out_non_source_files">[docs]</a>
+<span class="k">def</span> <span class="nf">filter_out_non_source_files</span><span class="p">(</span>
     <span class="n">ext_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -695,7 +712,10 @@
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="verify_files_are_present"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.verify_files_are_present">[docs]</a><span class="k">def</span> <span class="nf">verify_files_are_present</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+<div class="viewcode-block" id="verify_files_are_present">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.verify_files_are_present">[docs]</a>
+<span class="k">def</span> <span class="nf">verify_files_are_present</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Download the files if not present.</span>
 
 <span class="sd">    .. hint::</span>
@@ -716,7 +736,10 @@
             <span class="n">file_name</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="list_source_files"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.list_source_files">[docs]</a><span class="k">def</span> <span class="nf">list_source_files</span><span class="p">(</span>
+
+<div class="viewcode-block" id="list_source_files">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.list_source_files">[docs]</a>
+<span class="k">def</span> <span class="nf">list_source_files</span><span class="p">(</span>
     <span class="n">ext_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">ignored_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Make a list of source files to be checked. The resulting list is stored in</span>
@@ -757,7 +780,10 @@
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="run_clang_tidy"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.run_clang_tidy">[docs]</a><span class="k">def</span> <span class="nf">run_clang_tidy</span><span class="p">(</span>
+
+<div class="viewcode-block" id="run_clang_tidy">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.run_clang_tidy">[docs]</a>
+<span class="k">def</span> <span class="nf">run_clang_tidy</span><span class="p">(</span>
     <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -839,7 +865,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="run_clang_format"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.run_clang_format">[docs]</a><span class="k">def</span> <span class="nf">run_clang_format</span><span class="p">(</span>
+
+<div class="viewcode-block" id="run_clang_format">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.run_clang_format">[docs]</a>
+<span class="k">def</span> <span class="nf">run_clang_format</span><span class="p">(</span>
     <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -881,7 +910,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="create_comment_body"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.create_comment_body">[docs]</a><span class="k">def</span> <span class="nf">create_comment_body</span><span class="p">(</span>
+
+<div class="viewcode-block" id="create_comment_body">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.create_comment_body">[docs]</a>
+<span class="k">def</span> <span class="nf">create_comment_body</span><span class="p">(</span>
     <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">file_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -926,7 +958,10 @@
                 <span class="n">Globals</span><span class="o">.</span><span class="n">FORMAT_COMMENT</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">file_obj</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span></div>
 
 
-<div class="viewcode-block" id="capture_clang_tools_output"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.capture_clang_tools_output">[docs]</a><span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span>
+
+<div class="viewcode-block" id="capture_clang_tools_output">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.capture_clang_tools_output">[docs]</a>
+<span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span>
     <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">checks</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -992,7 +1027,10 @@
     <span class="n">GlobalParser</span><span class="o">.</span><span class="n">tidy_notes</span> <span class="o">=</span> <span class="n">tidy_notes</span><span class="p">[:]</span>  <span class="c1"># restore cache of notifications</span></div>
 
 
-<div class="viewcode-block" id="post_push_comment"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_push_comment">[docs]</a><span class="k">def</span> <span class="nf">post_push_comment</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="post_push_comment">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_push_comment">[docs]</a>
+<span class="k">def</span> <span class="nf">post_push_comment</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;POST action&#39;s results for a push event.</span>
 
 <span class="sd">    :param base_url: The root of the url used to interact with the REST API via</span>
@@ -1019,7 +1057,10 @@
     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="post_diff_comments"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_diff_comments">[docs]</a><span class="k">def</span> <span class="nf">post_diff_comments</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="post_diff_comments">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_diff_comments">[docs]</a>
+<span class="k">def</span> <span class="nf">post_diff_comments</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post comments inside a unified diff (only PRs are supported).</span>
 
 <span class="sd">    :param base_url: The root of the url used to interact with the REST API via</span>
@@ -1096,7 +1137,10 @@
     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="post_pr_comment"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_pr_comment">[docs]</a><span class="k">def</span> <span class="nf">post_pr_comment</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+<div class="viewcode-block" id="post_pr_comment">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_pr_comment">[docs]</a>
+<span class="k">def</span> <span class="nf">post_pr_comment</span><span class="p">(</span><span class="n">base_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;POST action&#39;s results for a push event.</span>
 
 <span class="sd">    :param base_url: The root of the url used to interact with the REST API via</span>
@@ -1123,7 +1167,10 @@
     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="post_results"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_results">[docs]</a><span class="k">def</span> <span class="nf">post_results</span><span class="p">(</span><span class="n">use_diff_comments</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">41898282</span><span class="p">):</span>
+
+<div class="viewcode-block" id="post_results">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.post_results">[docs]</a>
+<span class="k">def</span> <span class="nf">post_results</span><span class="p">(</span><span class="n">use_diff_comments</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">41898282</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post action&#39;s results using REST API.</span>
 
 <span class="sd">    :param use_diff_comments: This flag enables making/updating comments in the PR&#39;s</span>
@@ -1145,7 +1192,10 @@
     <span class="n">set_exit_code</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">checks_passed</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="make_annotations"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.make_annotations">[docs]</a><span class="k">def</span> <span class="nf">make_annotations</span><span class="p">(</span>
+
+<div class="viewcode-block" id="make_annotations">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.make_annotations">[docs]</a>
+<span class="k">def</span> <span class="nf">make_annotations</span><span class="p">(</span>
     <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_annotations</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Use github log commands to make annotations from clang-format and</span>
@@ -1200,7 +1250,10 @@
     <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">count</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="parse_ignore_option"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.parse_ignore_option">[docs]</a><span class="k">def</span> <span class="nf">parse_ignore_option</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+
+<div class="viewcode-block" id="parse_ignore_option">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.parse_ignore_option">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_ignore_option</span><span class="p">(</span><span class="n">paths</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a given string of paths (separated by a ``|``) into ``ignored`` and</span>
 <span class="sd">    ``not_ignored`` lists of strings.</span>
 
@@ -1249,7 +1302,10 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.run.html#cpp_linter.run.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The main script.&quot;&quot;&quot;</span>
 
     <span class="c1"># The parsed CLI args</span>
@@ -1326,6 +1382,7 @@
     <span class="n">end_log_group</span><span class="p">()</span></div>
 
 
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </code></pre></div>
@@ -1364,7 +1421,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.0.1.
+    7.2.6.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -1383,7 +1440,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
-        <script src="../../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
+        <script src="../../_static/sphinx_immaterial_theme.1b5b7a2d5891aec19.min.js?v=1e7b0789"></script>
     
   </body>
 </html>

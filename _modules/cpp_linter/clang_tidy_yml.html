@@ -32,8 +32,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.752ffd597a2cbce58.min.css?v=f1fa3a75" />
+        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css?v=cd45be07" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -505,7 +505,9 @@
 <span class="p">)</span>  <span class="c1">#: The constant used to trim absolute paths from header guard suggestions.</span>
 
 
-<div class="viewcode-block" id="TidyDiagnostic"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.TidyDiagnostic">[docs]</a><span class="k">class</span> <span class="nc">TidyDiagnostic</span><span class="p">:</span>
+<div class="viewcode-block" id="TidyDiagnostic">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.TidyDiagnostic">[docs]</a>
+<span class="k">class</span> <span class="nc">TidyDiagnostic</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an object that represents a diagnostic output found in the</span>
 <span class="sd">    YAML exported from clang-tidy.</span>
 
@@ -534,7 +536,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TidyReplacement"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.TidyReplacement">[docs]</a><span class="k">class</span> <span class="nc">TidyReplacement</span><span class="p">:</span>
+
+<div class="viewcode-block" id="TidyReplacement">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.TidyReplacement">[docs]</a>
+<span class="k">class</span> <span class="nc">TidyReplacement</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an object representing a clang-tidy suggested replacement.</span>
 
 <span class="sd">    :param line_cnt: The replacement content&#39;s starting line</span>
@@ -559,7 +564,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="YMLFixit"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.YMLFixit">[docs]</a><span class="k">class</span> <span class="nc">YMLFixit</span><span class="p">:</span>
+
+<div class="viewcode-block" id="YMLFixit">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.YMLFixit">[docs]</a>
+<span class="k">class</span> <span class="nc">YMLFixit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A single object to represent each suggestion.</span>
 
 <span class="sd">    :param filename: The source file&#39;s name (with path) concerning the suggestion.</span>
@@ -578,7 +586,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="parse_tidy_suggestions_yml"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.parse_tidy_suggestions_yml">[docs]</a><span class="k">def</span> <span class="nf">parse_tidy_suggestions_yml</span><span class="p">():</span>
+
+<div class="viewcode-block" id="parse_tidy_suggestions_yml">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy_yml.html#cpp_linter.clang_tidy_yml.parse_tidy_suggestions_yml">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_tidy_suggestions_yml</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a YAML file from clang-tidy and create a list of suggestions from it.</span>
 <span class="sd">    Output is saved to :attr:`~cpp_linter.GlobalParser.tidy_advice`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -613,6 +624,7 @@
         <span class="n">fixit</span><span class="o">.</span><span class="n">diagnostics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diag</span><span class="p">)</span>
         <span class="c1"># filter out absolute header guards</span>
     <span class="n">GlobalParser</span><span class="o">.</span><span class="n">tidy_advice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fixit</span><span class="p">)</span></div>
+
 </code></pre></div>
 
 
@@ -649,7 +661,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.0.1.
+    7.2.6.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -668,7 +680,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
-        <script src="../../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
+        <script src="../../_static/sphinx_immaterial_theme.1b5b7a2d5891aec19.min.js?v=1e7b0789"></script>
     
   </body>
 </html>

@@ -32,8 +32,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.864ac64b8efeb1910.min.css" />
-        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.752ffd597a2cbce58.min.css?v=f1fa3a75" />
+        <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css?v=cd45be07" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -500,7 +500,9 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">GlobalParser</span><span class="p">,</span> <span class="n">get_line_cnt_from_cols</span><span class="p">,</span> <span class="n">CLANG_FORMAT_XML</span>
 
 
-<div class="viewcode-block" id="FormatReplacement"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.FormatReplacement">[docs]</a><span class="k">class</span> <span class="nc">FormatReplacement</span><span class="p">:</span>
+<div class="viewcode-block" id="FormatReplacement">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.FormatReplacement">[docs]</a>
+<span class="k">class</span> <span class="nc">FormatReplacement</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An object representing a single replacement.</span>
 
 <span class="sd">    :param cols: The columns number of where the suggestion starts on the line</span>
@@ -523,7 +525,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="FormatReplacementLine"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.FormatReplacementLine">[docs]</a><span class="k">class</span> <span class="nc">FormatReplacementLine</span><span class="p">:</span>
+
+<div class="viewcode-block" id="FormatReplacementLine">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.FormatReplacementLine">[docs]</a>
+<span class="k">class</span> <span class="nc">FormatReplacementLine</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An object that represents a replacement(s) for a single line.</span>
 
 <span class="sd">    :param line_numb: The line number of about the replacements</span>
@@ -543,7 +548,10 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="XMLFixit"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.XMLFixit">[docs]</a><span class="k">class</span> <span class="nc">XMLFixit</span><span class="p">:</span>
+
+<div class="viewcode-block" id="XMLFixit">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.XMLFixit">[docs]</a>
+<span class="k">class</span> <span class="nc">XMLFixit</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A single object to represent each suggestion.</span>
 
 <span class="sd">    :param filename: The source file&#39;s name for which the contents of the xml</span>
@@ -565,7 +573,9 @@
             <span class="sa">f</span><span class="s2">&quot;replacements for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="XMLFixit.log_command"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.XMLFixit.log_command">[docs]</a>    <span class="k">def</span> <span class="nf">log_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">line_filter</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="XMLFixit.log_command">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.XMLFixit.log_command">[docs]</a>
+    <span class="k">def</span> <span class="nf">log_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">line_filter</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Output a notification as a github log command.</span>
 
 <span class="sd">        .. seealso::</span>
@@ -610,10 +620,14 @@
                 <span class="n">style_guide</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
                 <span class="n">lines</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">),</span>
             <span class="p">)</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+</div>
 
 
-<div class="viewcode-block" id="parse_format_replacements_xml"><a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.parse_format_replacements_xml">[docs]</a><span class="k">def</span> <span class="nf">parse_format_replacements_xml</span><span class="p">(</span><span class="n">src_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+<div class="viewcode-block" id="parse_format_replacements_xml">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_format_xml.html#cpp_linter.clang_format_xml.parse_format_replacements_xml">[docs]</a>
+<span class="k">def</span> <span class="nf">parse_format_replacements_xml</span><span class="p">(</span><span class="n">src_filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse XML output of replacements from clang-format. Output is saved to</span>
 <span class="sd">    :attr:`~cpp_linter.GlobalParser.format_advice`.</span>
 
@@ -638,6 +652,7 @@
             <span class="k">elif</span> <span class="n">fixit</span><span class="o">.</span><span class="n">replaced_lines</span> <span class="ow">and</span> <span class="n">line</span> <span class="o">==</span> <span class="n">fixit</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">:</span>
                 <span class="n">fixit</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replacements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fix</span><span class="p">)</span>
     <span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fixit</span><span class="p">)</span></div>
+
 </code></pre></div>
 
 
@@ -674,7 +689,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.0.1.
+    7.2.6.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
@@ -693,7 +708,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
-        <script src="../../_static/sphinx_immaterial_theme.cea6a0c1d5b0618cf.min.js"></script>
+        <script src="../../_static/sphinx_immaterial_theme.1b5b7a2d5891aec19.min.js?v=1e7b0789"></script>
     
   </body>
 </html>
