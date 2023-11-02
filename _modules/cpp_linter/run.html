@@ -945,15 +945,14 @@
     <span class="k">if</span> <span class="n">CLANG_FORMAT_XML</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">CLANG_FORMAT_XML</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span><span class="p">:</span>
         <span class="n">parse_format_replacements_xml</span><span class="p">(</span><span class="n">PurePath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span> <span class="ow">and</span> <span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
-            <span class="n">should_comment</span> <span class="o">=</span> <span class="n">lines_changed_only</span> <span class="o">==</span> <span class="mi">0</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">should_comment</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">[</span>
-                    <span class="n">replacement</span><span class="o">.</span><span class="n">line</span>
-                    <span class="k">for</span> <span class="n">replacement</span> <span class="ow">in</span> <span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replaced_lines</span>
-                <span class="p">]:</span>
-                    <span class="k">if</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ranges</span><span class="p">:</span>
-                        <span class="n">should_comment</span> <span class="o">=</span> <span class="kc">True</span>
-                        <span class="k">break</span>
+            <span class="n">should_comment</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="n">replacement</span><span class="o">.</span><span class="n">line</span>
+                <span class="k">for</span> <span class="n">replacement</span> <span class="ow">in</span> <span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replaced_lines</span>
+            <span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">lines_changed_only</span> <span class="ow">and</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ranges</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">lines_changed_only</span><span class="p">:</span>
+                    <span class="n">should_comment</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
             <span class="k">if</span> <span class="n">should_comment</span><span class="p">:</span>
                 <span class="n">Globals</span><span class="o">.</span><span class="n">FORMAT_COMMENT</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">file_obj</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span></div>
 
@@ -1008,9 +1007,10 @@
     <span class="k">if</span> <span class="n">Globals</span><span class="o">.</span><span class="n">FORMAT_COMMENT</span> <span class="ow">or</span> <span class="n">Globals</span><span class="o">.</span><span class="n">TIDY_COMMENT</span><span class="p">:</span>
         <span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span> <span class="o">+=</span> <span class="s2">&quot;:warning:</span><span class="se">\n</span><span class="s2">Some files did not pass the configured checks!</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">if</span> <span class="n">Globals</span><span class="o">.</span><span class="n">FORMAT_COMMENT</span><span class="p">:</span>
+            <span class="n">files_count</span> <span class="o">=</span> <span class="n">Globals</span><span class="o">.</span><span class="n">FORMAT_COMMENT</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span> <span class="o">+=</span> <span class="p">(</span>
                 <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-format reports: &lt;strong&gt;&quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="p">)</span><span class="si">}</span><span class="s2"> file(s) not formatted&lt;/strong&gt;&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">files_count</span><span class="si">}</span><span class="s2"> file(s) not formatted&lt;/strong&gt;&quot;</span>
                 <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="si">{</span><span class="n">Globals</span><span class="o">.</span><span class="n">FORMAT_COMMENT</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&lt;/details&gt;&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">Globals</span><span class="o">.</span><span class="n">TIDY_COMMENT</span><span class="p">:</span>
