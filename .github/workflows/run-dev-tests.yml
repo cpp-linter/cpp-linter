@@ -57,9 +57,6 @@ jobs:
           - os: 'ubuntu-22.04'
             version: '13'
             tools_dir: 'N/A'
-          - os: 'ubuntu-22.04'
-            version: '12'
-            tools_dir: 'N/A'
 
     runs-on: ${{ matrix.os }}
     steps:

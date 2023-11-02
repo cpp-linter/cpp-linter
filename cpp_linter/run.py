@@ -418,15 +418,14 @@ def create_comment_body(
     if CLANG_FORMAT_XML.exists() and CLANG_FORMAT_XML.stat().st_size:
         parse_format_replacements_xml(PurePath(filename).as_posix())
         if GlobalParser.format_advice and GlobalParser.format_advice[-1].replaced_lines:
-            should_comment = lines_changed_only == 0
-            if not should_comment:
-                for line in [
-                    replacement.line
-                    for replacement in GlobalParser.format_advice[-1].replaced_lines
-                ]:
-                    if line in ranges:
-                        should_comment = True
-                        break
+            should_comment = False
+            for line in [
+                replacement.line
+                for replacement in GlobalParser.format_advice[-1].replaced_lines
+            ]:
+                if (lines_changed_only and line in ranges) or not lines_changed_only:
+                    should_comment = True
+                    break
             if should_comment:
                 Globals.FORMAT_COMMENT += f"- {file_obj['filename']}\n"
 
@@ -478,9 +477,10 @@ def capture_clang_tools_output(
     if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
         Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!\n"
         if Globals.FORMAT_COMMENT:
+            files_count = Globals.FORMAT_COMMENT.count("\n")
             Globals.OUTPUT += (
                 "\n<details><summary>clang-format reports: <strong>"
-                + f"{len(GlobalParser.format_advice)} file(s) not formatted</strong>"
+                + f"{files_count} file(s) not formatted</strong>"
                 + f"</summary>\n\n{Globals.FORMAT_COMMENT}\n\n</details>"
             )
         if Globals.TIDY_COMMENT:
