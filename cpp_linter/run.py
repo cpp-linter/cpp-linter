@@ -597,15 +597,16 @@ def make_annotations(
                 count += 1
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
-            filename = note.filename.replace("\\", "/")
+            filename = note.filename.replace("\\", "/").lstrip("/")
             line_filter = []
             for file in files:
+                print(filename, "?=", file["filename"])
                 if filename == file["filename"]:
                     line_filter = cast(
                         List[int], range_of_changed_lines(file, lines_changed_only)
                     )
                     break
-            else:
+            else: # filename match not found; treat line_filter as empty list
                 continue
             if note.line in line_filter or not line_filter:
                 count += 1

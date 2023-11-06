@@ -264,7 +264,7 @@ def test_tidy_annotations(
     prep_tmp_dir(
         tmp_path,
         monkeypatch,
-        **TEST_REPO_COMMIT_PAIRS[0],
+        **TEST_REPO_COMMIT_PAIRS[3],
         copy_configs=False,
         lines_changed_only=lines_changed_only,
     )
