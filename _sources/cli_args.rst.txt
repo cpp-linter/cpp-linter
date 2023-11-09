@@ -135,11 +135,24 @@ Command Line Interface Options
                         
                         Defaults to ``false``.
 
+.. std:option:: -g, --no-lgtm
+
+  -g NO_LGTM, --no-lgtm NO_LGTM
+                        Set this option to true or false to enable or disable the use of a
+                        thread comment that basically says 'Looks Good To Me' (when all checks pass).
+                        
+                        .. seealso::
+                            The :std:option:`--thread-comments` option also notes further implications.
+                        
+                        Defaults to ``true``.
+
 .. std:option:: -t, --thread-comments
 
-  -t THREAD_COMMENTS, --thread-comments THREAD_COMMENTS
-                        Set this option to true or false to enable or disable the use of
-                        thread comments as feedback.
+  ``-t {true,false,update}, --thread-comments {true,false,update}``
+                        Set this option to 'true' or 'false' to enable or disable the use of
+                        thread comments as feedback. Set this to 'update' to update an existing comment
+                        if one exists; the value 'true' will always delete an old comment and post a new one
+                        if necessary.
                         
                         .. note::
                             To use thread comments, the ``GITHUB_TOKEN`` (provided by

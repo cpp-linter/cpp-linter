@@ -432,6 +432,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmdoption-g" class="md-nav__link">
+    <span title="-g (program option)" class="md-ellipsis">-<wbr>g, --<wbr>no-<wbr>lgtm</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cmdoption-t" class="md-nav__link">
     <span title="-t (program option)" class="md-ellipsis">-<wbr>t, --<wbr>thread-<wbr>comments</span>
   </a>
@@ -707,6 +714,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmdoption-g" class="md-nav__link">
+    <span title="-g (program option)" class="md-ellipsis">-<wbr>g, --<wbr>no-<wbr>lgtm</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#cmdoption-t" class="md-nav__link">
     <span title="-t (program option)" class="md-ellipsis">-<wbr>t, --<wbr>thread-<wbr>comments</span>
   </a>
@@ -938,12 +952,29 @@ does not not have the privilege to list the changed files for an event.</p>
 </dd></dl>
 
 <dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-g">
+<span id="cmdoption-no-lgtm"></span><span class="sig-name descname"><span class="pre">-g</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-lgtm</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-g" title="Link to this definition">¶</a></dt>
+<dd><dl class="option-list">
+<dt><kbd><span class="option">-g <var>NO_LGTM</var></span>, <span class="option">--no-lgtm <var>NO_LGTM</var></span></kbd></dt>
+<dd><p>Set this option to true or false to enable or disable the use of a
+thread comment that basically says ‘Looks Good To Me’ (when all checks pass).</p>
+<div class="seealso admonition">
+<p class="admonition-title">Seealso</p>
+<p>The <a class="reference internal" href="#cmdoption-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--thread-comments</span></code></a> option also notes further implications.</p>
+</div>
+<p>Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="std option objdesc">
 <dt class="sig sig-object highlight std" id="cmdoption-t">
 <span id="cmdoption-thread-comments"></span><span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--thread-comments</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-t" title="Link to this definition">¶</a></dt>
-<dd><dl class="option-list">
-<dt><kbd><span class="option">-t <var>THREAD_COMMENTS</var></span>, <span class="option">--thread-comments <var>THREAD_COMMENTS</var></span></kbd></dt>
-<dd><p>Set this option to true or false to enable or disable the use of
-thread comments as feedback.</p>
+<dd><dl>
+<dt><code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">{true,false,update},</span> <span class="pre">--thread-comments</span> <span class="pre">{true,false,update}</span></code></dt><dd><p>Set this option to ‘true’ or ‘false’ to enable or disable the use of
+thread comments as feedback. Set this to ‘update’ to update an existing comment
+if one exists; the value ‘true’ will always delete an old comment and post a new one
+if necessary.</p>
 <div class="note admonition">
 <p class="admonition-title">Note</p>
 <p>To use thread comments, the <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> (provided by

@@ -506,50 +506,117 @@
     <span class="n">GITHUB_SHA</span><span class="p">,</span>
     <span class="n">log_response_msg</span><span class="p">,</span>
     <span class="n">range_of_changed_lines</span><span class="p">,</span>
+    <span class="n">CACHE_PATH</span><span class="p">,</span>
 <span class="p">)</span>
+
+
+<div class="viewcode-block" id="update_comment">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.update_comment">[docs]</a>
+<span class="k">def</span> <span class="nf">update_comment</span><span class="p">(</span>
+    <span class="n">comments_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">update_only</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">is_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Updates the comment for an existing comment or posts a new comment if</span>
+<span class="sd">    ``update_only`` is `False`.</span>
+
+
+<span class="sd">    :param comments_url: The URL used to fetch the comments.</span>
+<span class="sd">    :param user_id: The user&#39;s account id number.</span>
+<span class="sd">    :param count: The number of comments to traverse.</span>
+<span class="sd">    :param update_only: A flag that describes if the outdated bot comment should only be</span>
+<span class="sd">        updated (instead of replaced).</span>
+<span class="sd">    :param no_lgtm: A flag to control if a &quot;Looks Good To Me&quot; comment should be posted.</span>
+<span class="sd">        if this is `False`, then an outdated bot comment will still be deleted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">comment_url</span> <span class="o">=</span> <span class="n">remove_bot_comments</span><span class="p">(</span>
+        <span class="n">comments_url</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="ow">not</span> <span class="n">update_only</span> <span class="ow">or</span> <span class="p">(</span><span class="n">is_lgtm</span> <span class="ow">and</span> <span class="n">no_lgtm</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">is_lgtm</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">no_lgtm</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_lgtm</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">comment_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">comments_url</span> <span class="o">=</span> <span class="n">comment_url</span>
+            <span class="n">req_meth</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">req_meth</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">Globals</span><span class="o">.</span><span class="n">OUTPUT</span><span class="p">})</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;payload body:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+        <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">req_meth</span><span class="p">(</span>
+            <span class="n">comments_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> response from </span><span class="si">%s</span><span class="s2">ing comment&quot;</span><span class="p">,</span>
+            <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+            <span class="s2">&quot;POST&quot;</span> <span class="k">if</span> <span class="n">comment_url</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;PATCH&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">log_response_msg</span><span class="p">()</span></div>
+
 
 
 <div class="viewcode-block" id="remove_bot_comments">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.thread_comments.html#cpp_linter.thread_comments.remove_bot_comments">[docs]</a>
-<span class="k">def</span> <span class="nf">remove_bot_comments</span><span class="p">(</span><span class="n">comments_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">remove_bot_comments</span><span class="p">(</span>
+    <span class="n">comments_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">delete</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Traverse the list of comments made by a specific user</span>
 <span class="sd">    and remove all.</span>
 
 <span class="sd">    :param comments_url: The URL used to fetch the comments.</span>
 <span class="sd">    :param user_id: The user&#39;s account id number.</span>
+<span class="sd">    :param count: The number of comments to traverse.</span>
+<span class="sd">    :param delete: A flag describing if first applicable bot comment should be deleted</span>
+<span class="sd">        or not.</span>
+
+<span class="sd">    :returns: If updating a comment, this will return the comment URL.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;comments_url: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">comments_url</span><span class="p">)</span>
-    <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">comments_url</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">log_response_msg</span><span class="p">():</span>
-        <span class="k">return</span>  <span class="c1"># error getting comments for the thread; stop here</span>
-    <span class="n">comments</span> <span class="o">=</span> <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">:</span>
-        <span class="c1"># only search for comments from the user&#39;s ID and</span>
-        <span class="c1"># whose comment body begins with a specific html comment</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="nb">int</span><span class="p">(</span><span class="n">comment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="n">user_id</span>
-            <span class="c1"># the specific html comment is our action&#39;s name</span>
-            <span class="ow">and</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&lt;!-- cpp linter action --&gt;&quot;</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="c1"># remove other outdated comments but don&#39;t remove the last comment</span>
-            <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-                <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">],</span>
-                <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span>
-            <span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> from DELETE </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
-                <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">][</span><span class="n">comment</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;.com&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:],</span>
-            <span class="p">)</span>
-            <span class="n">log_response_msg</span><span class="p">()</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;comment id </span><span class="si">%d</span><span class="s2"> from user </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span>
-            <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-            <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;login&quot;</span><span class="p">],</span>
-            <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-        <span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;comments.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_comments</span><span class="p">:</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">comments</span><span class="p">,</span> <span class="n">json_comments</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+    <span class="n">page</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">comment_url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">while</span> <span class="n">count</span><span class="p">:</span>
+        <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">comments_url</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;?page=</span><span class="si">{</span><span class="n">page</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">log_response_msg</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">comment_url</span>  <span class="c1"># error getting comments for the thread; stop here</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+        <span class="n">json_comments</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">CACHE_PATH</span><span class="si">}</span><span class="s2">/comments-pg</span><span class="si">{</span><span class="n">page</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">)</span>
+        <span class="n">json_comments</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">comments</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+        <span class="n">page</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">count</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">:</span>
+            <span class="c1"># only search for comments from the user&#39;s ID and</span>
+            <span class="c1"># whose comment body begins with a specific html comment</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">comment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="n">user_id</span>
+                <span class="c1"># the specific html comment is our action&#39;s name</span>
+                <span class="ow">and</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&lt;!-- cpp linter action --&gt;&quot;</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s2">&quot;comment id </span><span class="si">%d</span><span class="s2"> from user </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span>
+                    <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                    <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;login&quot;</span><span class="p">],</span>
+                    <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">delete</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">delete</span> <span class="ow">and</span> <span class="n">comment_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="c1"># if not updating: remove all outdated comments</span>
+                    <span class="c1"># if updating: remove all outdated comments except the last one</span>
+
+                    <span class="c1"># use last saved comment_url (if not None) or current comment url</span>
+                    <span class="n">url</span> <span class="o">=</span> <span class="n">comment_url</span> <span class="ow">or</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
+                    <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+                        <span class="n">url</span><span class="p">,</span>
+                        <span class="n">headers</span><span class="o">=</span><span class="n">make_headers</span><span class="p">(),</span>
+                    <span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;Got </span><span class="si">%d</span><span class="s2"> from DELETE </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="n">Globals</span><span class="o">.</span><span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+                        <span class="n">url</span><span class="p">[</span><span class="n">url</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;.com&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:],</span>
+                    <span class="p">)</span>
+                    <span class="n">log_response_msg</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">delete</span><span class="p">:</span>
+                    <span class="n">comment_url</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">comment_url</span></div>
 
 
 
@@ -628,7 +695,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">fmt_advice</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">GlobalParser</span><span class="o">.</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">Globals</span><span class="o">.</span><span class="n">FILES</span><span class="p">):</span>
-
         <span class="c1"># get original code</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">])</span>
         <span class="c1"># the list of lines from the src file</span>
