@@ -17,14 +17,12 @@ repos:
     hooks:
       - id: black
         args: ["--diff"]
-  - repo: https://github.com/pycqa/pylint
-    rev: v3.0.1
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.0.287
     hooks:
-      - id: pylint
-        name: pylint (action code)
+      - id: ruff
         types: [python]
-        exclude: "^(docs/|tests/|setup.py$)"
-        additional_dependencies: [pyyaml, requests]
   - repo: local
     # this is a "local" hook to run mypy (see https://pre-commit.com/#repository-local-hooks)
     # because the mypy project doesn't seem to be compatible with pre-commit hooks

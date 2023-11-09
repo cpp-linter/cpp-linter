@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, List, Dict, Tuple, Any, Union
 from requests import Response
 
 if TYPE_CHECKING:  # Used to avoid circular imports
-    from cpp_linter.clang_format_xml import XMLFixit
-    from cpp_linter.clang_tidy_yml import YMLFixit
-    from cpp_linter.clang_tidy import TidyNotification
+    from cpp_linter.clang_format_xml import XMLFixit  # noqa: F401
+    from cpp_linter.clang_tidy_yml import YMLFixit  # noqa: F401
+    from cpp_linter.clang_tidy import TidyNotification  # noqa: F401
 
 FOUND_RICH_LIB = False
 try:
@@ -132,7 +132,7 @@ def range_of_changed_lines(
         ]
         if get_ranges:
             return ranges
-        return [l for r in ranges for l in range(r[0], r[1])]
+        return [line for r in ranges for line in range(r[0], r[1])]
     # we return an empty list (instead of None) here so we can still iterate it
     return []  # type: ignore[return-value]
 

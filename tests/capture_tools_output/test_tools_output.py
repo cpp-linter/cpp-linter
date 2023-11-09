@@ -100,6 +100,7 @@ def prep_tmp_dir(
     repo_cache = tmp_path.parent / repo / commit
     repo_cache.mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(str(repo_cache))
+    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
     filter_out_non_source_files(
         ["c", "h", "hpp", "cpp"], [".github"], [], lines_changed_only
     )
@@ -147,12 +148,14 @@ def test_lines_changed_only(
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     repo, commit = repo_commit_pair["repo"], repo_commit_pair["commit"]
     prep_repo(monkeypatch, repo, commit)
-    if filter_out_non_source_files(
+    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
+    filter_out_non_source_files(
         ext_list=extensions,
         ignored=[".github"],
         not_ignored=[],
         lines_changed_only=lines_changed_only,
-    ):
+    )
+    if cpp_linter.Globals.FILES:
         expected_results_json = (
             Path(__file__).parent
             / repo
@@ -224,7 +227,7 @@ def test_format_annotations(
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if FORMAT_RECORD.search(message) is not None:
             line_list = message[message.find("style guidelines. (lines ") + 25 : -1]
-            lines = [int(l.strip()) for l in line_list.split(",")]
+            lines = [int(line.strip()) for line in line_list.split(",")]
             file_obj = match_file_json(
                 RECORD_FILE.sub("\\1", message).replace("\\", "/")
             )
@@ -261,7 +264,7 @@ def test_tidy_annotations(
     prep_tmp_dir(
         tmp_path,
         monkeypatch,
-        **TEST_REPO_COMMIT_PAIRS[0],
+        **TEST_REPO_COMMIT_PAIRS[3],
         copy_configs=False,
         lines_changed_only=lines_changed_only,
     )

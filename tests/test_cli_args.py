@@ -34,10 +34,11 @@ class Args:
     ignore: str = ".github"
     lines_changed_only: int = 0
     files_changed_only: bool = False
-    thread_comments: bool = False
+    thread_comments: str = "false"
     step_summary: bool = False
     file_annotations: bool = True
     extra_arg: List[str] = []
+    no_lgtm: bool = True
 
 
 def test_defaults():
@@ -62,7 +63,11 @@ def test_defaults():
         ("lines-changed-only", "True", "lines_changed_only", 2),
         ("lines-changed-only", "difF", "lines_changed_only", 1),
         ("files-changed-only", "True", "files_changed_only", True),
-        ("thread-comments", "True", "thread_comments", True),
+        ("thread-comments", "true", "thread_comments", "true"),
+        ("thread-comments", "false", "thread_comments", "false"),
+        ("thread-comments", "update", "thread_comments", "update"),
+        ("no-lgtm", "true", "no_lgtm", True),
+        ("no-lgtm", "false", "no_lgtm", False),
         ("step-summary", "True", "step_summary", True),
         ("file-annotations", "False", "file_annotations", False),
         ("extra-arg", "-std=c++17", "extra_arg", ["-std=c++17"]),

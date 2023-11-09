@@ -16,7 +16,6 @@ from cpp_linter.run import (
     list_source_files,
     get_list_of_changed_files,
 )
-from cpp_linter.git import get_diff
 
 
 def test_exit_override(tmp_path: Path):
@@ -82,7 +81,8 @@ def test_list_src_files(
     Globals.FILES = []
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    assert list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
+    list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
+    assert Globals.FILES
 
 
 @pytest.mark.parametrize(

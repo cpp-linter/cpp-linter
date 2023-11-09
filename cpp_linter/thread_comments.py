@@ -11,48 +11,112 @@ from . import (
     GITHUB_SHA,
     log_response_msg,
     range_of_changed_lines,
+    CACHE_PATH,
 )
 
 
-def remove_bot_comments(comments_url: str, user_id: int):
+def update_comment(
+    comments_url: str,
+    user_id: int,
+    count: int,
+    no_lgtm: bool,
+    update_only: bool,
+    is_lgtm: bool,
+):
+    """Updates the comment for an existing comment or posts a new comment if
+    ``update_only`` is `False`.
+
+
+    :param comments_url: The URL used to fetch the comments.
+    :param user_id: The user's account id number.
+    :param count: The number of comments to traverse.
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
+    """
+    comment_url = remove_bot_comments(
+        comments_url, user_id, count, delete=not update_only or (is_lgtm and no_lgtm)
+    )
+    if (is_lgtm and not no_lgtm) or not is_lgtm:
+        if comment_url is not None:
+            comments_url = comment_url
+            req_meth = requests.patch
+        else:
+            req_meth = requests.post
+        payload = json.dumps({"body": Globals.OUTPUT})
+        logger.debug("payload body:\n%s", payload)
+        Globals.response_buffer = req_meth(
+            comments_url, headers=make_headers(), data=payload
+        )
+        logger.info(
+            "Got %d response from %sing comment",
+            Globals.response_buffer.status_code,
+            "POST" if comment_url is None else "PATCH",
+        )
+        log_response_msg()
+
+
+def remove_bot_comments(
+    comments_url: str, user_id: int, count: int, delete: bool
+) -> Optional[str]:
     """Traverse the list of comments made by a specific user
     and remove all.
 
     :param comments_url: The URL used to fetch the comments.
     :param user_id: The user's account id number.
+    :param count: The number of comments to traverse.
+    :param delete: A flag describing if first applicable bot comment should be deleted
+        or not.
+
+    :returns: If updating a comment, this will return the comment URL.
     """
     logger.info("comments_url: %s", comments_url)
-    Globals.response_buffer = requests.get(comments_url)
-    if not log_response_msg():
-        return  # error getting comments for the thread; stop here
-    comments = Globals.response_buffer.json()
-    for comment in comments:
-        # only search for comments from the user's ID and
-        # whose comment body begins with a specific html comment
-        if (
-            int(comment["user"]["id"]) == user_id
-            # the specific html comment is our action's name
-            and comment["body"].startswith("<!-- cpp linter action -->")
-        ):
-            # remove other outdated comments but don't remove the last comment
-            Globals.response_buffer = requests.delete(
-                comment["url"],
-                headers=make_headers(),
-            )
-            logger.info(
-                "Got %d from DELETE %s",
-                Globals.response_buffer.status_code,
-                comment["url"][comment["url"].find(".com") + 4 :],
-            )
-            log_response_msg()
-        logger.debug(
-            "comment id %d from user %s (%d)",
-            comment["id"],
-            comment["user"]["login"],
-            comment["user"]["id"],
-        )
-    with open("comments.json", "w", encoding="utf-8") as json_comments:
-        json.dump(comments, json_comments, indent=4)
+    page = 1
+    comment_url: Optional[str] = None
+    while count:
+        Globals.response_buffer = requests.get(comments_url + f"?page={page}")
+        if not log_response_msg():
+            return comment_url  # error getting comments for the thread; stop here
+        comments = cast(List[Dict[str, Any]], Globals.response_buffer.json())
+        json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
+        json_comments.write_text(json.dumps(comments, indent=2), encoding="utf-8")
+
+        page += 1
+        count -= len(comments)
+        for comment in comments:
+            # only search for comments from the user's ID and
+            # whose comment body begins with a specific html comment
+            if (
+                int(comment["user"]["id"]) == user_id
+                # the specific html comment is our action's name
+                and comment["body"].startswith("<!-- cpp linter action -->")
+            ):
+                logger.debug(
+                    "comment id %d from user %s (%d)",
+                    comment["id"],
+                    comment["user"]["login"],
+                    comment["user"]["id"],
+                )
+                if delete or (not delete and comment_url is not None):
+                    # if not updating: remove all outdated comments
+                    # if updating: remove all outdated comments except the last one
+
+                    # use last saved comment_url (if not None) or current comment url
+                    url = comment_url or comment["url"]
+                    Globals.response_buffer = requests.delete(
+                        url,
+                        headers=make_headers(),
+                    )
+                    logger.info(
+                        "Got %d from DELETE %s",
+                        Globals.response_buffer.status_code,
+                        url[url.find(".com") + 4 :],
+                    )
+                    log_response_msg()
+                if not delete:
+                    comment_url = cast(str, comment["url"])
+    return comment_url
 
 
 def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
@@ -125,7 +189,6 @@ def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
     """
     results = []
     for fmt_advice, file in zip(GlobalParser.format_advice, Globals.FILES):
-
         # get original code
         filename = Path(file["filename"])
         # the list of lines from the src file

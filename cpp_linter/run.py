@@ -38,7 +38,7 @@ from . import (
 from .clang_tidy_yml import parse_tidy_suggestions_yml
 from .clang_format_xml import parse_format_replacements_xml
 from .clang_tidy import parse_tidy_output, TidyNotification
-from .thread_comments import remove_bot_comments, list_diff_comments  # , get_review_id
+from .thread_comments import update_comment
 from .git import get_diff, parse_diff
 from .cli import cli_arg_parser
 
@@ -152,7 +152,7 @@ def filter_out_non_source_files(
     ignored: List[str],
     not_ignored: List[str],
     lines_changed_only: int,
-) -> bool:
+):
     """Exclude undesired files (specified by user input :std:option:`--extensions`).
     This filtering is applied to the :attr:`~cpp_linter.Globals.FILES` attribute.
 
@@ -168,7 +168,7 @@ def filter_out_non_source_files(
     """
     files = []
     for file in Globals.FILES:
-        if (  # pylint: disable=too-many-boolean-expressions
+        if (
             PurePath(file["filename"]).suffix.lstrip(".") in ext_list
             and (
                 not is_file_in_list(ignored, file["filename"], "ignored")
@@ -182,22 +182,20 @@ def filter_out_non_source_files(
         ):
             files.append(file)
 
+    Globals.FILES = files
     if not files:
         logger.info("No source files need checking!")
-        return False
-    logger.info(
-        "Giving attention to the following files:\n\t%s",
-        "\n\t".join([f["filename"] for f in files]),
-    )
-    Globals.FILES = files
+    else:
+        logger.info(
+            "Giving attention to the following files:\n\t%s",
+            "\n\t".join([f["filename"] for f in files]),
+        )
     if not IS_ON_RUNNER:  # if not executed on a github runner
         # dump altered json of changed files
-        CACHE_PATH.mkdir(exist_ok=True)
         CHANGED_FILES_JSON.write_text(
             json.dumps(Globals.FILES, indent=2),
             encoding="utf-8",
         )
-    return True
 
 
 def verify_files_are_present() -> None:
@@ -223,7 +221,7 @@ def verify_files_are_present() -> None:
 
 def list_source_files(
     ext_list: List[str], ignored_paths: List[str], not_ignored: List[str]
-) -> bool:
+):
     """Make a list of source files to be checked. The resulting list is stored in
     :attr:`~cpp_linter.Globals.FILES`.
 
@@ -258,8 +256,6 @@ def list_source_files(
         )
     else:
         logger.info("No source files found.")  # this might need to be warning
-        return False
-    return True
 
 
 def run_clang_tidy(
@@ -301,7 +297,6 @@ def run_clang_tidy(
 
                 cpp-linter --extra-arg=-std=c++14 --extra-arg=-Wall
     """
-    CACHE_PATH.mkdir(exist_ok=True)
     if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
         # clear the clang-tidy output file and exit function
         CLANG_TIDY_STDOUT.write_bytes(b"")
@@ -361,7 +356,6 @@ def run_clang_format(
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
     """
-    CACHE_PATH.mkdir(exist_ok=True)
     if not style:  # if `style` == ""
         CLANG_FORMAT_XML.write_bytes(b"")
         return  # clear any previous output and exit
@@ -497,142 +491,63 @@ def capture_clang_tools_output(
     GlobalParser.tidy_notes = tidy_notes[:]  # restore cache of notifications
 
 
-def post_push_comment(base_url: str, user_id: int) -> bool:
+def post_push_comment(
+    base_url: str, user_id: int, update_only: bool, no_lgtm: bool, is_lgtm: bool
+):
     """POST action's results for a push event.
 
     :param base_url: The root of the url used to interact with the REST API via
         `requests`.
     :param user_id: The user's account ID number.
-
-    :returns:
-        A bool describing if the linter checks passed. This is used as the action's
-        output value (a soft exit code).
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     """
     comments_url = base_url + f"commits/{GITHUB_SHA}/comments"
-    remove_bot_comments(comments_url, user_id)
-
-    if Globals.OUTPUT:  # diff comments are not supported for push events (yet)
-        payload = json.dumps({"body": Globals.OUTPUT})
-        logger.debug("payload body:\n%s", json.dumps({"body": Globals.OUTPUT}))
-        Globals.response_buffer = requests.post(
-            comments_url, headers=make_headers(), data=payload
-        )
-        logger.info(
-            "Got %d response from POSTing comment", Globals.response_buffer.status_code
-        )
-        log_response_msg()
-    return bool(Globals.OUTPUT)
+    # find comment count first (to traverse them all)
+    Globals.response_buffer = requests.get(
+        base_url + f"commits/{GITHUB_SHA}", headers=make_headers()
+    )
+    log_response_msg()
+    if Globals.response_buffer.status_code == 200:
+        count = cast(int, Globals.response_buffer.json()["commit"]["comment_count"])
+        update_comment(comments_url, user_id, count, no_lgtm, update_only, is_lgtm)
 
 
-def post_diff_comments(base_url: str, user_id: int) -> bool:
-    """Post comments inside a unified diff (only PRs are supported).
-
-    :param base_url: The root of the url used to interact with the REST API via
-        `requests`.
-    :param user_id: The user's account ID number.
-
-    :returns:
-        A bool describing if the linter checks passed. This is used as the action's
-        output value (a soft exit code).
-    """
-    comments_url = base_url + "pulls/comments/"  # for use with comment_id
-    payload = list_diff_comments(2)  # only focus on additions in diff
-    logger.info("Posting %d comments", len(payload))
-
-    # uncomment the next 3 lines for debug output without posting a comment
-    # for i, comment in enumerate(payload):
-    #     logger.debug("comments %d: %s", i, json.dumps(comment, indent=2))
-    # return
-
-    # get existing review comments
-    reviews_url = base_url + f'pulls/{Globals.EVENT_PAYLOAD["number"]}/'
-    Globals.response_buffer = requests.get(reviews_url + "comments")
-    existing_comments = json.loads(Globals.response_buffer.text)
-    # filter out comments not made by our bot
-    for index, comment in enumerate(existing_comments):
-        if not comment["body"].startswith("<!-- cpp linter action -->"):
-            del existing_comments[index]
-
-    # conditionally post comments in the diff
-    for i, body in enumerate(payload):
-        # check if comment is already there
-        already_posted = False
-        comment_id = None
-        for comment in existing_comments:
-            if (
-                int(comment["user"]["id"]) == user_id
-                and comment["line"] == body["line"]
-                and comment["path"] == body["path"]
-            ):
-                already_posted = True
-                if comment["body"] != body["body"]:
-                    comment_id = str(comment["id"])  # use this to update comment
-                else:
-                    break
-        if already_posted and comment_id is None:
-            logger.info("comment %d already posted", i)
-            continue  # don't bother re-posting the same comment
-
-        # update ot create a review comment (in the diff)
-        logger.debug("Payload %d body = %s", i, json.dumps(body))
-        if comment_id is not None:
-            Globals.response_buffer = requests.patch(
-                comments_url + comment_id,
-                headers=make_headers(),
-                data=json.dumps({"body": body["body"]}),
-            )
-            logger.info(
-                "Got %d from PATCHing comment %d (%d)",
-                Globals.response_buffer.status_code,
-                i,
-                comment_id,
-            )
-            log_response_msg()
-        else:
-            Globals.response_buffer = requests.post(
-                reviews_url + "comments", headers=make_headers(), data=json.dumps(body)
-            )
-            logger.info(
-                "Got %d from POSTing review comment %d",
-                Globals.response_buffer.status_code,
-                i,
-            )
-            log_response_msg()
-    return bool(payload)
-
-
-def post_pr_comment(base_url: str, user_id: int) -> bool:
+def post_pr_comment(
+    base_url: str, user_id: int, update_only: bool, no_lgtm: bool, is_lgtm: bool
+):
     """POST action's results for a push event.
 
     :param base_url: The root of the url used to interact with the REST API via
         `requests`.
     :param user_id: The user's account ID number.
-
-    :returns:
-        A bool describing if the linter checks passed. This is used as the action's
-        output value (a soft exit code).
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     """
     comments_url = base_url + f'issues/{Globals.EVENT_PAYLOAD["number"]}/comments'
-    remove_bot_comments(comments_url, user_id)
-    payload = ""
-    if Globals.OUTPUT:
-        payload = json.dumps({"body": Globals.OUTPUT})
-        logger.debug(
-            "payload body:\n%s", json.dumps({"body": Globals.OUTPUT}, indent=2)
-        )
-        Globals.response_buffer = requests.post(
-            comments_url, headers=make_headers(), data=payload
-        )
-        logger.info("Got %d from POSTing comment", Globals.response_buffer.status_code)
-        log_response_msg()
-    return bool(payload)
+    # find comment count first (to traverse them all)
+    Globals.response_buffer = requests.get(
+        base_url + f'issues/{Globals.EVENT_PAYLOAD["number"]}', headers=make_headers()
+    )
+    log_response_msg()
+    if Globals.response_buffer.status_code == 200:
+        count = cast(int, Globals.response_buffer.json()["comments"])
+        update_comment(comments_url, user_id, count, no_lgtm, update_only, is_lgtm)
 
 
-def post_results(use_diff_comments: bool, user_id: int = 41898282):
+def post_results(
+    update_only: bool, no_lgtm: bool, is_lgtm: bool, user_id: int = 41898282
+):
     """Post action's results using REST API.
 
-    :param use_diff_comments: This flag enables making/updating comments in the PR's
-        diff info.
+    :param update_only: A flag that describes if the outdated bot comment should only be
+        updated (instead of replaced).
+    :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be posted.
+        if this is `False`, then an outdated bot comment will still be deleted.
     :param user_id: The user's account ID number. Defaults to the generic bot's ID.
     """
     if not GITHUB_TOKEN:
@@ -640,14 +555,10 @@ def post_results(use_diff_comments: bool, user_id: int = 41898282):
         sys.exit(set_exit_code(1))
 
     base_url = f"{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/"
-    checks_passed = True
     if GITHUB_EVENT_NAME == "pull_request":
-        checks_passed = post_pr_comment(base_url, user_id)
-        if use_diff_comments:
-            checks_passed = post_diff_comments(base_url, user_id)
+        post_pr_comment(base_url, user_id, update_only, no_lgtm, is_lgtm)
     elif GITHUB_EVENT_NAME == "push":
-        checks_passed = post_push_comment(base_url, user_id)
-    set_exit_code(1 if checks_passed else 0)
+        post_push_comment(base_url, user_id, update_only, no_lgtm, is_lgtm)
 
 
 def make_annotations(
@@ -678,30 +589,34 @@ def make_annotations(
     )
     for advice, file in zip(GlobalParser.format_advice, files):
         line_filter = cast(List[int], range_of_changed_lines(file, lines_changed_only))
-        if advice.replaced_lines and file_annotations:
+        if advice.replaced_lines:
             output = advice.log_command(style, line_filter)
             if output is not None:
-                log_commander.info(output)
+                if file_annotations:
+                    log_commander.info(output)
                 count += 1
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
-            filename = note.filename.replace("\\", "/")
+            filename = note.filename.replace("\\", "/").lstrip("/")
             line_filter = []
             for file in files:
+                print(filename, "?=", file["filename"])
                 if filename == file["filename"]:
                     line_filter = cast(
                         List[int], range_of_changed_lines(file, lines_changed_only)
                     )
                     break
-            else:
+            else: # filename match not found; treat line_filter as empty list
                 continue
             if note.line in line_filter or not line_filter:
                 count += 1
-                log_commander.info(note.log_command())
+                if file_annotations:
+                    log_commander.info(note.log_command())
         else:
             count += 1
-            log_commander.info(note.log_command())
-    logger.info("Created %d annotations", count)
+            if file_annotations:
+                log_commander.info(note.log_command())
+    logger.info("%d checks-failed", count)
     return bool(count)
 
 
@@ -774,6 +689,7 @@ def main():
 
     # change working directory
     os.chdir(args.repo_root)
+    CACHE_PATH.mkdir(exist_ok=True)
 
     if GITHUB_EVENT_PATH:
         # load event's json info about the workflow run
@@ -785,22 +701,19 @@ def main():
         logger.debug(json.dumps(Globals.EVENT_PAYLOAD))
         end_log_group()
 
-    exit_early = False
     if args.files_changed_only:
         get_list_of_changed_files()
-        exit_early = not filter_out_non_source_files(
+        filter_out_non_source_files(
             args.extensions,
             ignored,
             not_ignored,
             args.lines_changed_only,
         )
-        if not exit_early:
+        if Globals.FILES:
             verify_files_are_present()
     else:
-        exit_early = not list_source_files(args.extensions, ignored, not_ignored)
+        list_source_files(args.extensions, ignored, not_ignored)
     end_log_group()
-    if exit_early:
-        sys.exit(set_exit_code(0))
 
     capture_clang_tools_output(
         args.version,
@@ -814,20 +727,24 @@ def main():
 
     start_log_group("Posting comment(s)")
     thread_comments_allowed = True
+    checks_failed = make_annotations(
+        args.style, args.file_annotations, args.lines_changed_only
+    )
+    set_exit_code(int(checks_failed))
     if GITHUB_EVENT_PATH and "private" in Globals.EVENT_PAYLOAD["repository"]:
         thread_comments_allowed = (
             Globals.EVENT_PAYLOAD["repository"]["private"] is not True
         )
-    if args.thread_comments and thread_comments_allowed:
-        post_results(False)  # False is hard-coded to disable diff comments.
+    if args.thread_comments != "false" and thread_comments_allowed:
+        post_results(
+            update_only=args.thread_comments == "update",
+            no_lgtm=args.no_lgtm,
+            is_lgtm=not checks_failed,
+        )
     if args.step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
             summary.write(f"\n{Globals.OUTPUT}\n")
-    set_exit_code(
-        int(
-            make_annotations(args.style, args.file_annotations, args.lines_changed_only)
-        )
-    )
+
     end_log_group()
 
 
