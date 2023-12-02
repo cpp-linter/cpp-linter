@@ -72,6 +72,10 @@ class Globals:
     """The parsed JSON of the event payload."""
     response_buffer: Response = Response()
     """A shared response object for `requests` module."""
+    format_failed_count: int = 0
+    """A total count of clang-format concerns"""
+    tidy_failed_count: int = 0
+    """A total count of clang-tidy concerns"""
 
 
 class GlobalParser:

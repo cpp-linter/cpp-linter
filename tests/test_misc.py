@@ -23,13 +23,16 @@ def test_exit_override(tmp_path: Path):
     env_file = tmp_path / "GITHUB_OUTPUT"
     os.environ["GITHUB_OUTPUT"] = str(env_file)
     assert 1 == set_exit_code(1)
-    assert env_file.read_text(encoding="utf-8") == "checks-failed=1\n"
+    assert env_file.read_text(encoding="utf-8").startswith("checks-failed=1\n")
 
 
 def test_exit_implicit():
     """Test the exit code issued when a thread comment is to be made."""
-    Globals.OUTPUT = "TEST"  # fake content for a thread comment
-    assert 1 == set_exit_code()
+    # fake values for total checks-failed
+    Globals.tidy_failed_count = 1
+    Globals.format_failed_count = 1
+    assert 2 == set_exit_code()
+
 
 
 # see https://github.com/pytest-dev/pytest/issues/5997
