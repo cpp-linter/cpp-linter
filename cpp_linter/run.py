@@ -61,10 +61,18 @@ def set_exit_code(override: Optional[int] = None) -> int:
         The exit code that was used. If the ``override`` parameter was not passed,
         then this value will describe (like a bool value) if any checks failed.
     """
-    exit_code = override if override is not None else bool(Globals.OUTPUT)
+    exit_code = (
+        override
+        if override is not None
+        else (Globals.format_failed_count + Globals.tidy_failed_count)
+    )
     try:
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as env_file:
             env_file.write(f"checks-failed={exit_code}\n")
+            env_file.write(
+                f"clang-format-checks-failed={Globals.format_failed_count}\n"
+            )
+            env_file.write(f"clang-tidy-checks-failed={Globals.tidy_failed_count}\n")
     except (KeyError, FileNotFoundError):  # pragma: no cover
         # not executed on a github CI runner; ignore this error when executed locally
         pass
@@ -563,7 +571,7 @@ def post_results(
 
 def make_annotations(
     style: str, file_annotations: bool, lines_changed_only: int
-) -> bool:
+) -> int:
     """Use github log commands to make annotations from clang-format and
     clang-tidy output.
 
@@ -581,7 +589,6 @@ def make_annotations(
     :returns:
         A boolean describing if any annotations were made.
     """
-    count = 0
     files = (
         Globals.FILES
         if GITHUB_EVENT_NAME == "pull_request" or isinstance(Globals.FILES, list)
@@ -594,7 +601,7 @@ def make_annotations(
             if output is not None:
                 if file_annotations:
                     log_commander.info(output)
-                count += 1
+                Globals.format_failed_count += 1
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
             filename = note.filename.replace("\\", "/").lstrip("/")
@@ -606,18 +613,19 @@ def make_annotations(
                         List[int], range_of_changed_lines(file, lines_changed_only)
                     )
                     break
-            else: # filename match not found; treat line_filter as empty list
+            else:  # filename match not found; treat line_filter as empty list
                 continue
             if note.line in line_filter or not line_filter:
-                count += 1
+                Globals.tidy_failed_count += 1
                 if file_annotations:
                     log_commander.info(note.log_command())
         else:
-            count += 1
+            Globals.tidy_failed_count += 1
             if file_annotations:
                 log_commander.info(note.log_command())
+    count = Globals.format_failed_count + Globals.format_failed_count
     logger.info("%d checks-failed", count)
-    return bool(count)
+    return count
 
 
 def parse_ignore_option(paths: str) -> Tuple[List[str], List[str]]:
@@ -730,7 +738,7 @@ def main():
     checks_failed = make_annotations(
         args.style, args.file_annotations, args.lines_changed_only
     )
-    set_exit_code(int(checks_failed))
+    set_exit_code(checks_failed)
     if GITHUB_EVENT_PATH and "private" in Globals.EVENT_PAYLOAD["repository"]:
         thread_comments_allowed = (
             Globals.EVENT_PAYLOAD["repository"]["private"] is not True
