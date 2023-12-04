@@ -571,7 +571,11 @@
     <span class="n">EVENT_PAYLOAD</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The parsed JSON of the event payload.&quot;&quot;&quot;</span>
     <span class="n">response_buffer</span><span class="p">:</span> <span class="n">Response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">()</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;A shared response object for `requests` module.&quot;&quot;&quot;</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A shared response object for `requests` module.&quot;&quot;&quot;</span>
+    <span class="n">format_failed_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A total count of clang-format concerns&quot;&quot;&quot;</span>
+    <span class="n">tidy_failed_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A total count of clang-tidy concerns&quot;&quot;&quot;</span></div>
 
 
 
