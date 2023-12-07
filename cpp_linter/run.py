@@ -604,7 +604,7 @@ def make_annotations(
                 Globals.format_failed_count += 1
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
-            filename = note.filename.replace("\\", "/").lstrip("/")
+            filename = note.filename.replace("\\", "/").lstrip("..").lstrip("/")
             line_filter = []
             for file in files:
                 print(filename, "?=", file["filename"])
