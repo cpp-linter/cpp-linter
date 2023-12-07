@@ -607,13 +607,13 @@ def make_annotations(
             filename = note.filename.replace("\\", "/").lstrip("..").lstrip("/")
             line_filter = []
             for file in files:
-                print(filename, "?=", file["filename"])
                 if filename == file["filename"]:
                     line_filter = cast(
                         List[int], range_of_changed_lines(file, lines_changed_only)
                     )
                     break
             else:  # filename match not found; treat line_filter as empty list
+                logger.debug("%s != %s", filename, file["filename"])
                 continue
             if note.line in line_filter or not line_filter:
                 Globals.tidy_failed_count += 1
