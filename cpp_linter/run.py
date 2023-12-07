@@ -612,7 +612,8 @@ def make_annotations(
                         List[int], range_of_changed_lines(file, lines_changed_only)
                     )
                     break
-            else:  # filename match not found; treat line_filter as empty list
+            else:  # pragma: no cover
+                # filename match not found; treat as error from non-user code
                 logger.debug("%s != %s", filename, file["filename"])
                 continue
             if note.line in line_filter or not line_filter:
