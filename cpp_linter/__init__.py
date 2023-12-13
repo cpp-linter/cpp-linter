@@ -58,6 +58,74 @@ def make_headers(use_diff: bool = False) -> Dict[str, str]:
     return headers
 
 
+class FileObj:
+    def __init__(self, name: str, additions: List[int], diff_chunks: List[List[int]]):
+        self.name = name
+        self.additions = additions
+        self.diff_chunks = diff_chunks
+        self.lines_added = FileObj._consolidate_list_to_ranges(additions)
+
+    @staticmethod
+    def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
+        """A helper function that is only used after parsing the lines from a diff that
+        contain additions.
+
+        :param numbers: A `list` of integers representing the lines' numbers that
+            contain additions.
+        :returns: A consolidated sequence of lists. Each list will have 2 items
+            describing the starting and ending lines of all line ``numbers``.
+        """
+        result: List[List[int]] = []
+        for i, n in enumerate(numbers):
+            if not i:
+                result.append([n])
+            elif n - 1 != numbers[i - 1]:
+                result[-1].append(numbers[i - 1] + 1)
+                result.append([n])
+            if i == len(numbers) - 1:
+                result[-1].append(n + 1)
+        return result
+
+    def range_of_changed_lines(
+        self, lines_changed_only: int, get_ranges: bool = False
+    ) -> Union[List[int], List[List[int]]]:
+        """Assemble a list of lines changed.
+
+        :param file_obj: The file's JSON object.
+        :param lines_changed_only: A flag to indicate the focus of certain lines.
+
+            - ``0``: focuses on all lines in a file(s).
+            - ``1``: focuses on any lines shown in the event's diff (may include
+            unchanged lines).
+            - ``2``: focuses strictly on lines in the diff that contain additions.
+        :param get_ranges: A flag to return a list of sequences representing
+            :py:class:`range` parameters. Defaults to `False` since this is only
+            required when constructing clang-tidy or clang-format CLI arguments.
+        :returns:
+            A list of line numbers for which to give attention. If ``get_ranges`` is
+            asserted, then the returned list will be a list of ranges.
+        """
+        if lines_changed_only:
+            ranges = self.diff_chunks if lines_changed_only == 1 else self.lines_added
+            if get_ranges:
+                return ranges
+            return self.additions
+        # we return an empty list (instead of None) here so we can still iterate it
+        return []  # type: ignore[return-value]
+
+    def serialize(self) -> Dict[str, Any]:
+        """For easy debugging, use this method to serialize the `FileObj` into a json
+        compatible `dict`."""
+        return {
+            "filename": self.name,
+            "line_filter": {
+                "diff_chunks": self.diff_chunks,
+                "lines_added": self.lines_added,
+            },
+        }
+
+
+
 class Globals:
     """Global variables for re-use (non-constant)."""
 
@@ -66,7 +134,7 @@ class Globals:
     FORMAT_COMMENT: str = ""
     OUTPUT: str = "<!-- cpp linter action -->\n# Cpp-Linter Report "
     """The accumulated body of the resulting comment that gets posted."""
-    FILES: List[Dict[str, Any]] = []
+    FILES: List[FileObj] = []
     """The responding payload containing info about changed files."""
     EVENT_PAYLOAD: Dict[str, Any] = {}
     """The parsed JSON of the event payload."""
@@ -109,36 +177,6 @@ def get_line_cnt_from_cols(file_path: str, offset: int) -> Tuple[int, int]:
     # logger.debug("Getting line count from %s at offset %d", file_path, offset)
     contents = Path(file_path).read_bytes()[:offset]
     return (contents.count(b"\n") + 1, offset - contents.rfind(b"\n"))
-
-
-def range_of_changed_lines(
-    file_obj: Dict[str, Any], lines_changed_only: int, get_ranges: bool = False
-) -> Union[List[int], List[List[int]]]:
-    """Assemble a list of lines changed.
-
-    :param file_obj: The file's JSON object.
-    :param lines_changed_only: A flag to indicate the focus of certain lines.
-
-        - ``0``: focuses on all lines in a file(s).
-        - ``1``: focuses on any lines shown in the event's diff (may include
-          unchanged lines).
-        - ``2``: focuses strictly on lines in the diff that contain additions.
-    :param get_ranges: A flag to return a list of sequences representing
-        :py:class:`range` parameters. Defaults to `False` since this is only
-        required when constructing clang-tidy or clang-format CLI arguments.
-    :returns:
-        A list of line numbers for which to give attention. If ``get_ranges`` is
-        asserted, then the returned list will be a list of ranges.
-    """
-    if lines_changed_only and "line_filter" in file_obj.keys():
-        ranges = file_obj["line_filter"][
-            "diff_chunks" if lines_changed_only == 1 else "lines_added"
-        ]
-        if get_ranges:
-            return ranges
-        return [line for r in ranges for line in range(r[0], r[1])]
-    # we return an empty list (instead of None) here so we can still iterate it
-    return []  # type: ignore[return-value]
 
 
 def log_response_msg() -> bool:

@@ -2,14 +2,14 @@
 import os
 import logging
 import shutil
-from typing import Dict, Any, cast, List, Optional
+from typing import Dict, cast, List, Optional
 from pathlib import Path
 import json
 import re
 import pytest
 import cpp_linter
 import cpp_linter.run
-from cpp_linter.git import parse_diff
+from cpp_linter.git_parse import parse_diff
 from cpp_linter.run import (
     filter_out_non_source_files,
     capture_clang_tools_output,
@@ -168,17 +168,17 @@ def test_lines_changed_only(
         test_result = json.loads(expected_results_json.read_text(encoding="utf-8"))
         for file_obj, result in zip(cpp_linter.Globals.FILES, test_result):
             expected = result["line_filter"]["diff_chunks"]
-            assert file_obj["line_filter"]["diff_chunks"] == expected
+            assert file_obj.diff_chunks == expected
             expected = result["line_filter"]["lines_added"]
-            assert file_obj["line_filter"]["lines_added"] == expected
+            assert file_obj.lines_added == expected
     else:
         raise RuntimeError("test failed to find files")
 
 
-def match_file_json(filename: str) -> Optional[Dict[str, Any]]:
+def match_file_json(filename: str) -> Optional[cpp_linter.FileObj]:
     """A helper function to match a given filename with a file's JSON object."""
     for file_obj in cpp_linter.Globals.FILES:
-        if file_obj["filename"] == filename:
+        if file_obj.name == filename:
             return file_obj
     print("file", filename, "not found in expected_result.json")
     return None
@@ -233,7 +233,7 @@ def test_format_annotations(
             )
             if file_obj is None:
                 continue
-            ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
+            ranges = file_obj.range_of_changed_lines(lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 for line in lines:
                     assert line in ranges
@@ -291,7 +291,7 @@ def test_tidy_annotations(
             filename = RECORD_FILE.sub("\\1", message).replace("\\", "/")
             file_obj = match_file_json(filename)
             assert file_obj is not None, f"{filename} was not matched with project src"
-            ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
+            ranges = file_obj.range_of_changed_lines(lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 assert line in ranges
         else:
@@ -344,7 +344,7 @@ def test_diff_comment(
         file_obj = match_file_json(cast(str, comment["path"]))
         if file_obj is None:
             continue
-        ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
+        ranges = file_obj.range_of_changed_lines(lines_changed_only)
         assert comment["line"] in ranges
 
 

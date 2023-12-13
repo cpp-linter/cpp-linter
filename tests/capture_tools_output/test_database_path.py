@@ -4,7 +4,7 @@ from pathlib import Path, PurePath
 import logging
 import re
 import pytest
-from cpp_linter import logger
+from cpp_linter import logger, FileObj
 import cpp_linter.run
 from cpp_linter.run import run_clang_tidy
 
@@ -42,8 +42,7 @@ def test_db_detection(
     )
     caplog.set_level(logging.DEBUG, logger=logger.name)
     run_clang_tidy(
-        filename=(demo_src),
-        file_obj={},  # only used when filtering lines
+        file_obj=FileObj(demo_src, [], []),  # not filtering lines
         version="",
         checks="",  # let clang-tidy use a .clang-tidy config file
         lines_changed_only=0,  # analyze complete file

@@ -10,7 +10,6 @@ from . import (
     make_headers,
     GITHUB_SHA,
     log_response_msg,
-    range_of_changed_lines,
     CACHE_PATH,
 )
 
@@ -129,7 +128,7 @@ def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
     results = []
     for fixit, file in zip(GlobalParser.tidy_advice, Globals.FILES):
         for diag in fixit.diagnostics:
-            ranges = range_of_changed_lines(file, lines_changed_only)
+            ranges = file.range_of_changed_lines(lines_changed_only)
             if lines_changed_only and diag.line not in ranges:
                 continue
 
@@ -138,7 +137,7 @@ def aggregate_tidy_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
             body += diag.name + "**\n>" + diag.message
 
             # get original code
-            filename = Path(cast(str, file["filename"]))
+            filename = Path(file.name)
             # the list of lines in a file
             lines = filename.read_text(encoding="utf-8").splitlines()
 
@@ -190,7 +189,7 @@ def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
     results = []
     for fmt_advice, file in zip(GlobalParser.format_advice, Globals.FILES):
         # get original code
-        filename = Path(file["filename"])
+        filename = Path(file.name)
         # the list of lines from the src file
         lines = filename.read_text(encoding="utf-8").splitlines()
 
@@ -198,7 +197,7 @@ def aggregate_format_advice(lines_changed_only: int) -> List[Dict[str, Any]]:
         line = ""  # the line that concerns the fix
         for fixed_line in fmt_advice.replaced_lines:
             # clang-format can include advice that starts/ends outside the diff's domain
-            ranges = range_of_changed_lines(file, lines_changed_only)
+            ranges = file.range_of_changed_lines(lines_changed_only)
             if lines_changed_only and fixed_line.line not in ranges:
                 continue  # line is out of scope for diff, so skip this fix
 

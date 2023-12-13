@@ -1,66 +1,8 @@
 """This module uses ``git`` CLI to get commit info. It also holds some functions
 related to parsing diff output into a list of changed files."""
-from pathlib import Path
 import re
-import subprocess
-from typing import Tuple, List, Dict, Any, Optional
-from . import logger, CACHE_PATH
-
-
-def get_sha(parent: int = 1) -> str:
-    """Uses ``git`` to fetch the full SHA hash of the current commit.
-
-    .. note::
-        This function is only used in local development environments, not in a
-        Continuous Integration workflow.
-
-    :param parent: This parameter's default value will fetch the SHA of the last commit.
-        Set this parameter to the number of parent commits from the current tree's HEAD
-        to get the desired commit's SHA hash instead.
-    :returns: A `str` representing the commit's SHA hash.
-    """
-    result = subprocess.run(
-        ["git", "log", f"-{parent}", "--format=%H"], capture_output=True, check=True
-    )
-    return result.stdout.splitlines()[-1].decode(encoding="utf-8")
-
-
-def get_diff(parents: int = 1) -> str:
-    """Retrieve the diff info about a specified commit.
-
-    :param parents: The number of parent commits related to the current commit.
-    :returns: A `str` of the fetched diff.
-    """
-    head = "HEAD"
-    base = get_sha(parents)
-    logger.info("getting diff between %s...%s", head, base)
-    result = subprocess.run(["git", "status", "-v"], capture_output=True, check=True)
-    diff_start = result.stdout.find(b"diff --git")
-    Path(CACHE_PATH, f"{head}...{base[:6]}.diff").write_bytes(
-        result.stdout[diff_start:]
-    )
-    return result.stdout[diff_start:].decode(encoding="utf-8")
-
-
-def consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
-    """A helper function to `filter_out_non_source_files()` and `parse_diff()` that is
-    only used when extracting the lines from a diff that contain additions.
-
-    :param numbers: A `list` of integers representing the lines' numbers that contain
-        additions.
-    :returns: A consolidated sequence of lists. Each list will have 2 items
-        describing the starting and ending lines of all line ``numbers``.
-    """
-    result: List[List[int]] = []
-    for i, n in enumerate(numbers):
-        if not i:
-            result.append([n])
-        elif n - 1 != numbers[i - 1]:
-            result[-1].append(numbers[i - 1] + 1)
-            result.append([n])
-        if i == len(numbers) - 1:
-            result[-1].append(n + 1)
-    return result
+from typing import Tuple, List, Optional, cast
+from . import logger, FileObj
 
 
 DIFF_FILE_DELIMITER = re.compile(r"^diff --git a/.*$", re.MULTILINE)
@@ -91,7 +33,7 @@ def _get_filename_from_diff(front_matter: str) -> Optional[re.Match]:
     return None
 
 
-def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
+def parse_diff(full_diff: str) -> List[FileObj]:
     """Parse a given diff into file objects.
 
     :param full_diff: The complete diff for an event.
@@ -99,7 +41,7 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
 
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
-    file_objects: List[Dict[str, Any]] = []
+    file_objects: List[FileObj] = []
     # logger.debug("full diff:\n%s", full_diff.strip("\n"))
     file_diffs = DIFF_FILE_DELIMITER.split(full_diff.lstrip("\n"))
     for diff in file_diffs:
@@ -112,14 +54,11 @@ def parse_diff(full_diff: str) -> List[Dict[str, Any]]:
         if filename_match is None:
             continue
         filename = filename_match.groups(0)[0]
-        file_objects.append({"filename": filename})
         if first_hunk is None:
             continue
-        ranges, additions = parse_patch(diff[first_hunk.start() :])
-        file_objects[-1]["line_filter"] = {
-            "diff_chunks": ranges,
-            "lines_added": consolidate_list_to_ranges(additions),
-        }
+        diff_chunks, additions = parse_patch(diff[first_hunk.start() :])
+
+        file_objects.append(FileObj(cast(str, filename), additions, diff_chunks))
     return file_objects
 
 

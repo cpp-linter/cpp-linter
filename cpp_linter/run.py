@@ -16,7 +16,7 @@ import configparser
 import json
 import urllib.parse
 import logging
-from typing import cast, List, Dict, Any, Tuple, Optional
+from typing import cast, List, Tuple, Optional
 import requests
 from . import (
     Globals,
@@ -32,14 +32,15 @@ from . import (
     CLANG_TIDY_STDOUT,
     CHANGED_FILES_JSON,
     log_response_msg,
-    range_of_changed_lines,
     assemble_version_exec,
+    FileObj,
 )
 from .clang_tidy_yml import parse_tidy_suggestions_yml
 from .clang_format_xml import parse_format_replacements_xml
 from .clang_tidy import parse_tidy_output, TidyNotification
 from .thread_comments import update_comment
-from .git import get_diff, parse_diff
+from .git_lib import get_diff, parse_diff
+from .git_parse import parse_diff as parse_diff_str
 from .cli import cli_arg_parser
 
 # global constant variables
@@ -150,7 +151,7 @@ def get_list_of_changed_files() -> None:
             files_link, headers=make_headers(use_diff=True)
         )
         log_response_msg()
-        Globals.FILES = parse_diff(Globals.response_buffer.text)
+        Globals.FILES = parse_diff_str(Globals.response_buffer.text)
     else:
         Globals.FILES = parse_diff(get_diff())
 
@@ -177,14 +178,14 @@ def filter_out_non_source_files(
     files = []
     for file in Globals.FILES:
         if (
-            PurePath(file["filename"]).suffix.lstrip(".") in ext_list
+            PurePath(file.name).suffix.lstrip(".") in ext_list
             and (
-                not is_file_in_list(ignored, file["filename"], "ignored")
-                or is_file_in_list(not_ignored, file["filename"], "not ignored")
+                not is_file_in_list(ignored, file.name, "ignored")
+                or is_file_in_list(not_ignored, file.name, "not ignored")
             )
             and (
-                (lines_changed_only == 1 and file["line_filter"]["diff_chunks"])
-                or (lines_changed_only == 2 and file["line_filter"]["lines_added"])
+                (lines_changed_only == 1 and file.diff_chunks)
+                or (lines_changed_only == 2 and file.lines_added)
                 or not lines_changed_only
             )
         ):
@@ -196,12 +197,15 @@ def filter_out_non_source_files(
     else:
         logger.info(
             "Giving attention to the following files:\n\t%s",
-            "\n\t".join([f["filename"] for f in files]),
+            "\n\t".join([f.name for f in files]),
         )
     if not IS_ON_RUNNER:  # if not executed on a github runner
         # dump altered json of changed files
         CHANGED_FILES_JSON.write_text(
-            json.dumps(Globals.FILES, indent=2),
+            json.dumps(
+                [ f.serialize() for f in Globals.FILES ],
+                indent=2,
+            ),
             encoding="utf-8",
         )
 
@@ -215,11 +219,11 @@ def verify_files_are_present() -> None:
         directory. This is bad for files with the same name from different folders.
     """
     for file in Globals.FILES:
-        file_name = Path(file["filename"])
+        file_name = Path(file.name)
         if not file_name.exists():
             logger.warning("Could not find %s! Did you checkout the repo?", file_name)
             raw_url = f"https://github.com/{GITHUB_REPOSITORY}/raw/{GITHUB_SHA}/"
-            raw_url += urllib.parse.quote(file["filename"], safe="")
+            raw_url += urllib.parse.quote(file.name, safe="")
             logger.info("Downloading file from url: %s", raw_url)
             Globals.response_buffer = requests.get(raw_url)
             # retain the repo's original structure
@@ -255,20 +259,19 @@ def list_source_files(
                 if not is_file_in_list(
                     ignored_paths, file_path, "ignored"
                 ) or is_file_in_list(not_ignored, file_path, "not ignored"):
-                    Globals.FILES.append({"filename": file_path})
+                    Globals.FILES.append(FileObj(file_path, [], []))
 
     if Globals.FILES:
         logger.info(
             "Giving attention to the following files:\n\t%s",
-            "\n\t".join([f["filename"] for f in Globals.FILES]),
+            "\n\t".join([f.name for f in Globals.FILES]),
         )
     else:
         logger.info("No source files found.")  # this might need to be warning
 
 
 def run_clang_tidy(
-    filename: str,
-    file_obj: Dict[str, Any],
+    file_obj: FileObj,
     version: str,
     checks: str,
     lines_changed_only: int,
@@ -278,8 +281,7 @@ def run_clang_tidy(
 ) -> None:
     """Run clang-tidy on a certain file.
 
-    :param filename: The name of the local file to run clang-tidy on.
-    :param file_obj: JSON info about the file.
+    :param file_obj: Information about the `FileObj`.
     :param version: The version of clang-tidy to run.
     :param checks: The `str` of comma-separated regulate expressions that describe
         the desired clang-tidy checks to be enabled/configured.
@@ -309,7 +311,7 @@ def run_clang_tidy(
         # clear the clang-tidy output file and exit function
         CLANG_TIDY_STDOUT.write_bytes(b"")
         return
-    filename = PurePath(filename).as_posix()
+    filename = PurePath(file_obj.name).as_posix()
     cmds = [
         assemble_version_exec("clang-tidy", version),
         f"--export-fixes={str(CLANG_TIDY_YML)}",
@@ -323,7 +325,7 @@ def run_clang_tidy(
         cmds.append(database)
     line_ranges = {
         "name": filename,
-        "lines": range_of_changed_lines(file_obj, lines_changed_only, True),
+        "lines": file_obj.range_of_changed_lines(lines_changed_only, True),
     }
     if line_ranges["lines"]:
         # logger.info("line_filter = %s", json.dumps([line_ranges]))
@@ -348,16 +350,14 @@ def run_clang_tidy(
 
 
 def run_clang_format(
-    filename: str,
-    file_obj: Dict[str, Any],
+    file_obj: FileObj,
     version: str,
     style: str,
     lines_changed_only: int,
 ) -> None:
     """Run clang-format on a certain file
 
-    :param filename: The name of the local file to run clang-format on.
-    :param file_obj: JSON info about the file.
+    :param file_obj: Information about the `FileObj`.
     :param version: The version of clang-format to run.
     :param style: The clang-format style rules to adhere. Set this to 'file' to
         use the relative-most .clang-format configuration file.
@@ -374,11 +374,11 @@ def run_clang_format(
     ]
     ranges = cast(
         List[List[int]],
-        range_of_changed_lines(file_obj, lines_changed_only, get_ranges=True),
+        file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
     for span in ranges:
         cmds.append(f"--lines={span[0]}:{span[1]}")
-    cmds.append(PurePath(filename).as_posix())
+    cmds.append(PurePath(file_obj.name).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
     CLANG_FORMAT_XML.write_bytes(results.stdout)
@@ -389,8 +389,7 @@ def run_clang_format(
 
 
 def create_comment_body(
-    filename: str,
-    file_obj: Dict[str, Any],
+    file_obj: FileObj,
     lines_changed_only: int,
     tidy_notes: List[TidyNotification],
 ):
@@ -404,7 +403,7 @@ def create_comment_body(
         avoid duplicated content in comment, and it is later used again by
         `make_annotations()` after `capture_clang_tools_output()` is finished.
     """
-    ranges = range_of_changed_lines(file_obj, lines_changed_only)
+    ranges = file_obj.range_of_changed_lines(lines_changed_only)
     if CLANG_TIDY_STDOUT.exists() and CLANG_TIDY_STDOUT.stat().st_size:
         parse_tidy_output()  # get clang-tidy fixes from stdout
         comment_output = ""
@@ -414,11 +413,11 @@ def create_comment_body(
             comment_output += repr(fix)
             tidy_notes.append(fix)
         if comment_output:
-            Globals.TIDY_COMMENT += f"- {filename}\n\n{comment_output}"
+            Globals.TIDY_COMMENT += f"- {file_obj.name}\n\n{comment_output}"
         GlobalParser.tidy_notes.clear()  # empty list to avoid duplicated output
 
     if CLANG_FORMAT_XML.exists() and CLANG_FORMAT_XML.stat().st_size:
-        parse_format_replacements_xml(PurePath(filename).as_posix())
+        parse_format_replacements_xml(PurePath(file_obj.name).as_posix())
         if GlobalParser.format_advice and GlobalParser.format_advice[-1].replaced_lines:
             should_comment = False
             for line in [
@@ -429,7 +428,7 @@ def create_comment_body(
                     should_comment = True
                     break
             if should_comment:
-                Globals.FORMAT_COMMENT += f"- {file_obj['filename']}\n"
+                Globals.FORMAT_COMMENT += f"- {file_obj.name}\n"
 
 
 def capture_clang_tools_output(
@@ -459,10 +458,8 @@ def capture_clang_tools_output(
     # temporary cache of parsed notifications for use in log commands
     tidy_notes: List[TidyNotification] = []
     for file in Globals.FILES:
-        filename = cast(str, file["filename"])
-        start_log_group(f"Performing checkup on {filename}")
+        start_log_group(f"Performing checkup on {file.name}")
         run_clang_tidy(
-            filename,
             file,
             version,
             checks,
@@ -471,10 +468,10 @@ def capture_clang_tools_output(
             repo_root,
             extra_args,
         )
-        run_clang_format(filename, file, version, style, lines_changed_only)
+        run_clang_format(file, version, style, lines_changed_only)
         end_log_group()
 
-        create_comment_body(filename, file, lines_changed_only, tidy_notes)
+        create_comment_body(file, lines_changed_only, tidy_notes)
 
     if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
         Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!\n"
@@ -589,13 +586,8 @@ def make_annotations(
     :returns:
         A boolean describing if any annotations were made.
     """
-    files = (
-        Globals.FILES
-        if GITHUB_EVENT_NAME == "pull_request" or isinstance(Globals.FILES, list)
-        else cast(Dict[str, Any], Globals.FILES)["files"]
-    )
-    for advice, file in zip(GlobalParser.format_advice, files):
-        line_filter = cast(List[int], range_of_changed_lines(file, lines_changed_only))
+    for advice, file in zip(GlobalParser.format_advice, Globals.FILES):
+        line_filter = cast(List[int], file.range_of_changed_lines(lines_changed_only))
         if advice.replaced_lines:
             output = advice.log_command(style, line_filter)
             if output is not None:
@@ -605,10 +597,10 @@ def make_annotations(
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
             line_filter = []
-            for file in files:
-                if note.filename == file["filename"]:
+            for file in Globals.FILES:
+                if note.filename == file.name:
                     line_filter = cast(
-                        List[int], range_of_changed_lines(file, lines_changed_only)
+                        List[int], file.range_of_changed_lines(lines_changed_only)
                     )
                     break
             else:  # pragma: no cover

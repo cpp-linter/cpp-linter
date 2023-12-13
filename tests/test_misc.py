@@ -82,10 +82,12 @@ def test_list_src_files(
 ):
     """List the source files in the demo folder of this repo."""
     Globals.FILES = []
-    monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
+    monkeypatch.chdir(Path(__file__).parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
     assert Globals.FILES
+    for file in Globals.FILES:
+        assert Path(file.name).suffix.lstrip(".") in extensions
 
 
 @pytest.mark.parametrize(
