@@ -1146,16 +1146,16 @@
                 <span class="n">Globals</span><span class="o">.</span><span class="n">format_failed_count</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">GlobalParser</span><span class="o">.</span><span class="n">tidy_notes</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">lines_changed_only</span><span class="p">:</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
             <span class="n">line_filter</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;?=&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]:</span>
                     <span class="n">line_filter</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
                         <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">range_of_changed_lines</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">)</span>
                     <span class="p">)</span>
                     <span class="k">break</span>
-            <span class="k">else</span><span class="p">:</span>  <span class="c1"># filename match not found; treat line_filter as empty list</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="c1"># filename match not found; treat as error from non-user code</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> doesn&#39;t match any project files&quot;</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">line</span> <span class="ow">in</span> <span class="n">line_filter</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">line_filter</span><span class="p">:</span>
                 <span class="n">Globals</span><span class="o">.</span><span class="n">tidy_failed_count</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -1362,7 +1362,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
-        <script src="../../_static/sphinx_immaterial_theme.1b5b7a2d5891aec19.min.js?v=1e7b0789"></script>
+        <script src="../../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
     
   </body>
 </html>
