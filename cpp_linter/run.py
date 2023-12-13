@@ -396,7 +396,6 @@ def create_comment_body(
     """Create the content for a thread comment about a certain file.
     This is a helper function to `capture_clang_tools_output()`.
 
-    :param filename: The file's name (& path).
     :param file_obj: The file's JSON `dict`.
     :param lines_changed_only: A flag used to filter the comment based on line changes.
     :param tidy_notes: A list of cached notifications from clang-tidy. This is used to

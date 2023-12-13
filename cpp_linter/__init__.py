@@ -59,11 +59,30 @@ def make_headers(use_diff: bool = False) -> Dict[str, str]:
 
 
 class FileObj:
+    """A class to represent a single file being analyzed.
+
+    :param name: The file name. This should use Unix style path delimiters (``/``),
+        even on Windows.
+    :param additions: A `list` of line numbers that have added changes in the diff.
+        This value is used to populate the `lines_added` property.
+    :param diff_chunks: The ranges that define the beginning and ending line numbers
+        for all hunks in the diff.
+    """
+
     def __init__(self, name: str, additions: List[int], diff_chunks: List[List[int]]):
-        self.name = name
-        self.additions = additions
-        self.diff_chunks = diff_chunks
-        self.lines_added = FileObj._consolidate_list_to_ranges(additions)
+        self.name: str = name  #: The file name
+        self.additions: List[int] = additions
+        """A list of line numbers that contain added changes. This will be empty if
+        not focusing on lines changed only."""
+        self.diff_chunks: List[List[int]] = diff_chunks
+        """A list of line numbers that define the beginning and ending of hunks in the
+        diff. This will be empty if not focusing on lines changed only."""
+        self.lines_added: List[List[int]] = FileObj._consolidate_list_to_ranges(
+            additions
+        )
+        """A list of line numbers that define the beginning and ending of ranges that
+        have added changes. This will be empty if not focusing on lines changed only.
+        """
 
     @staticmethod
     def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
@@ -91,19 +110,19 @@ class FileObj:
     ) -> Union[List[int], List[List[int]]]:
         """Assemble a list of lines changed.
 
-        :param file_obj: The file's JSON object.
         :param lines_changed_only: A flag to indicate the focus of certain lines.
 
             - ``0``: focuses on all lines in a file(s).
             - ``1``: focuses on any lines shown in the event's diff (may include
-            unchanged lines).
+              unchanged lines).
             - ``2``: focuses strictly on lines in the diff that contain additions.
         :param get_ranges: A flag to return a list of sequences representing
             :py:class:`range` parameters. Defaults to `False` since this is only
             required when constructing clang-tidy or clang-format CLI arguments.
         :returns:
             A list of line numbers for which to give attention. If ``get_ranges`` is
-            asserted, then the returned list will be a list of ranges.
+            asserted, then the returned list will be a list of ranges. If
+            ``lines_changed_only`` is ``0``, then an empty list is returned.
         """
         if lines_changed_only:
             ranges = self.diff_chunks if lines_changed_only == 1 else self.lines_added
@@ -123,7 +142,6 @@ class FileObj:
                 "lines_added": self.lines_added,
             },
         }
-
 
 
 class Globals:
