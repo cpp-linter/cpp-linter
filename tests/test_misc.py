@@ -1,13 +1,14 @@
 """Tests that complete coverage that aren't prone to failure."""
 import logging
 import os
+import json
 from pathlib import Path
 from typing import List
 import pytest
 import requests
 import cpp_linter
 import cpp_linter.run
-from cpp_linter import Globals, log_response_msg, get_line_cnt_from_cols
+from cpp_linter import Globals, log_response_msg, get_line_cnt_from_cols, FileObj
 from cpp_linter.run import (
     log_commander,
     start_log_group,
@@ -32,7 +33,6 @@ def test_exit_implicit():
     Globals.tidy_failed_count = 1
     Globals.format_failed_count = 1
     assert 2 == set_exit_code()
-
 
 
 # see https://github.com/pytest-dev/pytest/issues/5997
@@ -159,3 +159,13 @@ def test_file_offset_translation(line: int, cols: int, offset: int):
     """Validate output from ``get_line_cnt_from_cols()``"""
     test_file = str(Path("tests/demo/demo.cpp").resolve())
     assert (line, cols) == get_line_cnt_from_cols(test_file, offset)
+
+
+def test_serialize_file_obj():
+    """Validate JSON serialization of a FileObj instance."""
+    file_obj = FileObj("some_name", [5, 10], [2, 12])
+    json_obj = (
+        r'[{"filename": "some_name", "line_filter": {"diff_chunks": [2, 12], '
+        + r'"lines_added": [[5, 6], [10, 11]]}}]'
+    )
+    assert json.dumps([file_obj.serialize()]) == json_obj
