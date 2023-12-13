@@ -283,14 +283,14 @@ def test_tidy_annotations(
     make_annotations(
         style="", file_annotations=True, lines_changed_only=lines_changed_only
     )
-    for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
+    messages = [r.message for r in caplog.records if r.levelno == logging.INFO]
+    assert messages
+    for message in messages:
         if TIDY_RECORD.search(message) is not None:
             line = int(TIDY_RECORD_LINE.sub("\\1", message))
-            file_obj = match_file_json(
-                RECORD_FILE.sub("\\1", message).replace("\\", "/")
-            )
-            if file_obj is None:
-                continue
+            filename = RECORD_FILE.sub("\\1", message).replace("\\", "/")
+            file_obj = match_file_json(filename)
+            assert file_obj is not None, f"{filename} was not matched with project src"
             ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 assert line in ranges

@@ -604,16 +604,16 @@ def make_annotations(
                 Globals.format_failed_count += 1
     for note in GlobalParser.tidy_notes:
         if lines_changed_only:
-            filename = note.filename.replace("\\", "/").lstrip("/")
             line_filter = []
             for file in files:
-                print(filename, "?=", file["filename"])
-                if filename == file["filename"]:
+                if note.filename == file["filename"]:
                     line_filter = cast(
                         List[int], range_of_changed_lines(file, lines_changed_only)
                     )
                     break
-            else:  # filename match not found; treat line_filter as empty list
+            else:  # pragma: no cover
+                # filename match not found; treat as error from non-user code
+                logger.debug("%s doesn't match any project files", note.filename)
                 continue
             if note.line in line_filter or not line_filter:
                 Globals.tidy_failed_count += 1

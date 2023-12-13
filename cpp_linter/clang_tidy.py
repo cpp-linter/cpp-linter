@@ -42,7 +42,10 @@ class TidyNotification:
         self.cols = int(self.cols)
         #: The source filename concerning the notification.
         self.filename = (
-            PurePath(self.filename).as_posix().replace(Path.cwd().as_posix(), "")
+            Path(self.filename)
+            .resolve()
+            .as_posix()
+            .replace(Path.cwd().as_posix() + "/", "")
         )
         #: A `list` of lines for the code-block in the notification.
         self.fixit_lines: List[str] = []
