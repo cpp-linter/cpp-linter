@@ -81,7 +81,7 @@ def test_list_src_files(
     extensions: List[str],
 ):
     """List the source files in the demo folder of this repo."""
-    Globals.FILES = []
+    monkeypatch.setattr(Globals, "FILES",  [])
     monkeypatch.chdir(Path(__file__).parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
     list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])

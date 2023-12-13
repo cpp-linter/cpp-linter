@@ -46,15 +46,15 @@ def _translate_lines_changed_only_value(value: int) -> str:
     return ret_vals[value]
 
 
-def flush_prior_artifacts():
+def flush_prior_artifacts(monkeypatch: pytest.MonkeyPatch):
     """flush output from any previous tests"""
-    cpp_linter.Globals.OUTPUT = ""
-    cpp_linter.Globals.TIDY_COMMENT = ""
-    cpp_linter.Globals.FORMAT_COMMENT = ""
-    cpp_linter.Globals.FILES.clear()
-    cpp_linter.GlobalParser.format_advice.clear()
-    cpp_linter.GlobalParser.tidy_advice.clear()
-    cpp_linter.GlobalParser.tidy_notes.clear()
+    monkeypatch.setattr(cpp_linter.Globals, "OUTPUT", "")
+    monkeypatch.setattr(cpp_linter.Globals, "TIDY_COMMENT", "")
+    monkeypatch.setattr(cpp_linter.Globals, "FORMAT_COMMENT", "")
+    monkeypatch.setattr(cpp_linter.Globals, "FILES", [])
+    monkeypatch.setattr(cpp_linter.GlobalParser, "format_advice", [])
+    monkeypatch.setattr(cpp_linter.GlobalParser, "tidy_advice", [])
+    monkeypatch.setattr(cpp_linter.GlobalParser, "tidy_notes", [])
 
 
 def prep_repo(
@@ -66,7 +66,7 @@ def prep_repo(
     for name, value in zip(["GITHUB_REPOSITORY", "GITHUB_SHA"], [repo, commit]):
         monkeypatch.setattr(cpp_linter.run, name, value)
 
-    flush_prior_artifacts()
+    flush_prior_artifacts(monkeypatch)
     test_diff = Path(__file__).parent / repo / f"{commit}.diff"
     monkeypatch.setattr(
         cpp_linter.Globals, "FILES", parse_diff(test_diff.read_text(encoding="utf-8"))
@@ -351,7 +351,7 @@ def test_diff_comment(
 def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify the comment is affirmative when no attention is needed."""
     monkeypatch.chdir(str(tmp_path))
-    flush_prior_artifacts()
+    flush_prior_artifacts(monkeypatch)
 
     # this call essentially does nothing with the file system
     capture_clang_tools_output(
