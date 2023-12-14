@@ -7,10 +7,11 @@ from pathlib import Path
 import json
 import re
 import warnings
+import pygit2  # type: ignore[import-not-found]
 import pytest
 import cpp_linter
 import cpp_linter.run
-from cpp_linter.git import parse_diff
+from cpp_linter.git import parse_diff, get_diff
 from cpp_linter.run import (
     filter_out_non_source_files,
     capture_clang_tools_output,
@@ -41,6 +42,10 @@ TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
     dict(
         repo="cpp-linter/cpp-linter",
         commit="950ff0b690e1903797c303c5fc8d9f3b52f1d3c5",
+    ),
+    dict(
+        repo="cpp-linter/cpp-linter",
+        commit="0c236809891000b16952576dc34de082d7a40bf3",  # no modded C++ sources
     ),
 ]
 
@@ -75,9 +80,12 @@ def prep_repo(
 
     flush_prior_artifacts(monkeypatch)
     test_diff = Path(__file__).parent / repo / f"{commit}.diff"
-    monkeypatch.setattr(
-        cpp_linter.Globals, "FILES", parse_diff(test_diff.read_text(encoding="utf-8"))
-    )
+    if test_diff.exists():
+        monkeypatch.setattr(
+            cpp_linter.Globals,
+            "FILES",
+            parse_diff(test_diff.read_text(encoding="utf-8")),
+        )
 
 
 def prep_tmp_dir(
@@ -388,3 +396,60 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         extra_args=[],
     )
     assert "No problems need attention." in cpp_linter.Globals.OUTPUT
+
+
+@pytest.mark.parametrize(
+    "repo_commit_pair,patch",
+    [
+        (TEST_REPO_COMMIT_PAIRS[4], ""),  # has modded C++ sources
+        (TEST_REPO_COMMIT_PAIRS[5], ""),  # has no modded C++ sources
+        (TEST_REPO_COMMIT_PAIRS[5], "test_git_lib.patch"),
+    ],
+    ids=["modded-src", "no-modded-src", "staged-modded-src"],
+)
+def test_parse_diff(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    repo_commit_pair: Dict[str, str],
+    patch: str,
+):
+    """Use a git clone to test run parse_diff()."""
+    prep_repo(monkeypatch, **repo_commit_pair)
+    repo_name, sha = repo_commit_pair["repo"], repo_commit_pair["commit"]
+    repo_cache = tmp_path.parent / repo_name / "HEAD"
+    repo_cache.mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(str(repo_cache))
+    if not (repo_cache / ".git").exists():
+        pygit2.clone_repository(f"https://github.com/{repo_name}", ".")
+    repo_path = tmp_path / repo_name.split("/")[1]
+    shutil.copytree(str(repo_cache), str(repo_path))
+    monkeypatch.chdir(repo_path)
+
+    repo = pygit2.Repository(".")
+    commit = repo.revparse_single(sha)
+    repo.checkout_tree(
+        cast(pygit2.Commit, commit).tree,
+        # reset index to specified commit
+        strategy=pygit2.GIT_CHECKOUT_FORCE | pygit2.GIT_CHECKOUT_RECREATE_MISSING,
+    )
+    repo.set_head(commit.oid)  # detach head
+    if patch:
+        diff = repo.diff()
+        patch_to_stage = (Path(__file__).parent / repo_name / patch).read_text(
+            encoding="utf-8"
+        )
+        diff = diff.parse_diff(patch_to_stage)
+        repo.apply(diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+        repo.index.add_all(["tests/demo/demo.*"])
+        repo.index.write()
+    del repo
+
+    Path(cpp_linter.CACHE_PATH).mkdir()
+    files: List[cpp_linter.FileObj] = parse_diff(get_diff())
+    assert files
+    monkeypatch.setattr(cpp_linter.Globals, "FILES", files)
+    filter_out_non_source_files(["cpp", "hpp"], [], [], 0)
+    if sha == TEST_REPO_COMMIT_PAIRS[4]["commit"] or patch:
+        assert cpp_linter.Globals.FILES
+    else:
+        assert not cpp_linter.Globals.FILES
