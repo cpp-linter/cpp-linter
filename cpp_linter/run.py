@@ -623,7 +623,7 @@ def make_annotations(
             Globals.tidy_failed_count += 1
             if file_annotations:
                 log_commander.info(note.log_command())
-    count = Globals.format_failed_count + Globals.format_failed_count
+    count = Globals.format_failed_count + Globals.tidy_failed_count
     logger.info("%d checks-failed", count)
     return count
 
