@@ -1165,7 +1165,7 @@
             <span class="n">Globals</span><span class="o">.</span><span class="n">tidy_failed_count</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">file_annotations</span><span class="p">:</span>
                 <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">note</span><span class="o">.</span><span class="n">log_command</span><span class="p">())</span>
-    <span class="n">count</span> <span class="o">=</span> <span class="n">Globals</span><span class="o">.</span><span class="n">format_failed_count</span> <span class="o">+</span> <span class="n">Globals</span><span class="o">.</span><span class="n">format_failed_count</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">Globals</span><span class="o">.</span><span class="n">format_failed_count</span> <span class="o">+</span> <span class="n">Globals</span><span class="o">.</span><span class="n">tidy_failed_count</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> checks-failed&quot;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">count</span></div>
 
