@@ -15,6 +15,7 @@ authors = [
 dependencies = [
     "requests",
     "pyyaml",
+    "pygit2",
 ]
 classifiers = [
     # https://pypi.org/pypi?%3Aaction=list_classifiers

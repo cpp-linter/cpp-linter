@@ -2,9 +2,10 @@
 from typing import List
 from pathlib import Path, PurePath
 import logging
+import os
 import re
 import pytest
-from cpp_linter import logger
+from cpp_linter import logger, FileObj
 import cpp_linter.run
 from cpp_linter.run import run_clang_tidy
 
@@ -42,8 +43,7 @@ def test_db_detection(
     )
     caplog.set_level(logging.DEBUG, logger=logger.name)
     run_clang_tidy(
-        filename=(demo_src),
-        file_obj={},  # only used when filtering lines
+        file_obj=FileObj(demo_src, [], []),  # not filtering lines
         version="",
         checks="",  # let clang-tidy use a .clang-tidy config file
         lines_changed_only=0,  # analyze complete file
@@ -57,5 +57,5 @@ def test_db_detection(
         if msg_match is not None:
             matched_args = msg_match.group(0)[:-1].split()[2:]
         assert "Error while trying to load a compilation database" not in record.message
-    expected_args.append(demo_src)
+    expected_args.append(demo_src.replace("/", os.sep))
     assert matched_args == expected_args

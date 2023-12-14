@@ -32,6 +32,7 @@ extensions = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "requests": ("https://requests.readthedocs.io/en/latest/", None),
+    "pygit2": ("https://www.pygit2.org/", None),
 }
 
 autodoc_member_order = "bysource"
@@ -54,7 +55,6 @@ html_title = "cpp-linter"
 html_theme_options = {
     "repo_url": "https://github.com/cpp-linter/cpp-linter",
     "repo_name": "cpp-linter",
-    "repo_type": "github",
     "palette": [
         {
             "media": "(prefers-color-scheme: light)",

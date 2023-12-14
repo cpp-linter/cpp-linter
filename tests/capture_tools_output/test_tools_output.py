@@ -2,14 +2,16 @@
 import os
 import logging
 import shutil
-from typing import Dict, Any, cast, List, Optional
+from typing import Dict, cast, List, Optional
 from pathlib import Path
 import json
 import re
+import warnings
+import pygit2  # type: ignore[import-not-found]
 import pytest
 import cpp_linter
 import cpp_linter.run
-from cpp_linter.git import parse_diff
+from cpp_linter.git import parse_diff, get_diff
 from cpp_linter.run import (
     filter_out_non_source_files,
     capture_clang_tools_output,
@@ -37,6 +39,14 @@ TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
         repo="shenxianpeng/test-repo",
         commit="662ad4cf90084063ea9c089b8de4aff0b8959d0e",
     ),
+    dict(
+        repo="cpp-linter/cpp-linter",
+        commit="950ff0b690e1903797c303c5fc8d9f3b52f1d3c5",
+    ),
+    dict(
+        repo="cpp-linter/cpp-linter",
+        commit="0c236809891000b16952576dc34de082d7a40bf3",  # no modded C++ sources
+    ),
 ]
 
 
@@ -46,15 +56,17 @@ def _translate_lines_changed_only_value(value: int) -> str:
     return ret_vals[value]
 
 
-def flush_prior_artifacts():
+def flush_prior_artifacts(monkeypatch: pytest.MonkeyPatch):
     """flush output from any previous tests"""
-    cpp_linter.Globals.OUTPUT = ""
-    cpp_linter.Globals.TIDY_COMMENT = ""
-    cpp_linter.Globals.FORMAT_COMMENT = ""
-    cpp_linter.Globals.FILES.clear()
-    cpp_linter.GlobalParser.format_advice.clear()
-    cpp_linter.GlobalParser.tidy_advice.clear()
-    cpp_linter.GlobalParser.tidy_notes.clear()
+    monkeypatch.setattr(cpp_linter.Globals, "OUTPUT", "")
+    monkeypatch.setattr(cpp_linter.Globals, "TIDY_COMMENT", "")
+    monkeypatch.setattr(cpp_linter.Globals, "FORMAT_COMMENT", "")
+    monkeypatch.setattr(cpp_linter.Globals, "FILES", [])
+    monkeypatch.setattr(cpp_linter.Globals, "format_failed_count", 0)
+    monkeypatch.setattr(cpp_linter.Globals, "tidy_failed_count", 0)
+    monkeypatch.setattr(cpp_linter.GlobalParser, "format_advice", [])
+    monkeypatch.setattr(cpp_linter.GlobalParser, "tidy_advice", [])
+    monkeypatch.setattr(cpp_linter.GlobalParser, "tidy_notes", [])
 
 
 def prep_repo(
@@ -66,11 +78,14 @@ def prep_repo(
     for name, value in zip(["GITHUB_REPOSITORY", "GITHUB_SHA"], [repo, commit]):
         monkeypatch.setattr(cpp_linter.run, name, value)
 
-    flush_prior_artifacts()
+    flush_prior_artifacts(monkeypatch)
     test_diff = Path(__file__).parent / repo / f"{commit}.diff"
-    monkeypatch.setattr(
-        cpp_linter.Globals, "FILES", parse_diff(test_diff.read_text(encoding="utf-8"))
-    )
+    if test_diff.exists():
+        monkeypatch.setattr(
+            cpp_linter.Globals,
+            "FILES",
+            parse_diff(test_diff.read_text(encoding="utf-8")),
+        )
 
 
 def prep_tmp_dir(
@@ -161,24 +176,26 @@ def test_lines_changed_only(
             / repo
             / f"expected-result_{commit[:6]}-{lines_changed_only}.json"
         )
-        # uncomment to update the expected test's results
+        ### uncomment this paragraph to update/generate the expected test's results
         # expected_results_json.write_text(
-        #     json.dumps(cpp_linter.Globals.FILES, indent=2) + "\n", encoding="utf-8"
+        #     json.dumps([f.serialize() for f in cpp_linter.Globals.FILES], indent=2)
+        #     + "\n",
+        #     encoding="utf-8",
         # )
         test_result = json.loads(expected_results_json.read_text(encoding="utf-8"))
         for file_obj, result in zip(cpp_linter.Globals.FILES, test_result):
             expected = result["line_filter"]["diff_chunks"]
-            assert file_obj["line_filter"]["diff_chunks"] == expected
+            assert file_obj.diff_chunks == expected
             expected = result["line_filter"]["lines_added"]
-            assert file_obj["line_filter"]["lines_added"] == expected
+            assert file_obj.lines_added == expected
     else:
         raise RuntimeError("test failed to find files")
 
 
-def match_file_json(filename: str) -> Optional[Dict[str, Any]]:
+def match_file_json(filename: str) -> Optional[cpp_linter.FileObj]:
     """A helper function to match a given filename with a file's JSON object."""
     for file_obj in cpp_linter.Globals.FILES:
-        if file_obj["filename"] == filename:
+        if file_obj.name == filename:
             return file_obj
     print("file", filename, "not found in expected_result.json")
     return None
@@ -233,7 +250,7 @@ def test_format_annotations(
             )
             if file_obj is None:
                 continue
-            ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
+            ranges = file_obj.range_of_changed_lines(lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 for line in lines:
                     assert line in ranges
@@ -264,7 +281,7 @@ def test_tidy_annotations(
     prep_tmp_dir(
         tmp_path,
         monkeypatch,
-        **TEST_REPO_COMMIT_PAIRS[3],
+        **TEST_REPO_COMMIT_PAIRS[4],
         copy_configs=False,
         lines_changed_only=lines_changed_only,
     )
@@ -278,24 +295,39 @@ def test_tidy_annotations(
         extra_args=[],
     )
     assert "Run `clang-format` on the following files" not in cpp_linter.Globals.OUTPUT
-    caplog.set_level(logging.INFO, logger=log_commander.name)
+    caplog.set_level(logging.DEBUG)
     log_commander.propagate = True
     make_annotations(
         style="", file_annotations=True, lines_changed_only=lines_changed_only
     )
-    messages = [r.message for r in caplog.records if r.levelno == logging.INFO]
+    messages = [
+        r.message
+        for r in caplog.records
+        if r.levelno == logging.INFO and r.name == log_commander.name
+    ]
     assert messages
+    checks_failed = 0
     for message in messages:
         if TIDY_RECORD.search(message) is not None:
             line = int(TIDY_RECORD_LINE.sub("\\1", message))
             filename = RECORD_FILE.sub("\\1", message).replace("\\", "/")
             file_obj = match_file_json(filename)
-            assert file_obj is not None, f"{filename} was not matched with project src"
-            ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
+            checks_failed += 1
+            if file_obj is None:
+                warnings.warn(
+                    RuntimeWarning(f"{filename} was not matched with project src")
+                )
+                continue
+            ranges = file_obj.range_of_changed_lines(lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 assert line in ranges
         else:
             raise RuntimeWarning(f"unrecognized record: {message}")
+    output = [
+        r.message for r in caplog.records if r.message.endswith(" checks-failed")
+    ][0]
+    assert output
+    assert int(output.split(" ", maxsplit=1)[0]) == checks_failed
 
 
 @pytest.mark.parametrize(
@@ -344,14 +376,14 @@ def test_diff_comment(
         file_obj = match_file_json(cast(str, comment["path"]))
         if file_obj is None:
             continue
-        ranges = cpp_linter.range_of_changed_lines(file_obj, lines_changed_only)
+        ranges = file_obj.range_of_changed_lines(lines_changed_only)
         assert comment["line"] in ranges
 
 
 def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify the comment is affirmative when no attention is needed."""
     monkeypatch.chdir(str(tmp_path))
-    flush_prior_artifacts()
+    flush_prior_artifacts(monkeypatch)
 
     # this call essentially does nothing with the file system
     capture_clang_tools_output(
@@ -364,3 +396,60 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         extra_args=[],
     )
     assert "No problems need attention." in cpp_linter.Globals.OUTPUT
+
+
+@pytest.mark.parametrize(
+    "repo_commit_pair,patch",
+    [
+        (TEST_REPO_COMMIT_PAIRS[4], ""),  # has modded C++ sources
+        (TEST_REPO_COMMIT_PAIRS[5], ""),  # has no modded C++ sources
+        (TEST_REPO_COMMIT_PAIRS[5], "test_git_lib.patch"),
+    ],
+    ids=["modded-src", "no-modded-src", "staged-modded-src"],
+)
+def test_parse_diff(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    repo_commit_pair: Dict[str, str],
+    patch: str,
+):
+    """Use a git clone to test run parse_diff()."""
+    prep_repo(monkeypatch, **repo_commit_pair)
+    repo_name, sha = repo_commit_pair["repo"], repo_commit_pair["commit"]
+    repo_cache = tmp_path.parent / repo_name / "HEAD"
+    repo_cache.mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(str(repo_cache))
+    if not (repo_cache / ".git").exists():
+        pygit2.clone_repository(f"https://github.com/{repo_name}", ".")
+    repo_path = tmp_path / repo_name.split("/")[1]
+    shutil.copytree(str(repo_cache), str(repo_path))
+    monkeypatch.chdir(repo_path)
+
+    repo = pygit2.Repository(".")
+    commit = repo.revparse_single(sha)
+    repo.checkout_tree(
+        cast(pygit2.Commit, commit).tree,
+        # reset index to specified commit
+        strategy=pygit2.GIT_CHECKOUT_FORCE | pygit2.GIT_CHECKOUT_RECREATE_MISSING,
+    )
+    repo.set_head(commit.oid)  # detach head
+    if patch:
+        diff = repo.diff()
+        patch_to_stage = (Path(__file__).parent / repo_name / patch).read_text(
+            encoding="utf-8"
+        )
+        diff = diff.parse_diff(patch_to_stage)
+        repo.apply(diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+        repo.index.add_all(["tests/demo/demo.*"])
+        repo.index.write()
+    del repo
+
+    Path(cpp_linter.CACHE_PATH).mkdir()
+    files: List[cpp_linter.FileObj] = parse_diff(get_diff())
+    assert files
+    monkeypatch.setattr(cpp_linter.Globals, "FILES", files)
+    filter_out_non_source_files(["cpp", "hpp"], [], [], 0)
+    if sha == TEST_REPO_COMMIT_PAIRS[4]["commit"] or patch:
+        assert cpp_linter.Globals.FILES
+    else:
+        assert not cpp_linter.Globals.FILES

@@ -1,0 +1,32 @@
+diff --git a/tests/demo/demo.cpp b/tests/demo/demo.cpp
+--- a/tests/demo/demo.cpp
++++ b/tests/demo/demo.cpp
+@@ -7,7 +7,7 @@
+ 
+ int main(){
+ 
+-    for (;;) break;
++    for (;;)  break;
+ 
+ 
+     printf("Hello world!\n");
+diff --git a/tests/demo/demo.hpp b/tests/demo/demo.hpp
+--- a/tests/demo/demo.hpp
++++ b/tests/demo/demo.hpp
+@@ -8,7 +8,7 @@ class Dummy {
+     Dummy() :numb(0), useless("\0"){}
+ 
+     public:
+-    void *not_useful(char *str){useless = str;}
++    void *not_useful(char *str) {useless = str;}
+ };
+ 
+ 
+diff --git a/tests/demo/.clang-format b/tests/demo/.clang-format
+deleted file mode 100644
+--- a/tests/demo/.clang-format
++++ /dev/null
+@@ -1,3 +0,0 @@
+----
+-Language:        Cpp
+-BasedOnStyle:  WebKit
