@@ -6,17 +6,20 @@ import pygit2  # type: ignore[import-not-found]
 
 from cpp_linter import FileObj, Globals, CACHE_PATH
 from cpp_linter.run import filter_out_non_source_files
-from cpp_linter.git_lib import get_diff, parse_diff
+from cpp_linter.git import get_diff, parse_diff
 
 # SHA of commits on this repo's main branch
 MODDED_C_SRC_SHA = "950ff0b690e1903797c303c5fc8d9f3b52f1d3c5"
 NO_MODDED_C_SRC_SHA = "0c236809891000b16952576dc34de082d7a40bf3"
 
 # This patch needs to have trailing whitespaces to signify unmodified lines
-PATCH_TO_STAGE = (Path(__file__).parent / "git_lib.patch").read_text(encoding="utf-8")
+PATCH_TO_STAGE = (Path(__file__).parent / "test_git_lib.patch").read_text(
+    encoding="utf-8"
+)
 # WARNING, this patch deletes the file tests/demo/.clang-format
 # DO NOT APPLY THIS PATCH TO THIS REPO!
 # It is meant to be applied to a temporary git clone (isolated test copy of this repo).
+
 
 @pytest.mark.parametrize(
     "sha,patch",

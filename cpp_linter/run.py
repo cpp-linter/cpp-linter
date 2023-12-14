@@ -39,8 +39,7 @@ from .clang_tidy_yml import parse_tidy_suggestions_yml
 from .clang_format_xml import parse_format_replacements_xml
 from .clang_tidy import parse_tidy_output, TidyNotification
 from .thread_comments import update_comment
-from .git_lib import get_diff, parse_diff
-from .git_parse import parse_diff as parse_diff_str
+from .git import get_diff, parse_diff
 from .cli import cli_arg_parser
 
 # global constant variables
@@ -151,7 +150,7 @@ def get_list_of_changed_files() -> None:
             files_link, headers=make_headers(use_diff=True)
         )
         log_response_msg()
-        Globals.FILES = parse_diff_str(Globals.response_buffer.text)
+        Globals.FILES = parse_diff(Globals.response_buffer.text)
     else:
         Globals.FILES = parse_diff(get_diff())
 

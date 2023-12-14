@@ -9,7 +9,7 @@ import re
 import pytest
 import cpp_linter
 import cpp_linter.run
-from cpp_linter.git_parse import parse_diff
+from cpp_linter.git import parse_diff
 from cpp_linter.run import (
     filter_out_non_source_files,
     capture_clang_tools_output,

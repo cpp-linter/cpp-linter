@@ -1,7 +1,7 @@
 """This module uses ``git`` CLI to get commit info. It also holds some functions
 related to parsing diff output into a list of changed files."""
 from pathlib import Path
-from typing import Tuple, List, Optional, cast
+from typing import Tuple, List, Optional, cast, Union
 
 from pygit2 import (  # type: ignore
     Repository,
@@ -9,6 +9,7 @@ from pygit2 import (  # type: ignore
     Diff,
     DiffHunk,
     Commit,
+    init_repository,
     GIT_DELTA_ADDED,
     GIT_DELTA_MODIFIED,
     GIT_DELTA_RENAMED,
@@ -76,7 +77,7 @@ def get_diff(parents: int = 1) -> Diff:
 ADDITIVE_STATUS = (GIT_DELTA_RENAMED, GIT_DELTA_MODIFIED, GIT_DELTA_ADDED)
 
 
-def parse_diff(diff_obj: Diff) -> List[FileObj]:
+def parse_diff(diff_obj: Union[Diff, str]) -> List[FileObj]:
     """Parse a given diff into file objects.
 
     :param diff_obj: The complete git diff object for an event.
@@ -85,7 +86,11 @@ def parse_diff(diff_obj: Diff) -> List[FileObj]:
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
     file_objects: List[FileObj] = []
-    # logger.debug("full diff:\n%s", full_diff.strip("\n"))
+    if isinstance(diff_obj, str):
+        repo = init_repository(".")
+        diff = repo.diff()
+        diff_obj = diff.parse_diff(diff_obj)
+        del repo
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
             continue

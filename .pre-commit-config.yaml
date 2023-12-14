@@ -3,7 +3,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        exclude: tests/git_lib.patch
+        exclude: tests/test_git_lib/test_git_lib.patch
       - id: end-of-file-fixer
       - id: check-docstring-first
       - id: check-added-large-files
