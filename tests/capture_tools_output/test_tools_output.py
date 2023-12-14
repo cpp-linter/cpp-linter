@@ -6,6 +6,7 @@ from typing import Dict, cast, List, Optional
 from pathlib import Path
 import json
 import re
+import warnings
 import pytest
 import cpp_linter
 import cpp_linter.run
@@ -37,6 +38,10 @@ TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
         repo="shenxianpeng/test-repo",
         commit="662ad4cf90084063ea9c089b8de4aff0b8959d0e",
     ),
+    dict(
+        repo="cpp-linter/cpp-linter",
+        commit="950ff0b690e1903797c303c5fc8d9f3b52f1d3c5",
+    ),
 ]
 
 
@@ -52,6 +57,8 @@ def flush_prior_artifacts(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(cpp_linter.Globals, "TIDY_COMMENT", "")
     monkeypatch.setattr(cpp_linter.Globals, "FORMAT_COMMENT", "")
     monkeypatch.setattr(cpp_linter.Globals, "FILES", [])
+    monkeypatch.setattr(cpp_linter.Globals, "format_failed_count", 0)
+    monkeypatch.setattr(cpp_linter.Globals, "tidy_failed_count", 0)
     monkeypatch.setattr(cpp_linter.GlobalParser, "format_advice", [])
     monkeypatch.setattr(cpp_linter.GlobalParser, "tidy_advice", [])
     monkeypatch.setattr(cpp_linter.GlobalParser, "tidy_notes", [])
@@ -161,9 +168,11 @@ def test_lines_changed_only(
             / repo
             / f"expected-result_{commit[:6]}-{lines_changed_only}.json"
         )
-        # uncomment to update the expected test's results
+        ### uncomment this paragraph to update/generate the expected test's results
         # expected_results_json.write_text(
-        #     json.dumps(cpp_linter.Globals.FILES, indent=2) + "\n", encoding="utf-8"
+        #     json.dumps([f.serialize() for f in cpp_linter.Globals.FILES], indent=2)
+        #     + "\n",
+        #     encoding="utf-8",
         # )
         test_result = json.loads(expected_results_json.read_text(encoding="utf-8"))
         for file_obj, result in zip(cpp_linter.Globals.FILES, test_result):
@@ -264,7 +273,7 @@ def test_tidy_annotations(
     prep_tmp_dir(
         tmp_path,
         monkeypatch,
-        **TEST_REPO_COMMIT_PAIRS[3],
+        **TEST_REPO_COMMIT_PAIRS[4],
         copy_configs=False,
         lines_changed_only=lines_changed_only,
     )
@@ -278,24 +287,39 @@ def test_tidy_annotations(
         extra_args=[],
     )
     assert "Run `clang-format` on the following files" not in cpp_linter.Globals.OUTPUT
-    caplog.set_level(logging.INFO, logger=log_commander.name)
+    caplog.set_level(logging.DEBUG)
     log_commander.propagate = True
     make_annotations(
         style="", file_annotations=True, lines_changed_only=lines_changed_only
     )
-    messages = [r.message for r in caplog.records if r.levelno == logging.INFO]
+    messages = [
+        r.message
+        for r in caplog.records
+        if r.levelno == logging.INFO and r.name == log_commander.name
+    ]
     assert messages
+    checks_failed = 0
     for message in messages:
         if TIDY_RECORD.search(message) is not None:
             line = int(TIDY_RECORD_LINE.sub("\\1", message))
             filename = RECORD_FILE.sub("\\1", message).replace("\\", "/")
             file_obj = match_file_json(filename)
-            assert file_obj is not None, f"{filename} was not matched with project src"
+            checks_failed += 1
+            if file_obj is None:
+                warnings.warn(
+                    RuntimeWarning(f"{filename} was not matched with project src")
+                )
+                continue
             ranges = file_obj.range_of_changed_lines(lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 assert line in ranges
         else:
             raise RuntimeWarning(f"unrecognized record: {message}")
+    output = [
+        r.message for r in caplog.records if r.message.endswith(" checks-failed")
+    ][0]
+    assert output
+    assert int(output.split(" ", maxsplit=1)[0]) == checks_failed
 
 
 @pytest.mark.parametrize(

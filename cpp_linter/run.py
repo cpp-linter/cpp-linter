@@ -310,7 +310,7 @@ def run_clang_tidy(
         # clear the clang-tidy output file and exit function
         CLANG_TIDY_STDOUT.write_bytes(b"")
         return
-    filename = PurePath(file_obj.name).as_posix()
+    filename = file_obj.name.replace("/", os.sep)
     cmds = [
         assemble_version_exec("clang-tidy", version),
         f"--export-fixes={str(CLANG_TIDY_YML)}",
@@ -363,7 +363,7 @@ def run_clang_format(
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
     """
-    if not style:  # if `style` == ""
+    if not style:
         CLANG_FORMAT_XML.write_bytes(b"")
         return  # clear any previous output and exit
     cmds = [
@@ -614,6 +614,8 @@ def make_annotations(
             if file_annotations:
                 log_commander.info(note.log_command())
     count = Globals.format_failed_count + Globals.tidy_failed_count
+    logger.info("%d clang-format-checks-failed", Globals.format_failed_count)
+    logger.info("%d clang-tidy-checks-failed", Globals.tidy_failed_count)
     logger.info("%d checks-failed", count)
     return count
 

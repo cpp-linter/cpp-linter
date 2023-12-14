@@ -2,6 +2,7 @@
 from typing import List
 from pathlib import Path, PurePath
 import logging
+import os
 import re
 import pytest
 from cpp_linter import logger, FileObj
@@ -56,5 +57,5 @@ def test_db_detection(
         if msg_match is not None:
             matched_args = msg_match.group(0)[:-1].split()[2:]
         assert "Error while trying to load a compilation database" not in record.message
-    expected_args.append(demo_src)
+    expected_args.append(demo_src.replace("/", os.sep))
     assert matched_args == expected_args
