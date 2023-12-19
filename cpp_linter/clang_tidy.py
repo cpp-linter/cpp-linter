@@ -2,7 +2,7 @@
 from pathlib import Path, PurePath
 from textwrap import indent
 import re
-from typing import Tuple, Union, List, cast
+from typing import Tuple, Union, List, cast, Optional, Dict
 from . import GlobalParser, CLANG_TIDY_STDOUT
 
 NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
@@ -20,6 +20,7 @@ class TidyNotification:
     def __init__(
         self,
         notification_line: Tuple[str, Union[int, str], Union[int, str], str, str, str],
+        database: Optional[List[Dict[str, str]]] = None,
     ):
         # logger.debug("Creating tidy note from line %s", notification_line)
         (
@@ -40,13 +41,32 @@ class TidyNotification:
         #: The line number of the source file.
         self.line = int(self.line)
         self.cols = int(self.cols)
-        #: The source filename concerning the notification.
-        self.filename = (
+        rel_path = (
             Path(self.filename)
             .resolve()
             .as_posix()
             .replace(Path.cwd().as_posix() + "/", "")
         )
+        if not PurePath(self.filename).is_absolute():
+            if database is not None:
+                # get absolute path from compilation database:
+                # This is need for meson builds as they use paths relative to
+                # the build env (or wherever the database is usually located).
+                for unit in database:
+                    if (
+                        "file" in unit
+                        and "directory" in unit
+                        and unit["file"] == self.filename
+                    ):
+                        rel_path = (
+                            Path(unit["directory"], unit["file"])
+                            .resolve()
+                            .as_posix()
+                            .replace(Path.cwd().as_posix() + "/", "")
+                        )
+                        break
+        #: The source filename concerning the notification.
+        self.filename = rel_path
         #: A `list` of lines for the code-block in the notification.
         self.fixit_lines: List[str] = []
 
@@ -93,7 +113,7 @@ class TidyNotification:
         )
 
 
-def parse_tidy_output() -> None:
+def parse_tidy_output(database: Optional[List[Dict[str, str]]]) -> None:
     """Parse clang-tidy output in a file created from stdout. The results are
     saved to :attr:`~cpp_linter.GlobalParser.tidy_notes`."""
     notification = None
@@ -105,7 +125,8 @@ def parse_tidy_output() -> None:
                 cast(
                     Tuple[str, Union[int, str], Union[int, str], str, str, str],
                     match.groups(),
-                )
+                ),
+                database,
             )
             GlobalParser.tidy_notes.append(notification)
         elif notification is not None:
