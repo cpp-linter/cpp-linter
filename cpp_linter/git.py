@@ -9,7 +9,6 @@ from pygit2 import (  # type: ignore
     Diff,
     DiffHunk,
     Commit,
-    init_repository,
     GIT_DELTA_ADDED,
     GIT_DELTA_MODIFIED,
     GIT_DELTA_RENAMED,
@@ -87,10 +86,7 @@ def parse_diff(diff_obj: Union[Diff, str]) -> List[FileObj]:
     """
     file_objects: List[FileObj] = []
     if isinstance(diff_obj, str):
-        repo = init_repository(".")
-        diff = repo.diff()
-        diff_obj = diff.parse_diff(diff_obj)
-        del repo
+        diff_obj = Diff.parse_diff(diff_obj)
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
             continue
