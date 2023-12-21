@@ -7,9 +7,10 @@ import re
 import pytest
 from cpp_linter import logger, FileObj
 import cpp_linter.run
-from cpp_linter.run import run_clang_tidy
+import cpp_linter
+from cpp_linter.run import capture_clang_tools_output
 
-CLANG_TIDY_COMMAND = re.compile(r'"clang-tidy(.*)"')
+CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 ABS_DB_PATH = str(Path("tests/demo").resolve())
 
@@ -20,7 +21,7 @@ ABS_DB_PATH = str(Path("tests/demo").resolve())
         # implicit path to the compilation database
         ("", []),
         # explicit relative path to the compilation database
-        ("../../demo", ["-p", ABS_DB_PATH]),
+        ("demo", ["-p", ABS_DB_PATH]),
         # explicit absolute path to the compilation database
         (ABS_DB_PATH, ["-p", ABS_DB_PATH]),
     ],
@@ -37,25 +38,31 @@ def test_db_detection(
     monkeypatch.chdir(PurePath(__file__).parent.as_posix())
     cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
     demo_src = "../demo/demo.cpp"
-    rel_root = str(Path(*Path(__file__).parts[-2:]))
-    cpp_linter.run.RUNNER_WORKSPACE = (
-        Path(pytestconfig.rootpath, "tests").resolve().as_posix()
+    monkeypatch.setattr(
+        cpp_linter.run,
+        "RUNNER_WORKSPACE",
+        Path(pytestconfig.rootpath, "tests").resolve().as_posix(),
     )
+    monkeypatch.setattr(cpp_linter.Globals, "FILES", [FileObj(demo_src, [], [])])
+
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    run_clang_tidy(
-        file_obj=FileObj(demo_src, [], []),  # not filtering lines
-        version="",
+    capture_clang_tools_output(
+        version=os.getenv("CLANG_VERSION", "12"),
         checks="",  # let clang-tidy use a .clang-tidy config file
+        style="",  # don't invoke clang-format
         lines_changed_only=0,  # analyze complete file
         database=database,
-        repo_root=rel_root,
+        repo_root=".",
         extra_args=[],
     )
     matched_args = []
     for record in caplog.records:
+        assert "Error while trying to load a compilation database" not in record.message
         msg_match = CLANG_TIDY_COMMAND.search(record.message)
         if msg_match is not None:
-            matched_args = msg_match.group(0)[:-1].split()[2:]
-        assert "Error while trying to load a compilation database" not in record.message
-    expected_args.append(demo_src.replace("/", os.sep))
-    assert matched_args == expected_args
+            matched_args = msg_match.group(0).split()[2:]
+            break
+    else:
+        raise RuntimeError("failed to find args passed in clang-tidy in log records")
+    expected_args.append(demo_src.replace("/", os.sep) + '"')
+    assert expected_args == matched_args
