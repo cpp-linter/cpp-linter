@@ -117,9 +117,13 @@ def test_ninja_database(
         repo_root=".",  # already changed cwd
         extra_args=[],
     )
+    found_project_file = False
     for note in cpp_linter.GlobalParser.tidy_notes:
         if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
             assert not Path(note.filename).is_absolute()
+            found_project_file = True
+    if not found_project_file:
+        raise RuntimeError("no project files raised concerns with clang-tidy")
     assert make_annotations("", True, 0)
     # write step-summary for manual verification
     Path(tmp_path, "job_summary.md").write_text(
