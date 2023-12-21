@@ -23,14 +23,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Build wheel
         run: python3 -m pip wheel --no-deps -w dist .
       - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cpp-linter_wheel
           path: ${{ github.workspace }}/dist/*.whl
@@ -46,14 +46,14 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
 
       - name: download wheel artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cpp-linter_wheel
           path: dist
@@ -83,7 +83,7 @@ jobs:
           python -m pip install clang-tools
           clang-tools --install ${{ matrix.version }}
 
-      - name: Collect Coverage (native clang install)
+      - name: Collect Coverage
         env:
           CLANG_VERSION: ${{ matrix.version }}
         run: coverage run -m pytest
