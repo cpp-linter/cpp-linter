@@ -310,10 +310,11 @@ def run_clang_tidy(
         CLANG_TIDY_STDOUT.write_bytes(b"")
         return
     filename = file_obj.name.replace("/", os.sep)
-    cmds = [
-        assemble_version_exec("clang-tidy", version),
-        f"--export-fixes={str(CLANG_TIDY_YML)}",
-    ]
+    cmds = [assemble_version_exec("clang-tidy", version)]
+    if "CPP_LINTER_TEST_ALPHA_CODE" in os.environ:
+        cmds.append(f"--export-fixes={str(CLANG_TIDY_YML)}")
+        # clear yml file's content before running clang-tidy
+        CLANG_TIDY_YML.write_bytes(b"")
     if checks:
         cmds.append(f"-checks={checks}")
     if database:
@@ -331,13 +332,11 @@ def run_clang_tidy(
     for extra_arg in extra_args:
         cmds.append(f"--extra-arg={extra_arg}")
     cmds.append(filename)
-    # clear yml file's content before running clang-tidy
-    CLANG_TIDY_YML.write_bytes(b"")
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
     CLANG_TIDY_STDOUT.write_bytes(results.stdout)
     logger.debug("Output from clang-tidy:\n%s", results.stdout.decode())
-    if CLANG_TIDY_YML.stat().st_size:
+    if "CPP_LINTER_TEST_ALPHA_CODE" in os.environ and CLANG_TIDY_YML.stat().st_size:
         parse_tidy_suggestions_yml()  # get clang-tidy fixes from yml
     if results.stderr:
         logger.debug(

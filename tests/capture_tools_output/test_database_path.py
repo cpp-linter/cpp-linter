@@ -60,7 +60,7 @@ def test_db_detection(
         assert "Error while trying to load a compilation database" not in record.message
         msg_match = CLANG_TIDY_COMMAND.search(record.message)
         if msg_match is not None:
-            matched_args = msg_match.group(0).split()[2:]
+            matched_args = msg_match.group(0).split()[1:]
             break
     else:
         raise RuntimeError("failed to find args passed in clang-tidy in log records")
