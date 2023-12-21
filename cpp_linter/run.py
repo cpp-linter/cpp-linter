@@ -389,7 +389,7 @@ def create_comment_body(
     file_obj: FileObj,
     lines_changed_only: int,
     tidy_notes: List[TidyNotification],
-    database: str,
+    database: Optional[List[Dict[str, str]]],
 ):
     """Create the content for a thread comment about a certain file.
     This is a helper function to `capture_clang_tools_output()`.
@@ -400,14 +400,9 @@ def create_comment_body(
         avoid duplicated content in comment, and it is later used again by
         `make_annotations()` after `capture_clang_tools_output()` is finished.
     """
-    db_json: Optional[List[Dict[str, str]]] = None
-    if database:
-        db_json = json.loads(
-            Path(database, "compile_commands.json").read_text(encoding="utf-8")
-        )
     ranges = file_obj.range_of_changed_lines(lines_changed_only)
     if CLANG_TIDY_STDOUT.exists() and CLANG_TIDY_STDOUT.stat().st_size:
-        parse_tidy_output(db_json)  # get clang-tidy fixes from stdout
+        parse_tidy_output(database)  # get clang-tidy fixes from stdout
         comment_output = ""
         for fix in GlobalParser.tidy_notes:
             if lines_changed_only and fix.line not in ranges:
@@ -457,6 +452,15 @@ def capture_clang_tools_output(
     :param extra_args: A list of extra arguments used by clang-tidy as compiler
         arguments.
     """
+
+    if database and not PurePath(database).is_absolute():
+        database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
+    db_json: Optional[List[Dict[str, str]]] = None
+    if database:
+        db_path = Path(database, "compile_commands.json")
+        if db_path.exists():
+            db_json = json.loads(db_path.read_text(encoding="utf-8"))
+
     # temporary cache of parsed notifications for use in log commands
     tidy_notes: List[TidyNotification] = []
     for file in Globals.FILES:
@@ -473,7 +477,7 @@ def capture_clang_tools_output(
         run_clang_format(file, version, style, lines_changed_only)
         end_log_group()
 
-        create_comment_body(file, lines_changed_only, tidy_notes, database)
+        create_comment_body(file, lines_changed_only, tidy_notes, db_json)
 
     if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
         Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!\n"
@@ -718,10 +722,6 @@ def main():
     else:
         list_source_files(args.extensions, ignored, not_ignored)
     end_log_group()
-
-    database: str = args.database
-    if not PurePath(database).is_absolute():
-        database = str(Path(RUNNER_WORKSPACE, args.repo_root, database).resolve())
 
     capture_clang_tools_output(
         args.version,
