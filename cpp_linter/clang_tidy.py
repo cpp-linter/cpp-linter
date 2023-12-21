@@ -47,8 +47,7 @@ class TidyNotification:
             .as_posix()
             .replace(Path.cwd().as_posix() + "/", "")
         )
-        if not PurePath(self.filename).is_absolute():
-            if database is not None:
+        if not PurePath(self.filename).is_absolute() and database is not None:
                 # get absolute path from compilation database:
                 # This is need for meson builds as they use paths relative to
                 # the build env (or wherever the database is usually located).

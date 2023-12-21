@@ -275,7 +275,6 @@ def run_clang_tidy(
     checks: str,
     lines_changed_only: int,
     database: str,
-    repo_root: str,
     extra_args: List[str],
 ) -> None:
     """Run clang-tidy on a certain file.
@@ -471,7 +470,6 @@ def capture_clang_tools_output(
             checks,
             lines_changed_only,
             database,
-            repo_root,
             extra_args,
         )
         run_clang_format(file, version, style, lines_changed_only)
