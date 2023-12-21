@@ -4,11 +4,14 @@ from pathlib import Path, PurePath
 import logging
 import os
 import re
+import sys
+import shutil
 import pytest
 from cpp_linter import logger, FileObj
 import cpp_linter.run
 import cpp_linter
-from cpp_linter.run import capture_clang_tools_output
+from cpp_linter.run import capture_clang_tools_output, make_annotations
+from mesonbuild.mesonmain import main as meson  # type: ignore[import-untyped]
 
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
@@ -66,3 +69,59 @@ def test_db_detection(
         raise RuntimeError("failed to find args passed in clang-tidy in log records")
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args
+
+
+def test_ninja_database(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
+):
+    """verify that the relative paths used in a database generated (and thus clang-tidy
+    stdout) for the ninja build system are resolved accordingly."""
+    tmp_path_demo = tmp_path / "demo"
+    # generate the project
+    shutil.copytree(
+        str(Path(__file__).parent.parent / "demo"),
+        str(tmp_path_demo),
+        ignore=shutil.ignore_patterns("compile_flags.txt"),
+    )
+    (tmp_path_demo / "build").mkdir(parents=True)
+    monkeypatch.chdir(str(tmp_path_demo))
+    monkeypatch.setattr(sys, "argv", ["meson", "init"])
+    meson()
+    monkeypatch.setattr(
+        sys, "argv", ["meson", "setup", "--backend=ninja", "build", "."]
+    )
+    meson()
+
+    caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
+    monkeypatch.setattr(
+        cpp_linter.Globals,
+        "FILES",
+        [FileObj("demo.cpp", [], []), FileObj("demo.hpp", [], [])],
+    )
+    for attr in ["OUTPUT", "FORMAT_COMMENT", "TIDY_COMMENT"]:
+        monkeypatch.setattr(cpp_linter.Globals, attr, "")
+    for attr in ["tidy_notes", "format_advice"]:
+        monkeypatch.setattr(cpp_linter.GlobalParser, attr, [])
+    for attr in ["tidy_failed_count", "format_failed_count"]:
+        monkeypatch.setattr(cpp_linter.Globals, attr, 0)
+    monkeypatch.setattr(cpp_linter.run, "RUNNER_WORKSPACE", str(tmp_path_demo))
+
+    cpp_linter.CLANG_TIDY_STDOUT.parent.mkdir(parents=True)
+    # run clang-tidy and verify paths of project files were matched with database paths
+    capture_clang_tools_output(
+        version=os.getenv("CLANG_VERSION", "12"),
+        checks="",  # let clang-tidy use a .clang-tidy config file
+        style="",  # don't invoke clang-format
+        lines_changed_only=0,  # analyze complete file
+        database="build",  # point to generated compile_commands.txt
+        repo_root=".",  # already changed cwd
+        extra_args=[],
+    )
+    for note in cpp_linter.GlobalParser.tidy_notes:
+        if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
+            assert not Path(note.filename).is_absolute()
+    assert make_annotations("", True, 0)
+    # write step-summary for manual verification
+    Path(tmp_path, "job_summary.md").write_text(
+        cpp_linter.Globals.OUTPUT, encoding="utf-8"
+    )

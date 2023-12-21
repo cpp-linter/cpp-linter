@@ -61,7 +61,7 @@ jobs:
       - name: Install workflow deps
         # using a wildcard as filename on Windows requires a bash shell
         shell: bash
-        run: python3 -m pip install pytest coverage[toml] dist/*.whl
+        run: python3 -m pip install pytest coverage[toml] meson dist/*.whl
 
       - name: Install Linux clang dependencies
         if: runner.os == 'Linux'

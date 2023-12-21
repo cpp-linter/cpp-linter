@@ -1,4 +1,5 @@
 coverage[toml]
+meson
 mypy
 pre-commit
 pytest
