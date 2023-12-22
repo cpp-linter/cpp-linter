@@ -96,7 +96,7 @@ def test_ninja_database(
     monkeypatch.setattr(
         cpp_linter.Globals,
         "FILES",
-        [FileObj("demo.cpp", [], []), FileObj("demo.hpp", [], [])],
+        [FileObj("demo.cpp", [], [])],
     )
     for attr in ["OUTPUT", "FORMAT_COMMENT", "TIDY_COMMENT"]:
         monkeypatch.setattr(cpp_linter.Globals, attr, "")

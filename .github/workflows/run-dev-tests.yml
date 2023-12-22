@@ -96,10 +96,45 @@ jobs:
           CLANG_VERSION: ${{ matrix.version }}
         run: coverage run -m pytest
 
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
+          path: .coverage*
+
+  coverage-report:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ci-artifacts
+
+      - run: mv ci-artifacts/**/.coverage* ./
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Create coverage report
+        run: |
+          pip3 install coverage[toml]
+          coverage combine
+          coverage html
+
+      - name: Upload comprehensive coverage HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+
       - run: coverage report && coverage xml
 
       - uses: codecov/codecov-action@v3
-        if: runner.os == 'Linux' && matrix.version == '15' && matrix.py == '3.10'
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: ./coverage.xml
