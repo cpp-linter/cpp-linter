@@ -63,6 +63,14 @@ jobs:
         shell: bash
         run: python3 -m pip install pytest coverage[toml] meson dist/*.whl
 
+      # https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages
+      - name: Install ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install ninja-build
+      - name: Install ninja (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ninja
+
       - name: Install Linux clang dependencies
         if: runner.os == 'Linux'
         shell: bash
