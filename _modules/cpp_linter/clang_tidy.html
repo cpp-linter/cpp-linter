@@ -497,7 +497,7 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">indent</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">GlobalParser</span><span class="p">,</span> <span class="n">CLANG_TIDY_STDOUT</span>
 
 <span class="n">NOTE_HEADER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$&quot;</span><span class="p">)</span>
@@ -517,6 +517,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">notification_line</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+        <span class="n">database</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1"># logger.debug(&quot;Creating tidy note from line %s&quot;, notification_line)</span>
         <span class="p">(</span>
@@ -537,13 +538,31 @@
         <span class="c1">#: The line number of the source file.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
-        <span class="c1">#: The source filename concerning the notification.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">rel_path</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
             <span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
             <span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
             <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">PurePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">()</span> <span class="ow">and</span> <span class="n">database</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># get absolute path from compilation database:</span>
+                <span class="c1"># This is need for meson builds as they use paths relative to</span>
+                <span class="c1"># the build env (or wherever the database is usually located).</span>
+                <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">database</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="s2">&quot;file&quot;</span> <span class="ow">in</span> <span class="n">unit</span>
+                        <span class="ow">and</span> <span class="s2">&quot;directory&quot;</span> <span class="ow">in</span> <span class="n">unit</span>
+                        <span class="ow">and</span> <span class="n">unit</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+                    <span class="p">):</span>
+                        <span class="n">rel_path</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">Path</span><span class="p">(</span><span class="n">unit</span><span class="p">[</span><span class="s2">&quot;directory&quot;</span><span class="p">],</span> <span class="n">unit</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">])</span>
+                            <span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+                            <span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+                            <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="k">break</span>
+        <span class="c1">#: The source filename concerning the notification.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">rel_path</span>
         <span class="c1">#: A `list` of lines for the code-block in the notification.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -596,7 +615,7 @@
 
 <div class="viewcode-block" id="parse_tidy_output">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tidy.html#cpp_linter.clang_tidy.parse_tidy_output">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_tidy_output</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">parse_tidy_output</span><span class="p">(</span><span class="n">database</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse clang-tidy output in a file created from stdout. The results are</span>
 <span class="sd">    saved to :attr:`~cpp_linter.GlobalParser.tidy_notes`.&quot;&quot;&quot;</span>
     <span class="n">notification</span> <span class="o">=</span> <span class="kc">None</span>
@@ -608,7 +627,8 @@
                 <span class="n">cast</span><span class="p">(</span>
                     <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
                     <span class="k">match</span><span class="o">.</span><span class="n">groups</span><span class="p">(),</span>
-                <span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">database</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">GlobalParser</span><span class="o">.</span><span class="n">tidy_notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">notification</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">notification</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
