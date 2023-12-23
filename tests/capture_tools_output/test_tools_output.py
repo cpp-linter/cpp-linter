@@ -352,6 +352,7 @@ def test_diff_comment(
     comments (not annotations) in the event's diff.
 
     Remember, diff comments should only focus on lines in the diff."""
+    monkeypatch.setenv("CPP_LINTER_TEST_ALPHA_CODE", "true")
     prep_tmp_dir(
         tmp_path,
         monkeypatch,

@@ -16,7 +16,7 @@ import configparser
 import json
 import urllib.parse
 import logging
-from typing import cast, List, Tuple, Optional
+from typing import cast, List, Tuple, Optional, Dict
 import requests
 from . import (
     Globals,
@@ -202,7 +202,7 @@ def filter_out_non_source_files(
         # dump altered json of changed files
         CHANGED_FILES_JSON.write_text(
             json.dumps(
-                [ f.serialize() for f in Globals.FILES ],
+                [f.serialize() for f in Globals.FILES],
                 indent=2,
             ),
             encoding="utf-8",
@@ -275,7 +275,6 @@ def run_clang_tidy(
     checks: str,
     lines_changed_only: int,
     database: str,
-    repo_root: str,
     extra_args: List[str],
 ) -> None:
     """Run clang-tidy on a certain file.
@@ -311,16 +310,15 @@ def run_clang_tidy(
         CLANG_TIDY_STDOUT.write_bytes(b"")
         return
     filename = file_obj.name.replace("/", os.sep)
-    cmds = [
-        assemble_version_exec("clang-tidy", version),
-        f"--export-fixes={str(CLANG_TIDY_YML)}",
-    ]
+    cmds = [assemble_version_exec("clang-tidy", version)]
+    if "CPP_LINTER_TEST_ALPHA_CODE" in os.environ:
+        cmds.append(f"--export-fixes={str(CLANG_TIDY_YML)}")
+        # clear yml file's content before running clang-tidy
+        CLANG_TIDY_YML.write_bytes(b"")
     if checks:
         cmds.append(f"-checks={checks}")
     if database:
         cmds.append("-p")
-        if not PurePath(database).is_absolute():
-            database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
         cmds.append(database)
     line_ranges = {
         "name": filename,
@@ -334,13 +332,11 @@ def run_clang_tidy(
     for extra_arg in extra_args:
         cmds.append(f"--extra-arg={extra_arg}")
     cmds.append(filename)
-    # clear yml file's content before running clang-tidy
-    CLANG_TIDY_YML.write_bytes(b"")
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
     CLANG_TIDY_STDOUT.write_bytes(results.stdout)
     logger.debug("Output from clang-tidy:\n%s", results.stdout.decode())
-    if CLANG_TIDY_YML.stat().st_size:
+    if "CPP_LINTER_TEST_ALPHA_CODE" in os.environ and CLANG_TIDY_YML.stat().st_size:
         parse_tidy_suggestions_yml()  # get clang-tidy fixes from yml
     if results.stderr:
         logger.debug(
@@ -391,6 +387,7 @@ def create_comment_body(
     file_obj: FileObj,
     lines_changed_only: int,
     tidy_notes: List[TidyNotification],
+    database: Optional[List[Dict[str, str]]],
 ):
     """Create the content for a thread comment about a certain file.
     This is a helper function to `capture_clang_tools_output()`.
@@ -403,7 +400,7 @@ def create_comment_body(
     """
     ranges = file_obj.range_of_changed_lines(lines_changed_only)
     if CLANG_TIDY_STDOUT.exists() and CLANG_TIDY_STDOUT.stat().st_size:
-        parse_tidy_output()  # get clang-tidy fixes from stdout
+        parse_tidy_output(database)  # get clang-tidy fixes from stdout
         comment_output = ""
         for fix in GlobalParser.tidy_notes:
             if lines_changed_only and fix.line not in ranges:
@@ -453,6 +450,15 @@ def capture_clang_tools_output(
     :param extra_args: A list of extra arguments used by clang-tidy as compiler
         arguments.
     """
+
+    if database and not PurePath(database).is_absolute():
+        database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
+    db_json: Optional[List[Dict[str, str]]] = None
+    if database:
+        db_path = Path(database, "compile_commands.json")
+        if db_path.exists():
+            db_json = json.loads(db_path.read_text(encoding="utf-8"))
+
     # temporary cache of parsed notifications for use in log commands
     tidy_notes: List[TidyNotification] = []
     for file in Globals.FILES:
@@ -463,13 +469,12 @@ def capture_clang_tools_output(
             checks,
             lines_changed_only,
             database,
-            repo_root,
             extra_args,
         )
         run_clang_format(file, version, style, lines_changed_only)
         end_log_group()
 
-        create_comment_body(file, lines_changed_only, tidy_notes)
+        create_comment_body(file, lines_changed_only, tidy_notes, db_json)
 
     if Globals.FORMAT_COMMENT or Globals.TIDY_COMMENT:
         Globals.OUTPUT += ":warning:\nSome files did not pass the configured checks!\n"

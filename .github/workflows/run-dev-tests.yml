@@ -23,14 +23,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Build wheel
         run: python3 -m pip wheel --no-deps -w dist .
       - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cpp-linter_wheel
           path: ${{ github.workspace }}/dist/*.whl
@@ -40,34 +40,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: ['3.7', '3.8', '3.9', '3.10']
+        py: ['3.8', '3.9', '3.10', '3.11']
         os: ['windows-latest', ubuntu-22.04]
-        version: ['15', '14', '13', '12', '11', '10', '9', '8', '7']
-        include:
-          # mark all matrix jobs as "need to install clang-tools"
-          - tools_dir: 'temp'
-
-          # mark certain matrix jobs as "use natively installed clang-tools"
-          - os: 'windows-latest'
-            version: '14'
-            tools_dir: 'N/A'
-          - os: 'ubuntu-22.04'
-            version: '14'
-            tools_dir: 'N/A'
-          - os: 'ubuntu-22.04'
-            version: '13'
-            tools_dir: 'N/A'
+        version: ['17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7']
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
 
       - name: download wheel artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cpp-linter_wheel
           path: dist
@@ -75,30 +61,80 @@ jobs:
       - name: Install workflow deps
         # using a wildcard as filename on Windows requires a bash shell
         shell: bash
-        run: python3 -m pip install pytest coverage[toml] dist/*.whl
+        run: python3 -m pip install pytest coverage[toml] meson dist/*.whl
+
+      # https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages
+      - name: Install ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install ninja-build
+      - name: Install ninja (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ninja
+
+      - name: Install Linux clang dependencies
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          # First try installing from default Ubuntu repositories before trying LLVM script
+          if ! sudo apt-get install -y clang-format-${{ matrix.version }} clang-tidy-${{ matrix.version }}; then
+            # This LLVM script will add the relevant LLVM PPA: https://apt.llvm.org/
+            wget https://apt.llvm.org/llvm.sh -O ${{ runner.temp }}/llvm_install.sh
+            chmod +x ${{ runner.temp }}/llvm_install.sh
+            if sudo ${{ runner.temp }}/llvm_install.sh ${{ matrix.version }}; then
+              sudo apt-get install -y clang-format-${{ matrix.version }} clang-tidy-${{ matrix.version }}
+            fi
+          fi
 
       - name: Install clang-tools
-        if: matrix.tools_dir == 'temp'
         run: |
           python -m pip install clang-tools
-          clang-tools --install ${{ matrix.version }}  --directory ${{ runner.temp }}/clang-tools
+          clang-tools --install ${{ matrix.version }}
 
-      - name: Collect Coverage (native clang install)
-        if: matrix.tools_dir == 'N/A'
+      - name: Collect Coverage
         env:
           CLANG_VERSION: ${{ matrix.version }}
         run: coverage run -m pytest
 
-      - name: Collect Coverage (non-native clang install)
-        if: matrix.tools_dir == 'temp'
-        env:
-          CLANG_VERSION: ${{ runner.temp }}/clang-tools
-        run: coverage run -m pytest
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
+          path: .coverage*
+
+  coverage-report:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ci-artifacts
+
+      - run: mv ci-artifacts/**/.coverage* ./
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Create coverage report
+        run: |
+          pip3 install coverage[toml]
+          coverage combine
+          coverage html
+
+      - name: Upload comprehensive coverage HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
 
       - run: coverage report && coverage xml
 
       - uses: codecov/codecov-action@v3
-        if: matrix.os == 'ubuntu-22.04' && matrix.version == '12' && matrix.py == '3.10'
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           files: ./coverage.xml
