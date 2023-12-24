@@ -2,9 +2,10 @@
 multiple modules."""
 import os
 from pathlib import Path
-import platform
 import logging
-from typing import TYPE_CHECKING, List, Dict, Tuple, Any, Union
+import platform
+from typing import TYPE_CHECKING, List, Dict, Tuple, Any, Union, Optional
+import shutil
 from requests import Response
 
 if TYPE_CHECKING:  # Used to avoid circular imports
@@ -213,7 +214,7 @@ def log_response_msg() -> bool:
     return True
 
 
-def assemble_version_exec(tool_name: str, specified_version: str) -> str:
+def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[str]:
     """Assembles the command to the executable of the given clang tool based on given
     version information.
 
@@ -221,20 +222,13 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> str:
     :param specified_version: The version number or the installed path to a version of
         the tool's executable.
     """
-    suffix = ".exe" if IS_ON_WINDOWS else ""
-    if specified_version.isdigit():  # version info is not a path
+    semver = specified_version.split(".")
+    exe_path = None
+    if semver and semver[0].isdigit():  # version info is not a path
         # let's assume the exe is in the PATH env var
-        if IS_ON_WINDOWS:
-            # installs don't usually append version number to exe name on Windows
-            return f"{tool_name}{suffix}"  # omit version number
-        return f"{tool_name}-{specified_version}{suffix}"
-    version_path = Path(specified_version).resolve()  # make absolute
-    for path in [
-        # if installed via KyleMayes/install-llvm-action using the `directory` option
-        version_path / "bin" / (tool_name + suffix),
-        # if installed via clang-tools-pip pkg using the `-d` option
-        version_path / (tool_name + suffix),
-    ]:
-        if path.exists():
-            return str(path)
-    return tool_name + suffix
+        exe_path = shutil.which(f"{tool_name}-{specified_version}")
+    elif specified_version:  # treat value as a path to binary executable
+        exe_path = shutil.which(tool_name, path=specified_version)
+    if exe_path is not None:
+        return exe_path
+    return shutil.which(tool_name)

@@ -17,6 +17,7 @@ import json
 import urllib.parse
 import logging
 from typing import cast, List, Tuple, Optional, Dict
+from textwrap import indent
 import requests
 from . import (
     Globals,
@@ -270,8 +271,8 @@ def list_source_files(
 
 
 def run_clang_tidy(
+    command: str,
     file_obj: FileObj,
-    version: str,
     checks: str,
     lines_changed_only: int,
     database: str,
@@ -305,12 +306,8 @@ def run_clang_tidy(
 
                 cpp-linter --extra-arg=-std=c++14 --extra-arg=-Wall
     """
-    if checks == "-*":  # if all checks are disabled, then clang-tidy is skipped
-        # clear the clang-tidy output file and exit function
-        CLANG_TIDY_STDOUT.write_bytes(b"")
-        return
     filename = file_obj.name.replace("/", os.sep)
-    cmds = [assemble_version_exec("clang-tidy", version)]
+    cmds = [command]
     if "CPP_LINTER_TEST_ALPHA_CODE" in os.environ:
         cmds.append(f"--export-fixes={str(CLANG_TIDY_YML)}")
         # clear yml file's content before running clang-tidy
@@ -345,8 +342,8 @@ def run_clang_tidy(
 
 
 def run_clang_format(
+    command: str,
     file_obj: FileObj,
-    version: str,
     style: str,
     lines_changed_only: int,
 ) -> None:
@@ -359,11 +356,8 @@ def run_clang_format(
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
     """
-    if not style:
-        CLANG_FORMAT_XML.write_bytes(b"")
-        return  # clear any previous output and exit
     cmds = [
-        assemble_version_exec("clang-format", version),
+        command,
         f"-style={style}",
         "--output-replacements-xml",
     ]
@@ -451,9 +445,30 @@ def capture_clang_tools_output(
         arguments.
     """
 
+    def show_tool_version_output(cmd: str):  # show version output for executable used
+        version_out = subprocess.run(
+            [cmd, "--version"], capture_output=True, check=True
+        )
+        logger.info("%s --version\n%s", cmd, indent(version_out.stdout.decode(), "\t"))
+
+    tidy_cmd, format_cmd = (None, None)
+    if style:  # if style is an empty value, then clang-format is skipped
+        format_cmd = assemble_version_exec("clang-format", version)
+        assert format_cmd is not None, "clang-format executable was not found"
+        show_tool_version_output(format_cmd)
+    else:  # clear any clang-format XML artifact from previous runs
+        CLANG_FORMAT_XML.unlink(missing_ok=True)
+    if checks != "-*":  # if all checks are disabled, then clang-tidy is skipped
+        tidy_cmd = assemble_version_exec("clang-tidy", version)
+        assert tidy_cmd is not None, "clang-tidy executable was not found"
+        show_tool_version_output(tidy_cmd)
+    else:  # clear any clang-tidy artifacts from previous runs
+        CLANG_TIDY_STDOUT.unlink(missing_ok=True)
+        CLANG_TIDY_YML.unlink(missing_ok=True)
+
+    db_json: Optional[List[Dict[str, str]]] = None
     if database and not PurePath(database).is_absolute():
         database = str(Path(RUNNER_WORKSPACE, repo_root, database).resolve())
-    db_json: Optional[List[Dict[str, str]]] = None
     if database:
         db_path = Path(database, "compile_commands.json")
         if db_path.exists():
@@ -463,15 +478,17 @@ def capture_clang_tools_output(
     tidy_notes: List[TidyNotification] = []
     for file in Globals.FILES:
         start_log_group(f"Performing checkup on {file.name}")
-        run_clang_tidy(
-            file,
-            version,
-            checks,
-            lines_changed_only,
-            database,
-            extra_args,
-        )
-        run_clang_format(file, version, style, lines_changed_only)
+        if tidy_cmd is not None:
+            run_clang_tidy(
+                tidy_cmd,
+                file,
+                checks,
+                lines_changed_only,
+                database,
+                extra_args,
+            )
+        if format_cmd is not None:
+            run_clang_format(format_cmd, file, style, lines_changed_only)
         end_log_group()
 
         create_comment_body(file, lines_changed_only, tidy_notes, db_json)

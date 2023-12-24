@@ -3,12 +3,19 @@ import logging
 import os
 import json
 from pathlib import Path
-from typing import List
+import shutil
+from typing import List, cast
 import pytest
 import requests
 import cpp_linter
 import cpp_linter.run
-from cpp_linter import Globals, log_response_msg, get_line_cnt_from_cols, FileObj
+from cpp_linter import (
+    Globals,
+    log_response_msg,
+    get_line_cnt_from_cols,
+    FileObj,
+    assemble_version_exec,
+)
 from cpp_linter.run import (
     log_commander,
     start_log_group,
@@ -169,3 +176,26 @@ def test_serialize_file_obj():
         + r'"lines_added": [[5, 6], [10, 11]]}}]'
     )
     assert json.dumps([file_obj.serialize()]) == json_obj
+
+
+CLANG_VERSION = os.getenv("CLANG_VERSION", "12")
+
+DEFAULT_CLANG_FORMAT_EXE = cast(str, shutil.which("clang-format"))
+
+
+@pytest.mark.parametrize("tool_name", ["clang-format"])
+@pytest.mark.parametrize(
+    "version",
+    [
+        CLANG_VERSION,
+        str(Path(DEFAULT_CLANG_FORMAT_EXE).parent),
+        str(Path(DEFAULT_CLANG_FORMAT_EXE).parent.parent),
+        "",
+    ],
+    ids=["number", "path", "distant_parent_path", "none"],
+)
+def test_tool_exe_path(tool_name: str, version: str):
+    """Test specifying the version of the clang tool."""
+    exe_path = assemble_version_exec(tool_name, version)
+    assert exe_path
+    assert tool_name in exe_path
