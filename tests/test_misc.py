@@ -180,13 +180,22 @@ def test_serialize_file_obj():
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "12")
 
+DEFAULT_CLANG_FORMAT_EXE = cast(str, shutil.which("clang-format"))
+
 
 @pytest.mark.parametrize("tool_name", ["clang-format"])
 @pytest.mark.parametrize(
     "version",
-    [CLANG_VERSION, str(Path(cast(str, shutil.which("clang-format"))).parent), ""],
-    ids=["number", "path", "none"],
+    [
+        CLANG_VERSION,
+        str(Path(DEFAULT_CLANG_FORMAT_EXE).parent),
+        str(Path(DEFAULT_CLANG_FORMAT_EXE).parent.parent),
+        "",
+    ],
+    ids=["number", "path", "distant_parent_path", "none"],
 )
 def test_tool_exe_path(tool_name: str, version: str):
     """Test specifying the version of the clang tool."""
-    assert assemble_version_exec(tool_name, version)
+    exe_path = assemble_version_exec(tool_name, version)
+    assert exe_path
+    assert tool_name in exe_path
