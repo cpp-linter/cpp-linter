@@ -456,10 +456,15 @@ def capture_clang_tools_output(
         format_cmd = assemble_version_exec("clang-format", version)
         assert format_cmd is not None, "clang-format executable was not found"
         show_tool_version_output(format_cmd)
+    else:  # clear any clang-format XML artifact from previous runs
+        CLANG_FORMAT_XML.unlink(missing_ok=True)
     if checks != "-*":  # if all checks are disabled, then clang-tidy is skipped
         tidy_cmd = assemble_version_exec("clang-tidy", version)
         assert tidy_cmd is not None, "clang-tidy executable was not found"
         show_tool_version_output(tidy_cmd)
+    else:  # clear any clang-tidy artifacts from previous runs
+        CLANG_TIDY_STDOUT.unlink(missing_ok=True)
+        CLANG_TIDY_YML.unlink(missing_ok=True)
 
     db_json: Optional[List[Dict[str, str]]] = None
     if database and not PurePath(database).is_absolute():
