@@ -15,8 +15,10 @@ from pygit2 import (  # type: ignore
     GIT_STATUS_INDEX_NEW,
     GIT_STATUS_INDEX_MODIFIED,
     GIT_STATUS_INDEX_RENAMED,
+    GitError,
 )
 from . import logger, CACHE_PATH, FileObj
+from .git_str import parse_diff as legacy_parse_diff
 
 
 def get_sha(repo: Repository, parent: Optional[int] = None) -> GitObject:
@@ -86,7 +88,11 @@ def parse_diff(diff_obj: Union[Diff, str]) -> List[FileObj]:
     """
     file_objects: List[FileObj] = []
     if isinstance(diff_obj, str):
-        diff_obj = Diff.parse_diff(diff_obj)
+        try:
+            diff_obj = Diff.parse_diff(diff_obj)
+        except GitError as exc:
+            logger.warning(f"pygit2.Diff.parse_diff() threw {exc}")
+            return legacy_parse_diff(diff_obj)
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
             continue
