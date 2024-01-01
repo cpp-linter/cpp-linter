@@ -1,6 +1,7 @@
 """Setup the options for CLI arguments."""
 import argparse
 import logging
+from os import environ
 
 cli_arg_parser = argparse.ArgumentParser(
     description="Run clang-tidy and clang-format on a list of changed files "
@@ -11,7 +12,7 @@ arg = cli_arg_parser.add_argument(
     "-v",
     "--verbosity",
     type=int,
-    default=10,
+    default=20 - (10 if environ.get("ACTIONS_STEP_DEBUG", "") == "true" else 0),
     help="""This controls the action's verbosity in the workflow's logs.
 Supported options are defined by the `logging-level <logging-levels>`_.
 This option does not affect the verbosity of resulting
