@@ -14,7 +14,7 @@ Command Line Interface Options
                         This option does not affect the verbosity of resulting
                         thread comments or file annotations.
                         
-                        Defaults to level ``10`` (aka  ``logging.DEBUG``).
+                        Defaults to level ``20`` (aka  ``logging.INFO``).
 
 .. std:option:: -p, --database
 
