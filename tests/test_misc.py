@@ -5,41 +5,42 @@ import json
 from pathlib import Path
 import shutil
 from typing import List, cast
+
 import pytest
 import requests
-import cpp_linter
-import cpp_linter.run
-from cpp_linter import (
-    Globals,
-    log_response_msg,
+import requests_mock
+
+from cpp_linter.common_fs import (
     get_line_cnt_from_cols,
     FileObj,
-    assemble_version_exec,
 )
-from cpp_linter.run import (
+from cpp_linter.clang_tools import assemble_version_exec
+from cpp_linter.loggers import (
+    logger,
     log_commander,
+    log_response_msg,
     start_log_group,
     end_log_group,
-    set_exit_code,
-    list_source_files,
-    get_list_of_changed_files,
 )
+from cpp_linter.common_fs import list_source_files
+from cpp_linter.rest_api.github_api import GithubApiClient
 
 
-def test_exit_override(tmp_path: Path):
+def test_exit_output(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     """Test exit code that indicates if action encountered lining errors."""
     env_file = tmp_path / "GITHUB_OUTPUT"
-    os.environ["GITHUB_OUTPUT"] = str(env_file)
-    assert 1 == set_exit_code(1)
-    assert env_file.read_text(encoding="utf-8").startswith("checks-failed=1\n")
-
-
-def test_exit_implicit():
-    """Test the exit code issued when a thread comment is to be made."""
-    # fake values for total checks-failed
-    Globals.tidy_failed_count = 1
-    Globals.format_failed_count = 1
-    assert 2 == set_exit_code()
+    monkeypatch.setenv("GITHUB_OUTPUT", str(env_file))
+    gh_client = GithubApiClient()
+    tidy_checks_failed = 1
+    format_checks_failed = 2
+    checks_failed = 3
+    assert 3 == gh_client.set_exit_code(
+        checks_failed, format_checks_failed, tidy_checks_failed
+    )
+    output = env_file.read_text(encoding="utf-8")
+    assert f"checks-failed={checks_failed}\n" in output
+    assert f"format-checks-failed={format_checks_failed}\n" in output
+    assert f"tidy-checks-failed={tidy_checks_failed}\n" in output
 
 
 # see https://github.com/pytest-dev/pytest/issues/5997
@@ -71,15 +72,15 @@ def test_start_group(caplog: pytest.LogCaptureFixture):
 )
 def test_response_logs(url: str):
     """Test the log output for a requests.response buffer."""
-    Globals.response_buffer = requests.get(url)
-    assert log_response_msg()
+    response_buffer = requests.get(url)
+    assert log_response_msg(response_buffer)
 
 
 @pytest.mark.parametrize(
     "extensions",
     [
         (["cpp", "hpp"]),
-        pytest.param(["cxx", "h"], marks=pytest.mark.xfail),
+        pytest.param(["cxx"], marks=pytest.mark.xfail),
     ],
 )
 def test_list_src_files(
@@ -88,36 +89,35 @@ def test_list_src_files(
     extensions: List[str],
 ):
     """List the source files in the demo folder of this repo."""
-    monkeypatch.setattr(Globals, "FILES", [])
     monkeypatch.chdir(Path(__file__).parent.as_posix())
-    caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
-    assert Globals.FILES
-    for file in Globals.FILES:
+    caplog.set_level(logging.DEBUG, logger=logger.name)
+    files = list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
+    assert files
+    for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions
 
 
 @pytest.mark.parametrize(
-    "pseudo,expected_url",
+    "pseudo,expected_url,fake_runner",
     [
         (
             dict(
-                GITHUB_REPOSITORY="cpp-linter/test-cpp-linter-action",
-                GITHUB_SHA="708a1371f3a966a479b77f1f94ec3b7911dffd77",
-                GITHUB_EVENT_NAME="unknown",  # let coverage include logged warning
-                IS_ON_RUNNER=True,
+                repo="cpp-linter/test-cpp-linter-action",
+                sha="708a1371f3a966a479b77f1f94ec3b7911dffd77",
+                event_name="unknown",  # let coverage include logged warning
             ),
-            "{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/commits/{GITHUB_SHA}",
+            "{rest_api_url}/repos/{repo}/commits/{sha}",
+            True,
         ),
         (
             dict(
-                GITHUB_REPOSITORY="cpp-linter/test-cpp-linter-action",
-                GITHUB_EVENT_NAME="pull_request",
-                IS_ON_RUNNER=True,
+                repo="cpp-linter/test-cpp-linter-action",
+                event_name="pull_request",
             ),
-            "{GITHUB_API_URL}/repos/{GITHUB_REPOSITORY}/pulls/{number}",
+            "{rest_api_url}/repos/{repo}/pulls/{number}",
+            True,
         ),
-        (dict(IS_ON_RUNNER=False), ""),
+        ({}, "", False),
     ],
     ids=["push", "pull_request", "local_dev"],
 )
@@ -126,6 +126,7 @@ def test_get_changed_files(
     monkeypatch: pytest.MonkeyPatch,
     pseudo: dict,
     expected_url: str,
+    fake_runner: bool,
 ):
     """test getting a list of changed files for an event.
 
@@ -133,32 +134,23 @@ def test_get_changed_files(
     We don't need to supply one for this test because the tested code will
     execute anyway.
     """
-    caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
+    caplog.set_level(logging.DEBUG, logger=logger.name)
     # setup test to act as though executed in user's repo's CI
+    monkeypatch.setenv("CI", str(fake_runner).lower())
+    gh_client = GithubApiClient()
     for name, value in pseudo.items():
-        monkeypatch.setattr(cpp_linter.run, name, value)
-    if "GITHUB_EVENT_NAME" in pseudo and pseudo["GITHUB_EVENT_NAME"] == "pull_request":
-        monkeypatch.setattr(cpp_linter.run.Globals, "EVENT_PAYLOAD", dict(number=19))
+        setattr(gh_client, name, value)
+    if "event_name" in pseudo and pseudo["event_name"] == "pull_request":
+        gh_client.event_payload = dict(number=19)
 
-    def fake_get(url: str, *args, **kwargs):  # pylint: disable=unused-argument
-        """Consume the url and return a blank response."""
-        assert (
-            expected_url.format(
-                number=19, GITHUB_API_URL=cpp_linter.run.GITHUB_API_URL, **pseudo
-            )
-            == url
+    with requests_mock.Mocker() as mock:
+        mock.get(
+            expected_url.format(number=19, rest_api_url=gh_client.api_url, **pseudo),
+            text="",
         )
-        fake_response = requests.Response()
-        fake_response.url = url
-        fake_response.status_code = 211
-        fake_response._content = b""  # pylint: disable=protected-access
-        return fake_response
 
-    monkeypatch.setattr(requests, "get", fake_get)
-    monkeypatch.setattr(cpp_linter.run, "get_diff", lambda *args: "")
-
-    get_list_of_changed_files()
-    assert not Globals.FILES
+        files = gh_client.get_list_of_changed_files([], [], [])
+        assert not files
 
 
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])

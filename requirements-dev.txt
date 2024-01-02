@@ -3,6 +3,7 @@ meson
 mypy
 pre-commit
 pytest
+requests-mock
 rich
 ruff
 types-PyYAML

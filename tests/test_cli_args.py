@@ -1,15 +1,14 @@
 """Tests related parsing input from CLI arguments."""
-from os import environ
 from typing import List, Union
 import pytest
-from cpp_linter.run import cli_arg_parser
+from cpp_linter.cli import cli_arg_parser
 
 
 class Args:
     """A pseudo namespace declaration. Each attribute is initialized with the
     corresponding CLI arg's default value."""
 
-    verbosity: int = 20 - (10 if environ.get("ACTIONS_STEP_DEBUG", "") == "true" else 0)
+    verbosity: int = 20
     database: str = ""
     style: str = "llvm"
     tidy_checks: str = (

@@ -2,7 +2,8 @@
 from pathlib import Path
 from typing import List
 import pytest
-from cpp_linter.run import parse_ignore_option, is_file_in_list
+from cpp_linter.cli import parse_ignore_option
+from cpp_linter.common_fs import is_file_in_list
 
 
 @pytest.mark.parametrize(

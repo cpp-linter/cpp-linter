@@ -1,5 +1,6 @@
 """This module uses ``git`` CLI to get commit info. It also holds some functions
 related to parsing diff output into a list of changed files."""
+import logging
 from pathlib import Path
 from typing import Tuple, List, Optional, cast, Union
 
@@ -17,7 +18,9 @@ from pygit2 import (  # type: ignore
     GIT_STATUS_INDEX_RENAMED,
     GitError,
 )
-from . import logger, CACHE_PATH, FileObj
+from .. import CACHE_PATH
+from ..common_fs import FileObj, is_source_or_ignored
+from ..loggers import logger
 from .git_str import parse_diff as legacy_parse_diff
 
 
@@ -69,19 +72,28 @@ def get_diff(parents: int = 1) -> Diff:
         diff_name = f"{head.short_id}...{base.short_id}"
 
     logger.info("getting diff between %s", diff_name)
-    Path(CACHE_PATH, f"{diff_name}.diff").write_text(
-        diff_obj.patch or "", encoding="utf-8"
-    )
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        Path(CACHE_PATH, f"{diff_name}.diff").write_text(
+            diff_obj.patch or "", encoding="utf-8"
+        )
     return diff_obj
 
 
 ADDITIVE_STATUS = (GIT_DELTA_RENAMED, GIT_DELTA_MODIFIED, GIT_DELTA_ADDED)
 
 
-def parse_diff(diff_obj: Union[Diff, str]) -> List[FileObj]:
+def parse_diff(
+    diff_obj: Union[Diff, str],
+    extensions: List[str],
+    ignored: List[str],
+    not_ignored: List[str],
+) -> List[FileObj]:
     """Parse a given diff into file objects.
 
     :param diff_obj: The complete git diff object for an event.
+    :param extensions: A list of file extensions to focus on only.
+    :param ignored: A list of paths or files to ignore.
+    :param not_ignored: A list of paths or files to explicitly not ignore.
     :returns: A `list` of `dict` containing information about the files changed.
 
         .. note:: Deleted files are omitted because we only want to analyze updates.
@@ -92,9 +104,13 @@ def parse_diff(diff_obj: Union[Diff, str]) -> List[FileObj]:
             diff_obj = Diff.parse_diff(diff_obj)
         except GitError as exc:
             logger.warning(f"pygit2.Diff.parse_diff() threw {exc}")
-            return legacy_parse_diff(diff_obj)
+            return legacy_parse_diff(diff_obj, extensions, ignored, not_ignored)
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
+            continue
+        if not is_source_or_ignored(
+            patch.delta.new_file.path, extensions, ignored, not_ignored
+        ):
             continue
         diff_chunks, additions = parse_patch(patch.hunks)
         file_objects.append(FileObj(patch.delta.new_file.path, additions, diff_chunks))

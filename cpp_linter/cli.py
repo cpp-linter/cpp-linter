@@ -1,7 +1,12 @@
 """Setup the options for CLI arguments."""
 import argparse
+import configparser
 import logging
-from os import environ
+from pathlib import Path
+from typing import Tuple, List
+
+from .loggers import logger
+
 
 cli_arg_parser = argparse.ArgumentParser(
     description="Run clang-tidy and clang-format on a list of changed files "
@@ -12,7 +17,7 @@ arg = cli_arg_parser.add_argument(
     "-v",
     "--verbosity",
     type=int,
-    default=20 - (10 if environ.get("ACTIONS_STEP_DEBUG", "") == "true" else 0),
+    default=20,
     help="""This controls the action's verbosity in the workflow's logs.
 Supported options are defined by the `logging-level <logging-levels>`_.
 This option does not affect the verbosity of resulting
@@ -101,8 +106,7 @@ cli_arg_parser.add_argument(
     "--repo-root",
     default=".",
     help="""The relative path to the repository root directory. This path is
-relative to the runner's ``GITHUB_WORKSPACE`` environment variable (or
-the current working directory if not using a CI runner).
+relative to the working directory from which cpp-linter was executed.
 
 The default value is ``%(default)s``""",
 )
@@ -235,3 +239,52 @@ avoid using spaces between name and value (use ``=`` instead):
 Defaults to ``'%(default)s'``.
 """,
 )
+
+
+def parse_ignore_option(paths: str) -> Tuple[List[str], List[str]]:
+    """Parse a given string of paths (separated by a ``|``) into ``ignored`` and
+    ``not_ignored`` lists of strings.
+
+    :param paths: This argument conforms to the input value of CLI arg
+        :std:option:`--ignore`.
+
+    :returns:
+        Returns a tuple of lists in which each list is a set of strings.
+
+        - index 0 is the ``ignored`` list
+        - index 1 is the ``not_ignored`` list
+    """
+    ignored, not_ignored = ([], [])
+
+    for path in paths.split("|"):
+        is_included = path.startswith("!")
+        if path.startswith("!./" if is_included else "./"):
+            path = path.replace("./", "", 1)  # relative dir is assumed
+        path = path.strip()  # strip leading/trailing spaces
+        if is_included:
+            not_ignored.append(path[1:])  # strip leading `!`
+        else:
+            ignored.append(path)
+
+    # auto detect submodules
+    gitmodules = Path(".gitmodules")
+    if gitmodules.exists():
+        submodules = configparser.ConfigParser()
+        submodules.read(gitmodules.resolve().as_posix())
+        for module in submodules.sections():
+            path = submodules[module]["path"]
+            if path not in not_ignored:
+                logger.info("Appending submodule to ignored paths: %s", path)
+                ignored.append(path)
+
+    if ignored:
+        logger.info(
+            "Ignoring the following paths/files:\n\t./%s",
+            "\n\t./".join(f for f in ignored),
+        )
+    if not_ignored:
+        logger.info(
+            "Not ignoring the following paths/files:\n\t./%s",
+            "\n\t./".join(f for f in not_ignored),
+        )
+    return (ignored, not_ignored)

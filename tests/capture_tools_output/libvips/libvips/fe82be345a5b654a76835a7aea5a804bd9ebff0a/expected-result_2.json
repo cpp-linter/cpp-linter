@@ -19370,6 +19370,18 @@
     }
   },
   {
+    "filename": "libvips/colour/profiles.h",
+    "line_filter": {
+      "diff_chunks": [
+        [
+          10,
+          13
+        ]
+      ],
+      "lines_added": []
+    }
+  },
+  {
     "filename": "libvips/colour/rad2float.c",
     "line_filter": {
       "diff_chunks": [

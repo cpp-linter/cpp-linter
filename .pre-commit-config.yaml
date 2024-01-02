@@ -35,4 +35,14 @@ repos:
         types: [python]
         entry: mypy
         exclude: "^(docs/|setup.py$)"
-        additional_dependencies: [mypy, types-pyyaml, types-requests, rich, requests, pytest, pyyaml, meson, '.']
+        additional_dependencies:
+         - mypy
+         - types-pyyaml
+         - types-requests
+         - rich
+         - requests
+         - pytest
+         - pyyaml
+         - meson
+         - requests-mock
+         - '.'

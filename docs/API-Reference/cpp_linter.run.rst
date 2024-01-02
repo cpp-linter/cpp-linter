@@ -1,4 +1,4 @@
-``run`` module
+``run``
 ==============
 
 .. automodule:: cpp_linter.run
