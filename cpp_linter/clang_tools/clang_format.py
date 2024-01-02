@@ -99,14 +99,14 @@ def parse_format_replacements_xml(
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
     """
-    tree = ET.fromstring(xml_out)
     format_advice = FormatAdvice(file_obj.name)
+    if not xml_out:
+        return format_advice
     ranges = cast(
         List[List[int]],
         file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
-    if not xml_out:
-        return format_advice
+    tree = ET.fromstring(xml_out)
     for child in tree:
         if child.tag == "replacement":
             null_len = int(child.attrib["length"])
@@ -169,5 +169,5 @@ def run_clang_format(
             "%s raised the following error(s):\n%s", cmds[0], results.stderr.decode()
         )
     return parse_format_replacements_xml(
-        results.stdout.decode(), file_obj, lines_changed_only
+        results.stdout.decode(encoding="utf-8").strip(), file_obj, lines_changed_only
     )
