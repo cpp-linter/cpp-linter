@@ -80,7 +80,7 @@ def test_response_logs(url: str):
 @pytest.mark.parametrize(
     "extensions",
     [
-        (["cpp", "hpp"]),
+        (["cpp", "hpp", "yml"]),  # yml included to traverse .github folder
         pytest.param(["cxx"], marks=pytest.mark.xfail),
     ],
 )
@@ -89,14 +89,13 @@ def test_list_src_files(
     caplog: pytest.LogCaptureFixture,
     extensions: List[str],
 ):
-    """List the source files in the demo folder of this repo."""
-    monkeypatch.chdir(Path(__file__).parent.as_posix())
+    """List the source files in the root folder of this repo."""
+    monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=logger.name)
     files = list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
     assert files
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions
-
 
 @pytest.mark.parametrize(
     "pseudo,expected_url,fake_runner",

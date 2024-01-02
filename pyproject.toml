@@ -92,8 +92,8 @@ exclude_lines = [
     "def main",
     # ignore any branch that makes the module executable
     'if __name__ == "__main__"',
-    # ignore branches specific to type checking
-    "if TYPE_CHECKING",
+    # ignore missing implementations in an abstract class
+    "raise NotImplementedError",
     # ignore the local secific debug statement related to not having rich installed
     "if not FOUND_RICH_LIB",
 ]

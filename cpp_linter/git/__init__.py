@@ -72,7 +72,7 @@ def get_diff(parents: int = 1) -> Diff:
         diff_name = f"{head.short_id}...{base.short_id}"
 
     logger.info("getting diff between %s", diff_name)
-    if logger.getEffectiveLevel() <= logging.DEBUG:
+    if logger.getEffectiveLevel() <= logging.DEBUG:  # pragma: no cover
         Path(CACHE_PATH, f"{diff_name}.diff").write_text(
             diff_obj.patch or "", encoding="utf-8"
         )

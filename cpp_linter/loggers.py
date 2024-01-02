@@ -3,7 +3,7 @@ import logging
 from requests import Response
 
 FOUND_RICH_LIB = False
-try:
+try:  # pragma: no cover
     from rich.logging import RichHandler  # type: ignore
 
     FOUND_RICH_LIB = True

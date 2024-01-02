@@ -135,7 +135,8 @@ def run_clang_tidy(
     if len(extra_args) == 1 and " " in extra_args[0]:
         extra_args = extra_args[0].split()
     for extra_arg in extra_args:
-        cmds.append(f"--extra-arg={extra_arg}")
+        arg = extra_arg.strip('"')
+        cmds.append(f"--extra-arg=\"{arg}\"")
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)

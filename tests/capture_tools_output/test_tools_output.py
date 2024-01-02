@@ -20,6 +20,7 @@ from cpp_linter.git import parse_diff, get_diff
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
+from cpp_linter.cli import cli_arg_parser
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
 
@@ -254,6 +255,15 @@ def test_format_annotations(
 
     caplog.set_level(logging.INFO, logger=log_commander.name)
     log_commander.propagate = True
+
+    # check thread comment
+    comment, format_checks_failed, _ = gh_client.make_comment(
+        files, format_advice, tidy_advice
+    )
+    if format_checks_failed:
+        assert f"{format_checks_failed} file(s) not formatted</strong>" in comment
+
+    # check annotations
     gh_client.make_annotations(files, format_advice, tidy_advice, style)
     for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
         if FORMAT_RECORD.search(message) is not None:
@@ -427,3 +437,37 @@ def test_parse_diff(
         assert files
     else:
         assert not files
+
+
+@pytest.mark.parametrize(
+    "input",
+    [["-std=c++17", "-Wall"], ["-std=c++17 -Wall"]],
+    ids=["separate", "unified"],
+)
+def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, input: List[str]):
+    """Just make sure --extra-arg is passed to clang-tidy properly"""
+    cli_in = []
+    for a in input:
+        cli_in.append(f'--extra-arg="{a}"')
+    caplog.set_level(logging.INFO, logger=logger.name)
+    args = cli_arg_parser.parse_args(cli_in)
+    assert len(input) == len(args.extra_arg)
+    _, _ = capture_clang_tools_output(
+        files=[FileObj("test/demo/demo.cpp", [], [])],
+        version=CLANG_VERSION,
+        checks="",  # use .clang-tidy config
+        style="",  # disable clang-format
+        lines_changed_only=0,
+        database="",
+        extra_args=args.extra_arg,
+    )
+    messages = [
+        r.message
+        for r in caplog.records
+        if r.levelno == logging.INFO and r.message.startswith("Running")
+    ]
+    assert messages
+    if len(input) == 1 and " " in input[0]:
+        input = input[0].split()
+    for a in input:
+        assert f'--extra-arg="{a}"' in messages[0]

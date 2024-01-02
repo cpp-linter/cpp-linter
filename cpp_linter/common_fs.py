@@ -105,9 +105,7 @@ def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:
         - False if ``file_name`` is not in the ``paths`` list.
     """
     for path in paths:
-        result = commonpath(
-            [PurePath(path).as_posix(), PurePath(file_name).as_posix()]
-        )
+        result = commonpath([PurePath(path).as_posix(), PurePath(file_name).as_posix()])
         if result == path:
             logger.debug(
                 '"./%s" is %s as specified in the domain "./%s"',
@@ -117,6 +115,7 @@ def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:
             )
             return True
     return False
+
 
 def is_source_or_ignored(
     file_name: str,
@@ -136,15 +135,10 @@ def is_source_or_ignored(
         True if there are files to check. False will invoke a early exit (in
         `main()`) when no files to be checked.
     """
-    if (
-        PurePath(file_name).suffix.lstrip(".") in ext_list
-        and (
-            not is_file_in_list(ignored, file_name, "ignored")
-            or is_file_in_list(not_ignored, file_name, "not ignored")
-        )
-    ):
-        return True
-    return False
+    return PurePath(file_name).suffix.lstrip(".") in ext_list and (
+        not is_file_in_list(ignored, file_name, "ignored")
+        or is_file_in_list(not_ignored, file_name, "not ignored")
+    )
 
 
 def list_source_files(
