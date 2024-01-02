@@ -440,18 +440,18 @@ def test_parse_diff(
 
 
 @pytest.mark.parametrize(
-    "input",
+    "user_input",
     [["-std=c++17", "-Wall"], ["-std=c++17 -Wall"]],
     ids=["separate", "unified"],
 )
-def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, input: List[str]):
+def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
     cli_in = []
-    for a in input:
+    for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
     caplog.set_level(logging.INFO, logger=logger.name)
     args = cli_arg_parser.parse_args(cli_in)
-    assert len(input) == len(args.extra_arg)
+    assert len(user_input) == len(args.extra_arg)
     _, _ = capture_clang_tools_output(
         files=[FileObj("test/demo/demo.cpp", [], [])],
         version=CLANG_VERSION,
@@ -467,7 +467,7 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, input: List[str]):
         if r.levelno == logging.INFO and r.message.startswith("Running")
     ]
     assert messages
-    if len(input) == 1 and " " in input[0]:
-        input = input[0].split()
-    for a in input:
+    if len(user_input) == 1 and " " in user_input[0]:
+        user_input = user_input[0].split()
+    for a in user_input:
         assert f'--extra-arg="{a}"' in messages[0]

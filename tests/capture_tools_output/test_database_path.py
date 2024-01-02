@@ -45,7 +45,7 @@ def test_db_detection(
     demo_src = "../demo/demo.cpp"
     files = [FileObj(demo_src, [], [])]
 
-    (format_advice, tidy_advice) = capture_clang_tools_output(
+    _ = capture_clang_tools_output(
         files,
         version=os.getenv("CLANG_VERSION", "12"),
         checks="",  # let clang-tidy use a .clang-tidy config file

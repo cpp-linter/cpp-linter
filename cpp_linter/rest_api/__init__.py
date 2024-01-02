@@ -11,6 +11,7 @@ from ..loggers import logger
 class RestApiClient(ABC):
     def __init__(self) -> None:
         self.session = requests.Session()
+
     def set_exit_code(
         self,
         checks_failed: int,
@@ -121,8 +122,10 @@ class RestApiClient(ABC):
                 comment += f"{tidy_comment}\n</details>"
         else:
             comment += ":heavy_check_mark:\nNo problems need attention."
-        comment += "\n\nHave any feedback or feature suggestions? "
-        "[Share it here.](https://github.com/cpp-linter/cpp-linter-action/issues)"
+        comment += (
+            "\n\nHave any feedback or feature suggestions? [Share it here.]"
+            + "(https://github.com/cpp-linter/cpp-linter-action/issues)"
+        )
         return (comment, format_checks_failed, tidy_checks_failed)
 
     def post_feedback(
