@@ -65,10 +65,14 @@ def prep_api_client(
     """Setup a test repo to run the rest of the tests in this module."""
     for name, value in zip(["GITHUB_REPOSITORY", "GITHUB_SHA"], [repo, commit]):
         monkeypatch.setenv(name, value)
-    monkeypatch.setenv("CI", "true")  # make fake requests using session adaptor
     gh_client = GithubApiClient()
     gh_client.repo = repo
     gh_client.sha = commit
+
+    # prevent CI tests in PRs from altering the URL used in the mock tests
+    monkeypatch.setenv("CI", "true")  # make fake requests using session adaptor
+    gh_client.event_payload.clear()
+    gh_client.event_name = "push"
 
     adapter = requests_mock.Adapter(case_sensitive=True)
 
