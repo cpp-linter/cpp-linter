@@ -97,6 +97,7 @@ def test_list_src_files(
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions
 
+
 @pytest.mark.parametrize(
     "pseudo,expected_url,fake_runner",
     [
@@ -148,10 +149,12 @@ def test_get_changed_files(
         monkeypatch.setattr(
             cpp_linter.rest_api.github_api, "get_diff", lambda *args: ""
         )
+    monkeypatch.setenv("GITHUB_TOKEN", "123456")
 
     with requests_mock.Mocker() as mock:
         mock.get(
             expected_url.format(number=19, rest_api_url=gh_client.api_url, **pseudo),
+            request_headers={"Authorization": "token 123456"},
             text="",
         )
 

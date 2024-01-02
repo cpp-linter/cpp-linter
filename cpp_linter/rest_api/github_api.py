@@ -13,7 +13,7 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Dict, List, Any, cast, Optional
+from typing import Dict, List, Any, cast, Optional, Tuple
 
 from .. import CACHE_PATH
 from ..common_fs import FileObj
@@ -155,33 +155,11 @@ class GithubApiClient(RestApiClient):
             update_only = thread_comments == "update"
             is_lgtm = not checks_failed
             base_url = f"{self.api_url}/repos/{self.repo}/"
-            if self.event_name == "pull_request":
-                comments_url = (
-                    base_url + f'issues/{self.event_payload["number"]}/comments'
+            count, comments_url = self._get_comment_count(base_url)
+            if count >= 0:
+                self.update_comment(
+                    comment, comments_url, count, no_lgtm, update_only, is_lgtm
                 )
-                # find comment count first (to traverse them all)
-                response_buffer = self.session.get(
-                    base_url + f'issues/{self.event_payload["number"]}',
-                    headers=self.make_headers(),
-                )
-                log_response_msg(response_buffer)
-                if response_buffer.status_code == 200:
-                    count = cast(int, response_buffer.json()["comments"])
-                    self.update_comment(
-                        comment, comments_url, count, no_lgtm, update_only, is_lgtm
-                    )
-            elif self.event_name == "push":
-                comments_url = base_url + f"commits/{self.sha}/comments"
-                # find comment count first (to traverse them all)
-                response_buffer = self.session.get(
-                    base_url + f"commits/{self.sha}", headers=self.make_headers()
-                )
-                log_response_msg(response_buffer)
-                if response_buffer.status_code == 200:
-                    count = cast(int, response_buffer.json()["commit"]["comment_count"])
-                    self.update_comment(
-                        comment, comments_url, count, no_lgtm, update_only, is_lgtm
-                    )
 
         if file_annotations:
             self.make_annotations(files, format_advice, tidy_advice, style)
@@ -190,6 +168,25 @@ class GithubApiClient(RestApiClient):
             with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
                 summary.write(f"\n{comment}\n")
         self.set_exit_code(checks_failed, format_checks_failed, tidy_checks_failed)
+
+    def _get_comment_count(self, base_url: str) -> Tuple[int, str]:
+        """Gets the comment count for the current event. Returns a negative count if
+        failed. Also returns the comments_url for the current event."""
+        headers = self.make_headers()
+        count = -1
+        if self.event_name == "pull_request":
+            comments_url = base_url + f'issues/{self.event_payload["number"]}'
+            response_buffer = self.session.get(comments_url, headers=headers)
+            log_response_msg(response_buffer)
+            if response_buffer.status_code == 200:
+                count = cast(int, response_buffer.json()["comments"])
+        else:
+            comments_url = base_url + f"commits/{self.sha}"
+            response_buffer = self.session.get(comments_url, headers=headers)
+            log_response_msg(response_buffer)
+            if response_buffer.status_code == 200:
+                count = cast(int, response_buffer.json()["commit"]["comment_count"])
+        return count, comments_url + "/comments"
 
     def make_annotations(
         self,

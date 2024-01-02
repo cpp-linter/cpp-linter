@@ -1,0 +1,183 @@
+{
+  "sha": "8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+  "node_id": "C_kwDOFY2uzNoAKDhkNjg3NTYzNzVlMDQ4M2M3YWMyYjRkNmJiYmVjZTQyMGRiYmI0OTU",
+  "commit": {
+    "author": {
+      "name": "Peter Shen",
+      "email": "xianpeng.shen@gmail.com",
+      "date": "2022-06-19T12:15:18Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2022-06-19T12:15:18Z"
+    },
+    "message": "Squashed Updates (#10)\n\n- prep repo as CMake project\r\n- workflows to use as a python pkg or GH action\r\n- rename workflows\r\n\r\nCo-authored-by: Brendan <2bndy5@gmail.com>",
+    "tree": {
+      "sha": "a57d8318d11cad599c8e3562ae29cd9bef0386f6",
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/git/trees/a57d8318d11cad599c8e3562ae29cd9bef0386f6"
+    },
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/git/commits/8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+    "comment_count": 1,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJirxNWCRBK7hj4Ov3rIwAAnDMIAIwKuirrOo4Qx/lLtKMlatN1\nAtR6u/Z7CeBGhJnOtj1VnFBnImTq8cukUKh2iPmuMtXOsUIoLBAeBySbBDGhHoLl\nGNohPZrYRjrxqAoyZQObmNHP9eKN5xPKLkAzZfGEGlRatKVy36AH4YbgBo9lJ3TG\nV1/Hs+eNY5eLtotfsJgLJLHUGNjWO1JKvou3lBiYlD8IwmZkh/8BooddrkLWZdzh\nH7ydKrYLZjDZhx/1y0DdGthAFTBRLGhbLTELQTBhkbLTLtf/JO5do27F6Ork+6pF\nFqLn7NDTIvWRo5MAtmM26D1j1cDPbbSDXi7auve46kNpnIlmwdZnfk+phJUqDqk=\n=lU59\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree a57d8318d11cad599c8e3562ae29cd9bef0386f6\nparent e779646fe214a946fb76343e3ebcbce358807911\nauthor Peter Shen <xianpeng.shen@gmail.com> 1655640918 -0600\ncommitter GitHub <noreply@github.com> 1655640918 +0800\n\nSquashed Updates (#10)\n\n- prep repo as CMake project\r\n- workflows to use as a python pkg or GH action\r\n- rename workflows\r\n\r\nCo-authored-by: Brendan <2bndy5@gmail.com>"
+    }
+  },
+  "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/commits/8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+  "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/commit/8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+  "comments_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/commits/8d68756375e0483c7ac2b4d6bbbece420dbbb495/comments",
+  "author": {
+    "login": "shenxianpeng",
+    "id": 3353385,
+    "node_id": "MDQ6VXNlcjMzNTMzODU=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/3353385?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/shenxianpeng",
+    "html_url": "https://github.com/shenxianpeng",
+    "followers_url": "https://api.github.com/users/shenxianpeng/followers",
+    "following_url": "https://api.github.com/users/shenxianpeng/following{/other_user}",
+    "gists_url": "https://api.github.com/users/shenxianpeng/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/shenxianpeng/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/shenxianpeng/subscriptions",
+    "organizations_url": "https://api.github.com/users/shenxianpeng/orgs",
+    "repos_url": "https://api.github.com/users/shenxianpeng/repos",
+    "events_url": "https://api.github.com/users/shenxianpeng/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/shenxianpeng/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "e779646fe214a946fb76343e3ebcbce358807911",
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/commits/e779646fe214a946fb76343e3ebcbce358807911",
+      "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/commit/e779646fe214a946fb76343e3ebcbce358807911"
+    }
+  ],
+  "stats": {
+    "total": 170,
+    "additions": 127,
+    "deletions": 43
+  },
+  "files": [
+    {
+      "sha": "9b17f87a2d948e8b3fae8bcfda6368bd1daafc44",
+      "filename": ".github/workflows/cpp-lint-action.yml",
+      "status": "added",
+      "additions": 52,
+      "deletions": 0,
+      "changes": 52,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/8d68756375e0483c7ac2b4d6bbbece420dbbb495/.github%2Fworkflows%2Fcpp-lint-action.yml",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/8d68756375e0483c7ac2b4d6bbbece420dbbb495/.github%2Fworkflows%2Fcpp-lint-action.yml",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/.github%2Fworkflows%2Fcpp-lint-action.yml?ref=8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+      "patch": "@@ -0,0 +1,52 @@\n+name: cpp-linter as action\n+\n+on:\n+  push:\n+    paths-ignore: \"docs/**\"\n+  pull_request:\n+    paths-ignore: \"docs/**\"\n+\n+\n+jobs:\n+  cpp-linter:\n+    runs-on: ubuntu-latest\n+\n+    strategy:\n+      matrix:\n+        clang-version: ['9','10', '11', '12', '13', '14']\n+      fail-fast: false\n+\n+    steps:\n+      - uses: actions/checkout@v2\n+\n+      - name: Cache the build artifacts\n+        id: cache-build\n+        uses: actions/cache@v3\n+        with:\n+          path: build\n+          key: ${{ hashFiles('src/CMakeLists.txt', 'src/demo.cpp', 'src/demo.hpp') }}\n+\n+      - name: Generate compilation database\n+        if: steps.cache-build.outputs.cache-hit != 'true'\n+        run: mkdir build && cmake -Bbuild src\n+\n+      - name: run linter as action\n+        uses: shenxianpeng/cpp-linter-action@master\n+        id: linter\n+        env:\n+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n+        with:\n+          style: file\n+          files-changed-only: ${{ matrix.clang-version == '12' }}\n+          # to ignore all build folder contents\n+          ignore: build\n+          database: build\n+          verbosity: 9\n+          version: ${{ matrix.clang-version }}\n+          file-annotations: ${{ matrix.clang-version == '12' }}\n+\n+      - name: Fail fast?!\n+        if: steps.linter.outputs.checks-failed > 0\n+        run: echo \"some linter checks failed\"\n+        # for actual deployment\n+        # run: exit 1"
+    },
+    {
+      "sha": "42ecb20d4ebab18215e87c640bb11f63d5be5bf5",
+      "filename": ".github/workflows/cpp-lint-package.yml",
+      "status": "added",
+      "additions": 54,
+      "deletions": 0,
+      "changes": 54,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/8d68756375e0483c7ac2b4d6bbbece420dbbb495/.github%2Fworkflows%2Fcpp-lint-package.yml",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/8d68756375e0483c7ac2b4d6bbbece420dbbb495/.github%2Fworkflows%2Fcpp-lint-package.yml",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/.github%2Fworkflows%2Fcpp-lint-package.yml?ref=8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+      "patch": "@@ -0,0 +1,54 @@\n+name: cpp-linter as pkg\n+\n+on:\n+  push:\n+    paths-ignore: \"docs/**\"\n+  pull_request:\n+    paths-ignore: \"docs/**\"\n+\n+jobs:\n+  cpp-linter:\n+    runs-on: windows-latest\n+\n+    strategy:\n+      matrix:\n+        clang-version: ['9','10', '11', '12', '13', '14']\n+        repo: ['shenxianpeng/cpp-linter-action']\n+        branch: ['master']\n+      fail-fast: false\n+\n+    steps:\n+\n+      - uses: actions/checkout@v3\n+      - uses: actions/setup-python@v3\n+      - name: Install clang-tools\n+        uses: KyleMayes/install-llvm-action@v1\n+        with:\n+          version: ${{ matrix.clang-version }}\n+          directory: ${{ runner.temp }}/llvm\n+\n+      - name: Install linter package\n+        run: python3 -m pip install git+https://github.com/${{ matrix.repo }}/@${{ matrix.branch }}\n+\n+      - name: Cache the build artifacts\n+        id: cache-build\n+        uses: actions/cache@v3\n+        with:\n+          path: build\n+          key: ${{ hashFiles('src/CMakeLists.txt', 'src/demo.cpp', 'src/demo.hpp') }}\n+\n+      - name: Generate  compiler database\n+        if: steps.cache-build.outputs.cache-hit != 'true'\n+        run: mkdir build && cmake -Bbuild src\n+\n+      - name: run linter as package\n+        id: linter\n+        env:\n+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n+        run: cpp-linter -s=file -v=9 -i=build -p=build -V=${{ runner.temp }}/llvm --thread-comments=${{ matrix.clang-version == '12' }} -a=${{ matrix.clang-version == '12' }}\n+\n+      - name: Fail fast?!\n+        if: steps.linter.outputs.checks-failed > 0\n+        run: echo \"Some files failed the linting checks!\"\n+        # for actual deployment\n+        # run: exit 1"
+    },
+    {
+      "sha": "51941431118ee6b092c742cba80b3ae099309248",
+      "filename": ".github/workflows/cpp-lint.yml",
+      "status": "removed",
+      "additions": 0,
+      "deletions": 29,
+      "changes": 29,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/e779646fe214a946fb76343e3ebcbce358807911/.github%2Fworkflows%2Fcpp-lint.yml",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/e779646fe214a946fb76343e3ebcbce358807911/.github%2Fworkflows%2Fcpp-lint.yml",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/.github%2Fworkflows%2Fcpp-lint.yml?ref=e779646fe214a946fb76343e3ebcbce358807911",
+      "patch": "@@ -1,29 +0,0 @@\n-name: cpp-linter\n-\n-on:\n-  push:\n-    paths-ignore: \"docs/**\"\n-  pull_request:\n-    paths-ignore: \"docs/**\"\n-\n-jobs:\n-  cpp-linter:\n-    runs-on: ubuntu-latest\n-    steps:\n-      - uses: actions/checkout@v2\n-      - uses: 2bndy5/cpp-linter-action@private-repo-support\n-        id: linter\n-        env:\n-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n-        with:\n-          style: file\n-          files-changed-only: false\n-          # to ignore all demo folder contents except for demo.cpp\n-          # ignore: demo|!demo/demo.cpp\n-\n-      - name: Fail fast?!\n-        if: steps.linter.outputs.checks-failed > 0\n-        run: |\n-          echo \"Some files failed the linting checks!\"\n-        # for actual deployment\n-        # run: exit 1"
+    },
+    {
+      "sha": "3dda9338df3fe838f3bdffcf600521b92017b58e",
+      "filename": ".gitignore",
+      "status": "added",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/8d68756375e0483c7ac2b4d6bbbece420dbbb495/.gitignore",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/8d68756375e0483c7ac2b4d6bbbece420dbbb495/.gitignore",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/.gitignore?ref=8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+      "patch": "@@ -0,0 +1,6 @@\n+build/\n+build.ninja\n+cmake_install.cmake\n+CMakeCache.txt\n+compile_commands.json\n+CMakeFiles/\n\\ No newline at end of file"
+    },
+    {
+      "sha": "88fdc2a4d31e505939a00618cf3a9a3870463ded",
+      "filename": "compile_commands.json",
+      "status": "removed",
+      "additions": 0,
+      "deletions": 12,
+      "changes": 12,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/e779646fe214a946fb76343e3ebcbce358807911/compile_commands.json",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/e779646fe214a946fb76343e3ebcbce358807911/compile_commands.json",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/compile_commands.json?ref=e779646fe214a946fb76343e3ebcbce358807911",
+      "patch": "@@ -1,12 +0,0 @@\n-[\n-    {\n-      \"directory\": \".\",\n-      \"command\": \"/usr/bin/g++ -Wall -Werror demo.cpp\",\n-      \"file\": \"/demo.cpp\"\n-    },\n-    {\n-      \"directory\": \".\",\n-      \"command\": \"/usr/bin/g++ -Wall -Werror demo.cpp\",\n-      \"file\": \"/demo.hpp\"\n-    }\n-]\n\\ No newline at end of file"
+    },
+    {
+      "sha": "97bf80c07cc092d9fbdab1e66889382449bf2fc9",
+      "filename": "src/CMakeLists.txt",
+      "status": "added",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/8d68756375e0483c7ac2b4d6bbbece420dbbb495/src%2FCMakeLists.txt",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/8d68756375e0483c7ac2b4d6bbbece420dbbb495/src%2FCMakeLists.txt",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/src%2FCMakeLists.txt?ref=8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+      "patch": "@@ -0,0 +1,12 @@\n+cmake_minimum_required(VERSION 3.15)\n+\n+# Set the project name to your project name\n+project(demo C CXX)\n+\n+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)\n+\n+add_executable(demo_app \n+    ${CMAKE_BINARY_SOURCE_DIR}demo.hpp\n+    ${CMAKE_BINARY_SOURCE_DIR}demo.cpp\n+)\n+target_include_directories(demo_app PUBLIC ${CMAKE_BINARY_SOURCE_DIR})\n\\ No newline at end of file"
+    },
+    {
+      "sha": "8a4a9ed1c04ba559f491f3819e1bc05f79bf2025",
+      "filename": "src/demo.cpp",
+      "status": "renamed",
+      "additions": 3,
+      "deletions": 2,
+      "changes": 5,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/8d68756375e0483c7ac2b4d6bbbece420dbbb495/src%2Fdemo.cpp",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/8d68756375e0483c7ac2b4d6bbbece420dbbb495/src%2Fdemo.cpp",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/src%2Fdemo.cpp?ref=8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+      "patch": "@@ -1,15 +1,16 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n #include <cstdio>\n+#include <cstddef>\n+\n+size_t dummyFunc(size_t i) { return i; }\n \n int main()\n {\n     for (;;)\n         break;\n \n-\n     printf(\"Hello world!\\n\");\n \n     return 0;\n }\n-",
+      "previous_filename": "demo.cpp"
+    },
+    {
+      "sha": "505b6b7ed768436c94c4b109648b8c04ad35ed8e",
+      "filename": "src/demo.hpp",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/8d68756375e0483c7ac2b4d6bbbece420dbbb495/src%2Fdemo.hpp",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/8d68756375e0483c7ac2b4d6bbbece420dbbb495/src%2Fdemo.hpp",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/src%2Fdemo.hpp?ref=8d68756375e0483c7ac2b4d6bbbece420dbbb495",
+      "previous_filename": "demo.hpp"
+    }
+  ]
+}
