@@ -23,6 +23,7 @@ from cpp_linter.loggers import (
     end_log_group,
 )
 from cpp_linter.common_fs import list_source_files
+import cpp_linter.rest_api.github_api
 from cpp_linter.rest_api.github_api import GithubApiClient
 
 
@@ -142,6 +143,12 @@ def test_get_changed_files(
         setattr(gh_client, name, value)
     if "event_name" in pseudo and pseudo["event_name"] == "pull_request":
         gh_client.event_payload = dict(number=19)
+    if not fake_runner:
+        # getting a diff in CI (on a shallow checkout) fails
+        # monkey patch the .git.get_diff() to return nothing
+        monkeypatch.setattr(
+            cpp_linter.rest_api.github_api, "get_diff", lambda *args: ""
+        )
 
     with requests_mock.Mocker() as mock:
         mock.get(
