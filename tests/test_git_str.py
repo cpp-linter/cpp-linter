@@ -40,7 +40,7 @@ def test_pygit2_bug1260(caplog: pytest.LogCaptureFixture):
     caplog.set_level(logging.WARNING, logger=logger.name)
     # the bug in libgit2 should trigger a call to
     # cpp_linter.git_str.legacy_parse_diff()
-    files = parse_diff(diff_str, ["cpp"], [], [])
+    files = parse_diff(diff_str, ["cpp"], [], [], 0)
     assert caplog.messages, "this test is no longer needed; bug was fixed in pygit2"
     # if we get here test, then is satisfied
     assert not files  # no line changes means no file to focus on
@@ -48,8 +48,8 @@ def test_pygit2_bug1260(caplog: pytest.LogCaptureFixture):
 
 def test_typical_diff():
     """For coverage completeness. Also tests for files with spaces in the names."""
-    from_c = parse_diff(TYPICAL_DIFF, ["cpp"], [], [])
-    from_py = parse_diff_str(TYPICAL_DIFF, ["cpp"], [], [])
+    from_c = parse_diff(TYPICAL_DIFF, ["cpp"], [], [], 0)
+    from_py = parse_diff_str(TYPICAL_DIFF, ["cpp"], [], [], 0)
     assert [f.serialize() for f in from_c] == [f.serialize() for f in from_py]
     for file_obj in from_c:
         # file name should have spaces
@@ -65,13 +65,13 @@ def test_binary_diff():
             "Binary files /dev/null and b/some picture.png differ",
         ]
     )
-    files = parse_diff_str(diff_str, ["cpp"], [], [])
+    files = parse_diff_str(diff_str, ["cpp"], [], [], 0)
     # binary files are ignored during parsing
     assert not files
 
 
 def test_ignored_diff():
     """For coverage completeness"""
-    files = parse_diff_str(TYPICAL_DIFF, ["hpp"], [], [])
+    files = parse_diff_str(TYPICAL_DIFF, ["hpp"], [], [], 0)
     # binary files are ignored during parsing
     assert not files

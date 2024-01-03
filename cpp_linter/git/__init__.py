@@ -19,7 +19,7 @@ from pygit2 import (  # type: ignore
     GitError,
 )
 from .. import CACHE_PATH
-from ..common_fs import FileObj, is_source_or_ignored
+from ..common_fs import FileObj, is_source_or_ignored, has_line_changes
 from ..loggers import logger
 from .git_str import parse_diff as legacy_parse_diff
 
@@ -87,6 +87,7 @@ def parse_diff(
     extensions: List[str],
     ignored: List[str],
     not_ignored: List[str],
+    lines_changed_only: int,
 ) -> List[FileObj]:
     """Parse a given diff into file objects.
 
@@ -94,6 +95,7 @@ def parse_diff(
     :param extensions: A list of file extensions to focus on only.
     :param ignored: A list of paths or files to ignore.
     :param not_ignored: A list of paths or files to explicitly not ignore.
+    :param lines_changed_only: A value that dictates what file changes to focus on.
     :returns: A `list` of `dict` containing information about the files changed.
 
         .. note:: Deleted files are omitted because we only want to analyze updates.
@@ -104,7 +106,9 @@ def parse_diff(
             diff_obj = Diff.parse_diff(diff_obj)
         except GitError as exc:
             logger.warning(f"pygit2.Diff.parse_diff() threw {exc}")
-            return legacy_parse_diff(diff_obj, extensions, ignored, not_ignored)
+            return legacy_parse_diff(
+                diff_obj, extensions, ignored, not_ignored, lines_changed_only
+            )
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
             continue
@@ -113,7 +117,10 @@ def parse_diff(
         ):
             continue
         diff_chunks, additions = parse_patch(patch.hunks)
-        file_objects.append(FileObj(patch.delta.new_file.path, additions, diff_chunks))
+        if has_line_changes(lines_changed_only, diff_chunks, additions):
+            file_objects.append(
+                FileObj(patch.delta.new_file.path, additions, diff_chunks)
+            )
     return file_objects
 
 

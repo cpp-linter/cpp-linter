@@ -76,7 +76,7 @@ class FormatAdvice:
 def formalize_style_name(style: str) -> str:
     if style.startswith("llvm") or style.startswith("gnu"):
         return style.upper()
-    if style not in (
+    if style in (
         "google",
         "chromium",
         "microsoft",

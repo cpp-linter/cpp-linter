@@ -105,6 +105,7 @@ def prep_tmp_dir(
     monkeypatch: pytest.MonkeyPatch,
     repo: str,
     commit: str,
+    lines_changed_only: int,
     copy_configs: bool = False,
 ):
     """Some extra setup for test's temp directory to ensure needed files exist."""
@@ -128,7 +129,10 @@ def prep_tmp_dir(
     monkeypatch.chdir(str(repo_cache))
     CACHE_PATH.mkdir(exist_ok=True)
     files = gh_client.get_list_of_changed_files(
-        extensions=["c", "h", "hpp", "cpp"], ignored=[".github"], not_ignored=[]
+        extensions=["c", "h", "hpp", "cpp"],
+        ignored=[".github"],
+        not_ignored=[],
+        lines_changed_only=lines_changed_only,
     )
     gh_client.verify_files_are_present(files)
     repo_path = tmp_path / repo.split("/")[1]
@@ -181,6 +185,7 @@ def test_lines_changed_only(
         extensions=extensions,
         ignored=[".github"],
         not_ignored=[],
+        lines_changed_only=lines_changed_only,
     )
     if files:
         expected_results_json = (
@@ -191,8 +196,7 @@ def test_lines_changed_only(
         )
         ### uncomment this paragraph to update/generate the expected test's results
         # expected_results_json.write_text(
-        #     json.dumps([f.serialize() for f in files], indent=2)
-        #     + "\n",
+        #     json.dumps([f.serialize() for f in files], indent=2) + "\n",
         #     encoding="utf-8",
         # )
         test_result = json.loads(expected_results_json.read_text(encoding="utf-8"))
@@ -237,6 +241,7 @@ def test_format_annotations(
         tmp_path,
         monkeypatch,
         **TEST_REPO_COMMIT_PAIRS[0],
+        lines_changed_only=lines_changed_only,
         copy_configs=True,
     )
     format_advice, tidy_advice = capture_clang_tools_output(
@@ -312,6 +317,7 @@ def test_tidy_annotations(
         tmp_path,
         monkeypatch,
         **TEST_REPO_COMMIT_PAIRS[4],
+        lines_changed_only=lines_changed_only,
         copy_configs=False,
     )
     format_advice, tidy_advice = capture_clang_tools_output(
@@ -429,7 +435,11 @@ def test_parse_diff(
 
     Path(CACHE_PATH).mkdir()
     files = parse_diff(
-        get_diff(), extensions=["cpp", "hpp"], ignored=[], not_ignored=[]
+        get_diff(),
+        extensions=["cpp", "hpp"],
+        ignored=[],
+        not_ignored=[],
+        lines_changed_only=0,
     )
     if sha == TEST_REPO_COMMIT_PAIRS[4]["commit"] or patch:
         assert files

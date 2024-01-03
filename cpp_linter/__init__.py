@@ -44,6 +44,7 @@ def main():
             args.extensions,
             ignored,
             not_ignored,
+            args.lines_changed_only,
         )
         if files:
             rest_api_client.verify_files_are_present(files)

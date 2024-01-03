@@ -3,7 +3,7 @@ binds to). The `parse_diff()` function here is only used when
 :py:meth:`pygit2.Diff.parse_diff()` function fails in `cpp_linter.git.parse_diff()`"""
 import re
 from typing import Optional, List, Tuple, cast
-from ..common_fs import FileObj, is_source_or_ignored
+from ..common_fs import FileObj, is_source_or_ignored, has_line_changes
 from ..loggers import logger
 
 
@@ -36,7 +36,11 @@ def _get_filename_from_diff(front_matter: str) -> Optional[re.Match]:
 
 
 def parse_diff(
-    full_diff: str, extensions: List[str], ignored: List[str], not_ignored: List[str]
+    full_diff: str,
+    extensions: List[str],
+    ignored: List[str],
+    not_ignored: List[str],
+    lines_changed_only: int,
 ) -> List[FileObj]:
     """Parse a given diff into file objects.
 
@@ -44,6 +48,7 @@ def parse_diff(
     :param extensions: A list of file extensions to focus on only.
     :param ignored: A list of paths or files to ignore.
     :param not_ignored: A list of paths or files to explicitly not ignore.
+    :param lines_changed_only: A value that dictates what file changes to focus on.
     :returns: A `list` of `FileObj` instances containing information about the files
         changed.
     """
@@ -65,7 +70,8 @@ def parse_diff(
         if not is_source_or_ignored(filename, extensions, ignored, not_ignored):
             continue
         diff_chunks, additions = _parse_patch(diff[first_hunk.start() :])
-        file_objects.append(FileObj(filename, additions, diff_chunks))
+        if has_line_changes(lines_changed_only, diff_chunks, additions):
+            file_objects.append(FileObj(filename, additions, diff_chunks))
     return file_objects
 
 

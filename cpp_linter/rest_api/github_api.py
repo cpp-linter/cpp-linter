@@ -68,7 +68,11 @@ class GithubApiClient(RestApiClient):
         )
 
     def get_list_of_changed_files(
-        self, extensions: List[str], ignored: List[str], not_ignored: List[str]
+        self,
+        extensions: List[str],
+        ignored: List[str],
+        not_ignored: List[str],
+        lines_changed_only: int,
     ) -> List[FileObj]:
         start_log_group("Get list of specified source files")
         if environ.get("CI", "false") == "true":
@@ -88,9 +92,17 @@ class GithubApiClient(RestApiClient):
                 files_link, headers=self.make_headers(use_diff=True)
             )
             log_response_msg(response_buffer)
-            files = parse_diff(response_buffer.text, extensions, ignored, not_ignored)
+            files = parse_diff(
+                response_buffer.text,
+                extensions,
+                ignored,
+                not_ignored,
+                lines_changed_only,
+            )
         else:
-            files = parse_diff(get_diff(), extensions, ignored, not_ignored)
+            files = parse_diff(
+                get_diff(), extensions, ignored, not_ignored, lines_changed_only
+            )
         return files
 
     def verify_files_are_present(self, files: List[FileObj]) -> None:

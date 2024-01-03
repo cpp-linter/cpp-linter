@@ -158,7 +158,7 @@ def test_get_changed_files(
             text="",
         )
 
-        files = gh_client.get_list_of_changed_files([], [], [])
+        files = gh_client.get_list_of_changed_files([], [], [], 0)
         assert not files
 
 

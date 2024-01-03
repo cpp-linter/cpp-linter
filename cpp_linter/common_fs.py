@@ -121,6 +121,27 @@ def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:
     return False
 
 
+def has_line_changes(
+    lines_changed_only: int, diff_chunks: List[List[int]], additions: List[int]
+) -> bool:
+    """Does this file actually apply to condition specified by ``lines_changed_only``?
+
+    :param lines_changed_only: A value that means:
+
+        - 0 = We don't care. Analyze the whole file.
+        - 1 = Only analyze lines in the diff chunks, which may include unchanged
+          lines but not lines with subtractions.
+        - 2 = Only analyze lines with additions.
+    :param diff_chunks: The ranges of lines in the diff for a single file.
+    :param additions: The lines with additions in the diff for a single file.
+    """
+    return (
+        (lines_changed_only == 1 and len(diff_chunks) > 0)
+        or (lines_changed_only == 2 and len(additions) > 0)
+        or not lines_changed_only
+    )
+
+
 def is_source_or_ignored(
     file_name: str,
     ext_list: List[str],
