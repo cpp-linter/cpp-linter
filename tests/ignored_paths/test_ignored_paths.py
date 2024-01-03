@@ -17,7 +17,7 @@ def test_ignore(
     user_in: str, is_ignored: str, is_not_ignored: str, expected: List[bool]
 ):
     """test ignoring of a specified path."""
-    ignored, not_ignored = parse_ignore_option(user_in)
+    ignored, not_ignored = parse_ignore_option(user_in, [])
     assert expected == [
         is_file_in_list(ignored, is_ignored, "ignored"),
         is_file_in_list(not_ignored, is_not_ignored, "not ignored"),
@@ -27,7 +27,16 @@ def test_ignore(
 def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
     """test auto detection of submodules and ignore the paths appropriately."""
     monkeypatch.chdir(str(Path(__file__).parent))
-    ignored, not_ignored = parse_ignore_option("!pybind11")
+    ignored, not_ignored = parse_ignore_option("!pybind11", [])
     for ignored_submodule in ["RF24", "RF24Network", "RF24Mesh"]:
         assert ignored_submodule in ignored
     assert "pybind11" in not_ignored
+
+
+@pytest.mark.parametrize(
+    "user_input", [[], ["file1", "file2"]], ids=["none", "multiple"]
+)
+def test_positional_arg(user_input: List[str]):
+    """Make sure positional arg value(s) are added to not_ignored list."""
+    _, not_ignored = parse_ignore_option("", user_input)
+    assert user_input == not_ignored

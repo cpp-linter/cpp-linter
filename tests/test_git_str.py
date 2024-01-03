@@ -45,6 +45,7 @@ def test_pygit2_bug1260(caplog: pytest.LogCaptureFixture):
     # if we get here test, then is satisfied
     assert not files  # no line changes means no file to focus on
 
+
 def test_typical_diff():
     """For coverage completeness. Also tests for files with spaces in the names."""
     from_c = parse_diff(TYPICAL_DIFF, ["cpp"], [], [])

@@ -1,7 +1,11 @@
+from os import environ
 from os.path import commonpath
 from pathlib import PurePath, Path
 from typing import List, Dict, Any, Union, Tuple
 from .loggers import logger, start_log_group
+
+#: A path to generated cache artifacts. (only used when verbosity is in debug mode)
+CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
 
 
 class FileObj:

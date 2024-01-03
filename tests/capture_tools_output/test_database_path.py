@@ -8,10 +8,8 @@ import sys
 import shutil
 import pytest
 from cpp_linter.loggers import logger
-from cpp_linter.common_fs import FileObj
+from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.rest_api.github_api import GithubApiClient
-import cpp_linter.run
-import cpp_linter
 from cpp_linter.clang_tools import capture_clang_tools_output
 from mesonbuild.mesonmain import main as meson  # type: ignore[import-untyped]
 
@@ -40,7 +38,7 @@ def test_db_detection(
 ):
     """test clang-tidy using a implicit path to the compilation database."""
     monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
-    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
+    CACHE_PATH.mkdir(exist_ok=True)
     caplog.set_level(logging.DEBUG, logger=logger.name)
     demo_src = "../demo/demo.cpp"
     files = [FileObj(demo_src, [], [])]

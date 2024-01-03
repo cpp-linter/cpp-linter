@@ -6,6 +6,7 @@ import pytest
 
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.clang_tools.clang_tidy import TidyNotification
 from cpp_linter.common_fs import list_source_files
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
@@ -29,16 +30,33 @@ def test_post_feedback(
 ):
     """A mock test of posting comments and step summary"""
     files = list_source_files(
-        ext_list=["cpp", "hpp"], ignored_paths=["tests"], not_ignored=["tests/demo"]
+        ext_list=["cpp", "hpp"],
+        ignored_paths=["tests/capture_tools_output"],
+        not_ignored=[],
     )
+    assert files
     format_advice, tidy_advice = capture_clang_tools_output(
         files,
         version=environ.get("CLANG_VERSION", "16"),
-        checks="readability-*",  # use config file
+        checks="readability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*",
         style="llvm",
         lines_changed_only=0,
         database="",
         extra_args=[],
+    )
+    # add a non project file to tidy_advice to intentionally cover a log.debug()
+    assert tidy_advice
+    tidy_advice[-1].append(
+        TidyNotification(
+            notification_line=(
+                "/usr/include/stdio.h",
+                33,
+                10,
+                "error",
+                "'stddef.h' file not found",
+                "clang-diagnostic-error",
+            ),
+        )
     )
 
     # patch env vars

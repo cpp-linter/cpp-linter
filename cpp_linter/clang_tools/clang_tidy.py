@@ -18,6 +18,9 @@ class TidyNotification:
     :param notification_line: The first line in the notification parsed into a
         `tuple` of `str` that represent the different components of the
         notification's details.
+    :param database: The compilation database deserialized from JSON, only if
+        :std:option:`--database` argument points to a valid path containing a
+        ``compile_commands.json file``.
     """
 
     def __init__(
@@ -136,7 +139,7 @@ def run_clang_tidy(
         extra_args = extra_args[0].split()
     for extra_arg in extra_args:
         arg = extra_arg.strip('"')
-        cmds.append(f"--extra-arg=\"{arg}\"")
+        cmds.append(f'--extra-arg="{arg}"')
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
@@ -151,7 +154,13 @@ def run_clang_tidy(
 def parse_tidy_output(
     tidy_out: str, database: Optional[List[Dict[str, str]]]
 ) -> List[TidyNotification]:
-    """Parse clang-tidy stdout."""
+    """Parse clang-tidy stdout.
+
+    :param tidy_out: The stdout from clang-tidy.
+    :param database: The compilation database deserialized from JSON, only if
+        :std:option:`--database` argument points to a valid path containing a
+        ``compile_commands.json file``.
+    """
     notification = None
     tidy_notes = []
     for line in tidy_out.splitlines():

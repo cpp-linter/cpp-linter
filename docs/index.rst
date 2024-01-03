@@ -16,7 +16,6 @@
    :caption: API modules
 
    API-Reference/cpp_linter
-   API-Reference/cpp_linter.run
    API-Reference/cpp_linter.clang_tools
    API-Reference/cpp_linter.clang_tools.clang_format
    API-Reference/cpp_linter.clang_tools.clang_tidy

@@ -13,9 +13,7 @@ import pygit2  # type: ignore[import-not-found]
 import pytest
 import requests_mock
 
-import cpp_linter
-import cpp_linter.run
-from cpp_linter.common_fs import FileObj
+from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.git import parse_diff, get_diff
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.loggers import log_commander, logger
@@ -128,7 +126,7 @@ def prep_tmp_dir(
     repo_cache = tmp_path.parent / repo / commit
     repo_cache.mkdir(parents=True, exist_ok=True)
     monkeypatch.chdir(str(repo_cache))
-    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
+    CACHE_PATH.mkdir(exist_ok=True)
     files = gh_client.get_list_of_changed_files(
         extensions=["c", "h", "hpp", "cpp"], ignored=[".github"], not_ignored=[]
     )
@@ -137,7 +135,7 @@ def prep_tmp_dir(
     shutil.copytree(
         str(repo_cache),
         str(repo_path),
-        ignore=shutil.ignore_patterns(f"{cpp_linter.CACHE_PATH}/**"),
+        ignore=shutil.ignore_patterns(f"{CACHE_PATH}/**"),
     )
     monkeypatch.chdir(repo_path)
 
@@ -177,7 +175,7 @@ def test_lines_changed_only(
     """
     caplog.set_level(logging.DEBUG, logger=logger.name)
     repo, commit = repo_commit_pair["repo"], repo_commit_pair["commit"]
-    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
+    CACHE_PATH.mkdir(exist_ok=True)
     gh_client = prep_api_client(monkeypatch, repo, commit)
     files = gh_client.get_list_of_changed_files(
         extensions=extensions,
@@ -429,7 +427,7 @@ def test_parse_diff(
         repo.index.write()
     del repo
 
-    Path(cpp_linter.CACHE_PATH).mkdir()
+    Path(CACHE_PATH).mkdir()
     files = parse_diff(
         get_diff(), extensions=["cpp", "hpp"], ignored=[], not_ignored=[]
     )

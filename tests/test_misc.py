@@ -13,6 +13,7 @@ import requests_mock
 from cpp_linter.common_fs import (
     get_line_cnt_from_cols,
     FileObj,
+    list_source_files,
 )
 from cpp_linter.clang_tools import assemble_version_exec
 from cpp_linter.loggers import (
@@ -22,7 +23,6 @@ from cpp_linter.loggers import (
     start_log_group,
     end_log_group,
 )
-from cpp_linter.common_fs import list_source_files
 import cpp_linter.rest_api.github_api
 from cpp_linter.rest_api.github_api import GithubApiClient
 

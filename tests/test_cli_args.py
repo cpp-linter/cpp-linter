@@ -8,7 +8,7 @@ class Args:
     """A pseudo namespace declaration. Each attribute is initialized with the
     corresponding CLI arg's default value."""
 
-    verbosity: int = 20
+    verbosity: bool = False
     database: str = ""
     style: str = "llvm"
     tidy_checks: str = (
@@ -39,6 +39,7 @@ class Args:
     file_annotations: bool = True
     extra_arg: List[str] = []
     no_lgtm: bool = True
+    files: List[str] = []
 
 
 def test_defaults():
@@ -51,7 +52,7 @@ def test_defaults():
 @pytest.mark.parametrize(
     "arg_name,arg_value,attr_name,attr_value",
     [
-        ("verbosity", "20", "verbosity", 20),
+        ("verbosity", "10", "verbosity", True),
         ("database", "build", "database", "build"),
         ("style", "file", "style", "file"),
         ("tidy-checks", "-*", "tidy_checks", "-*"),

@@ -15,8 +15,7 @@ import urllib.parse
 import sys
 from typing import Dict, List, Any, cast, Optional, Tuple
 
-from .. import CACHE_PATH
-from ..common_fs import FileObj
+from ..common_fs import FileObj, CACHE_PATH
 from ..clang_tools.clang_format import FormatAdvice, formalize_style_name
 from ..clang_tools.clang_tidy import TidyNotification
 from ..loggers import start_log_group, logger, log_response_msg, log_commander

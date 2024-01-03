@@ -29,6 +29,7 @@ console_handler.setFormatter(logging.Formatter("%(message)s"))  # no formatted l
 log_commander.addHandler(console_handler)  # Use special handler for log_commander
 log_commander.propagate = False
 
+
 def start_log_group(name: str) -> None:
     """Begin a collapsable group of log statements.
 
