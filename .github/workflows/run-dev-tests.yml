@@ -30,7 +30,7 @@ jobs:
       - name: Build wheel
         run: python3 -m pip wheel --no-deps -w dist .
       - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: cpp-linter_wheel
           path: ${{ github.workspace }}/dist/*.whl
@@ -53,7 +53,7 @@ jobs:
           python-version: ${{ matrix.py }}
 
       - name: download wheel artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: cpp-linter_wheel
           path: dist
@@ -97,7 +97,7 @@ jobs:
         run: coverage run -m pytest
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
           path: .coverage*
@@ -109,7 +109,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           path: ci-artifacts
 
@@ -127,7 +127,7 @@ jobs:
           coverage html
 
       - name: Upload comprehensive coverage HTML report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: coverage-report
           path: htmlcov/
@@ -140,3 +140,9 @@ jobs:
           files: ./coverage.xml
           fail_ci_if_error: true # optional (default = false)
           verbose: true # optional (default = false)
+
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ./coverage.xml
