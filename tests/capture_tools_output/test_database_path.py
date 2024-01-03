@@ -59,7 +59,7 @@ def test_db_detection(
         if msg_match is not None:
             matched_args = msg_match.group(0).split()[1:]
             break
-    else:
+    else:  # pragma: no cover
         raise RuntimeError("failed to find args passed in clang-tidy in log records")
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args
@@ -106,7 +106,7 @@ def test_ninja_database(
             if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
                 assert not Path(note.filename).is_absolute()
                 found_project_file = True
-    if not found_project_file:
+    if not found_project_file:  # pragma: no cover
         raise RuntimeError("no project files raised concerns with clang-tidy")
     (comment, format_checks_failed, tidy_checks_failed) = gh_client.make_comment(
         files, format_advice, tidy_advice

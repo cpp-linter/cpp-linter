@@ -215,8 +215,8 @@ def match_file_json(filename: str, files: List[FileObj]) -> Optional[FileObj]:
     for file_obj in files:
         if file_obj.name == filename:
             return file_obj
-    print("file", filename, "not found in expected_result.json")
-    return None
+    print("file", filename, "not found in expected_result.json")  # pragma: no cover
+    return None  # pragma: no cover
 
 
 RECORD_FILE = re.compile(r"^::\w+\sfile=([\/\w\-\\\.\s]+),.*$")
@@ -276,7 +276,7 @@ def test_format_annotations(
                 RECORD_FILE.sub("\\1", message).replace("\\", "/"), files
             )
             if file_obj is None:
-                continue
+                continue  # pragma: no cover
             if lines_changed_only == 0:
                 continue
             ranges = cast(
@@ -287,9 +287,9 @@ def test_format_annotations(
                 for r in ranges:  # an empty list if lines_changed_only == 0
                     if line in range(r[0], r[1]):
                         break
-                else:
+                else:  # pragma: no cover
                     raise RuntimeError(f"line {line} not in ranges {repr(ranges)}")
-        else:
+        else:  # pragma: no cover
             raise RuntimeWarning(f"unrecognized record: {message}")
 
 
@@ -351,7 +351,7 @@ def test_tidy_annotations(
             filename = RECORD_FILE.sub("\\1", message).replace("\\", "/")
             file_obj = match_file_json(filename, files)
             checks_failed += 1
-            if file_obj is None:
+            if file_obj is None:  # pragma: no cover
                 warnings.warn(
                     RuntimeWarning(f"{filename} was not matched with project src")
                 )
@@ -359,7 +359,7 @@ def test_tidy_annotations(
             ranges = file_obj.range_of_changed_lines(lines_changed_only)
             if ranges:  # an empty list if lines_changed_only == 0
                 assert line in ranges
-        else:
+        else:  # pragma: no cover
             raise RuntimeWarning(f"unrecognized record: {message}")
     assert tidy_checks_failed == checks_failed
 

@@ -72,7 +72,7 @@ parallel = true
 relative_files = true
 omit = [
     # don't include tests in coverage
-    "tests/*",
+    # "tests/*",
 ]
 
 [tool.coverage.json]
