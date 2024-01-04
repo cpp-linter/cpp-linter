@@ -92,7 +92,7 @@ def test_list_src_files(
     """List the source files in the root folder of this repo."""
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    files = list_source_files(ext_list=extensions, ignored_paths=[], not_ignored=[])
+    files = list_source_files(extensions=extensions, ignored=[], not_ignored=[])
     assert files
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions

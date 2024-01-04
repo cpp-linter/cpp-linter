@@ -30,8 +30,8 @@ def test_post_feedback(
 ):
     """A mock test of posting comments and step summary"""
     files = list_source_files(
-        ext_list=["cpp", "hpp"],
-        ignored_paths=["tests/capture_tools_output"],
+        extensions=["cpp", "hpp"],
+        ignored=["tests/capture_tools_output"],
         not_ignored=[],
     )
     assert files

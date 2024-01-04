@@ -7,21 +7,33 @@ from cpp_linter.common_fs import is_file_in_list
 
 
 @pytest.mark.parametrize(
-    "user_in,is_ignored,is_not_ignored,expected",
+    "user_in,is_ignored,is_not_ignored",
     [
-        ("src", "src", "src", [True, False]),
-        ("!src|./", "", "src", [True, True]),
+        (
+            "src|!src/file.h|!",
+            ["src/file.h", "src/sub/path/file.h"],
+            ["src/file.h", "file.h"],
+        ),
+        (
+            "!src|./",
+            ["file.h", "sub/path/file.h"],
+            ["src/file.h", "src/sub/path/file.h"],
+        ),
     ],
 )
 def test_ignore(
-    user_in: str, is_ignored: str, is_not_ignored: str, expected: List[bool]
+    caplog: pytest.LogCaptureFixture,
+    user_in: str,
+    is_ignored: List[str],
+    is_not_ignored: List[str],
 ):
     """test ignoring of a specified path."""
+    caplog.set_level(10)
     ignored, not_ignored = parse_ignore_option(user_in, [])
-    assert expected == [
-        is_file_in_list(ignored, is_ignored, "ignored"),
-        is_file_in_list(not_ignored, is_not_ignored, "not ignored"),
-    ]
+    for p in is_ignored:
+        assert is_file_in_list(ignored, p, "ignored")
+    for p in is_not_ignored:
+        assert is_file_in_list(not_ignored, p, "not ignored")
 
 
 def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):

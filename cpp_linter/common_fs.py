@@ -110,7 +110,7 @@ def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:
     """
     for path in paths:
         result = commonpath([PurePath(path).as_posix(), PurePath(file_name).as_posix()])
-        if result == path:
+        if result.replace("\\", "/") == path:
             logger.debug(
                 '"./%s" is %s as specified in the domain "./%s"',
                 file_name,
@@ -161,19 +161,19 @@ def is_source_or_ignored(
         `main()`) when no files to be checked.
     """
     return PurePath(file_name).suffix.lstrip(".") in ext_list and (
-        not is_file_in_list(ignored, file_name, "ignored")
-        or is_file_in_list(not_ignored, file_name, "not ignored")
+        is_file_in_list(not_ignored, file_name, "not ignored")
+        or not is_file_in_list(ignored, file_name, "ignored")
     )
 
 
 def list_source_files(
-    ext_list: List[str], ignored_paths: List[str], not_ignored: List[str]
+    extensions: List[str], ignored: List[str], not_ignored: List[str]
 ) -> List[FileObj]:
     """Make a list of source files to be checked. The resulting list is stored in
     :attr:`~cpp_linter.Globals.FILES`.
 
-    :param ext_list: A list of file extensions that should by attended.
-    :param ignored_paths: A list of paths to explicitly ignore.
+    :param extensions: A list of file extensions that should by attended.
+    :param ignored: A list of paths to explicitly ignore.
     :param not_ignored: A list of paths to explicitly not ignore.
 
     :returns:
@@ -184,7 +184,7 @@ def list_source_files(
 
     root_path = Path(".")
     files = []
-    for ext in ext_list:
+    for ext in extensions:
         for rel_path in root_path.rglob(f"*.{ext}"):
             for parent in rel_path.parts[:-1]:
                 if parent.startswith("."):
@@ -192,18 +192,10 @@ def list_source_files(
             else:
                 file_path = rel_path.as_posix()
                 logger.debug('"./%s" is a source code file', file_path)
-                if not is_file_in_list(
-                    ignored_paths, file_path, "ignored"
-                ) or is_file_in_list(not_ignored, file_path, "not ignored"):
+                if is_file_in_list(
+                    not_ignored, file_path, "not ignored"
+                ) or not is_file_in_list(ignored, file_path, "ignored"):
                     files.append(FileObj(file_path, [], []))
-
-    if files:
-        logger.info(
-            "Giving attention to the following files:\n\t%s",
-            "\n\t".join([f.name for f in files]),
-        )
-    else:
-        logger.info("No source files found.")  # this might need to be warning
     return files
 
 
