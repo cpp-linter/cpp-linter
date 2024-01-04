@@ -229,7 +229,7 @@
 
   <li class="md-tabs__item">
     <a href="API-Reference/cpp_linter.html" class="md-tabs__link">
-      <span class="md-ellipsis">API Reference</span>
+      <span class="md-ellipsis">API modules</span>
     </a>
   </li>
 
@@ -490,14 +490,14 @@
       
       
         <label class="md-nav__link" for="__nav_4">
-          <span class="md-ellipsis">API Reference</span>
+          <span class="md-ellipsis">API modules</span>
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+      <nav class="md-nav" aria-label="API modules" data-md-level="1">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
-          <span class="md-ellipsis">API Reference</span>
+          <span class="md-ellipsis">API modules</span>
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -509,7 +509,7 @@
   
     <li class="md-nav__item">
       <a href="API-Reference/cpp_linter.html" class="md-nav__link">
-        <span class="md-ellipsis">__<wbr>init__<wbr> module</span>
+        <span class="md-ellipsis">__<wbr>init__<wbr></span>
       </a>
     </li>
   
@@ -523,8 +523,8 @@
   
   
     <li class="md-nav__item">
-      <a href="API-Reference/cpp_linter.run.html" class="md-nav__link">
-        <span class="md-ellipsis">run module</span>
+      <a href="API-Reference/cpp_linter.clang_tools.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools</span>
       </a>
     </li>
   
@@ -538,8 +538,8 @@
   
   
     <li class="md-nav__item">
-      <a href="API-Reference/cpp_linter.clang_tidy.html" class="md-nav__link">
-        <span class="md-ellipsis">clang_<wbr>tidy module</span>
+      <a href="API-Reference/cpp_linter.clang_tools.clang_format.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>clang_<wbr>format</span>
       </a>
     </li>
   
@@ -553,8 +553,8 @@
   
   
     <li class="md-nav__item">
-      <a href="API-Reference/cpp_linter.clang_tidy_yml.html" class="md-nav__link">
-        <span class="md-ellipsis">clang_<wbr>tidy_<wbr>yml module</span>
+      <a href="API-Reference/cpp_linter.clang_tools.clang_tidy.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>clang_<wbr>tidy</span>
       </a>
     </li>
   
@@ -568,8 +568,8 @@
   
   
     <li class="md-nav__item">
-      <a href="API-Reference/cpp_linter.clang_format_xml.html" class="md-nav__link">
-        <span class="md-ellipsis">clang_<wbr>format_<wbr>xml module</span>
+      <a href="API-Reference/cpp_linter.rest_api.html" class="md-nav__link">
+        <span class="md-ellipsis">rest_<wbr>api</span>
       </a>
     </li>
   
@@ -583,8 +583,8 @@
   
   
     <li class="md-nav__item">
-      <a href="API-Reference/cpp_linter.thread_comments.html" class="md-nav__link">
-        <span class="md-ellipsis">thread_<wbr>comments module</span>
+      <a href="API-Reference/cpp_linter.rest_api.github_api.html" class="md-nav__link">
+        <span class="md-ellipsis">rest_<wbr>api.<wbr>github_<wbr>api</span>
       </a>
     </li>
   
@@ -599,7 +599,52 @@
   
     <li class="md-nav__item">
       <a href="API-Reference/cpp_linter.git.html" class="md-nav__link">
-        <span class="md-ellipsis">git module</span>
+        <span class="md-ellipsis">git</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="API-Reference/cpp_linter.git.git_str.html" class="md-nav__link">
+        <span class="md-ellipsis">git.<wbr>git_<wbr>str</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="API-Reference/cpp_linter.loggers.html" class="md-nav__link">
+        <span class="md-ellipsis">loggers</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="API-Reference/cpp_linter.common_fs.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs</span>
       </a>
     </li>
   
@@ -778,11 +823,16 @@
 <span id="cmdoption-verbosity"></span><span class="sig-name descname"><span class="pre">-v</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--verbosity</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-v" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-v <var>VERBOSITY</var></span>, <span class="option">--verbosity <var>VERBOSITY</var></span></kbd></dt>
-<dd><p>This controls the action’s verbosity in the workflow’s logs.
-Supported options are defined by the <a class="reference external" href="logging-levels">logging-level</a>.
-This option does not affect the verbosity of resulting
-thread comments or file annotations.</p>
-<p>Defaults to level <code class="docutils literal notranslate"><span class="pre">20</span></code> (aka  <code class="docutils literal notranslate"><span class="pre">logging.INFO</span></code>).</p>
+<dd><p>This controls the action’s verbosity in the workflow’s
+logs. Supported options are <code class="docutils literal notranslate"><span class="pre">debug</span></code> and <code class="docutils literal notranslate"><span class="pre">info</span></code>.
+The numerical representations of these log levels
+defined by the <a class="reference external" href="logging-levels">logging</a> library
+(<code class="docutils literal notranslate"><span class="pre">10</span></code> for <code class="docutils literal notranslate"><span class="pre">debug</span></code>, and <code class="docutils literal notranslate"><span class="pre">20</span></code> for <code class="docutils literal notranslate"><span class="pre">info</span></code>) are
+also supported.</p>
+<p>This option does not affect the verbosity of resulting
+thread comments, file annotations, nor log grouping
+markers.</p>
+<p>Defaults to level <code class="docutils literal notranslate"><span class="pre">info</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -792,13 +842,22 @@ thread comments or file annotations.</p>
 <span id="cmdoption-database"></span><span class="sig-name descname"><span class="pre">-p</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--database</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-p" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-p <var>DATABASE</var></span>, <span class="option">--database <var>DATABASE</var></span></kbd></dt>
-<dd><p>The path that is used to read a compile command database.
-For example, it can be a CMake build directory in which a file named
-compile_commands.json exists (set <code class="docutils literal notranslate"><span class="pre">CMAKE_EXPORT_COMPILE_COMMANDS</span></code> to <code class="docutils literal notranslate"><span class="pre">ON</span></code>).
-When no build path is specified, a search for compile_commands.json will be
-attempted through all parent paths of the first input file. See
-<a class="reference external" href="https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html">https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html</a> for an
-example of setting up Clang Tooling on a source tree.</p>
+<dd><p>The path that is used to read a compile command
+database. For example, it can be a CMake build
+directory in which a file named compile_commands.json
+exists (set <code class="docutils literal notranslate"><span class="pre">CMAKE_EXPORT_COMPILE_COMMANDS</span></code> to
+<code class="docutils literal notranslate"><span class="pre">ON</span></code>). When no build path is specified, a search
+for compile_commands.json will be attempted through
+all parent paths of the first input file. See
+<a class="reference external" href="https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html">https://clang.llvm.org/docs/HowToSetupToolingForLLVM.html</a>
+for an example of setting up Clang Tooling on a source
+tree.</p>
+<div class="important admonition">
+<p class="admonition-title">Important</p>
+<p>Builds using ninja should explicitly specify this
+path. Otherwise, cpp-linter will have difficulty
+parsing clang-tidy output.</p>
+</div>
 </dd>
 </dl>
 </dd></dl>
@@ -810,10 +869,10 @@ example of setting up Clang Tooling on a source tree.</p>
 <dt><kbd><span class="option">-s <var>STYLE</var></span>, <span class="option">--style <var>STYLE</var></span></kbd></dt>
 <dd><p>The style rules to use (defaults to <code class="docutils literal notranslate"><span class="pre">llvm</span></code>).</p>
 <ul class="simple">
-<li><p>Set this to <code class="docutils literal notranslate"><span class="pre">file</span></code> to have clang-format use the closest relative
-.clang-format file.</p></li>
-<li><p>Set this to a blank string (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>) to disable using clang-format
-entirely.</p></li>
+<li><p>Set this to <code class="docutils literal notranslate"><span class="pre">file</span></code> to have clang-format use the
+closest relative .clang-format file.</p></li>
+<li><p>Set this to a blank string (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>) to disable
+using clang-format entirely.</p></li>
 </ul>
 </dd>
 </dl>
@@ -824,16 +883,20 @@ entirely.</p></li>
 <span id="cmdoption-tidy-checks"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--tidy-checks</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-c" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-c <var>TIDY_CHECKS</var></span>, <span class="option">--tidy-checks <var>TIDY_CHECKS</var></span></kbd></dt>
-<dd><p>A comma-separated list of globs with optional <code class="docutils literal notranslate"><span class="pre">-</span></code> prefix.
-Globs are processed in order of appearance in the list.
-Globs without <code class="docutils literal notranslate"><span class="pre">-</span></code> prefix add checks with matching names to the set,
-globs with the <code class="docutils literal notranslate"><span class="pre">-</span></code> prefix remove checks with matching names from the set of
-enabled checks. This option’s value is appended to the value of the ‘Checks’
-option in a .clang-tidy file (if any).</p>
+<dd><p>A comma-separated list of globs with optional
+<code class="docutils literal notranslate"><span class="pre">-</span></code> prefix. Globs are processed in order of
+appearance in the list. Globs without <code class="docutils literal notranslate"><span class="pre">-</span></code> prefix
+add checks with matching names to the set, globs with
+the <code class="docutils literal notranslate"><span class="pre">-</span></code> prefix remove checks with matching names
+from the set of enabled checks. This option’s value
+is appended to the value of the ‘Checks’ option in
+a .clang-tidy file (if any).</p>
 <ul class="simple">
-<li><p>It is possible to disable clang-tidy entirely by setting this option to <code class="docutils literal notranslate"><span class="pre">'-*'</span></code>.</p></li>
-<li><p>It is also possible to rely solely on a .clang-tidy config file by
-specifying this option as a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>).</p></li>
+<li><p>It is possible to disable clang-tidy entirely by
+setting this option to <code class="docutils literal notranslate"><span class="pre">'-*'</span></code>.</p></li>
+<li><p>It is also possible to rely solely on a .clang-tidy
+config file by specifying this option as a blank
+string (<code class="docutils literal notranslate"><span class="pre">''</span></code>).</p></li>
 </ul>
 <p>The defaults is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><code><span class="n">boost</span><span class="o">-*</span><span class="p">,</span><span class="n">bugprone</span><span class="o">-*</span><span class="p">,</span><span class="n">performance</span><span class="o">-*</span><span class="p">,</span><span class="n">readability</span><span class="o">-*</span><span class="p">,</span><span class="n">portability</span><span class="o">-*</span><span class="p">,</span><span class="n">modernize</span><span class="o">-*</span><span class="p">,</span><span class="n">clang</span><span class="o">-</span><span class="n">analyzer</span><span class="o">-*</span><span class="p">,</span><span class="n">cppcoreguidelines</span><span class="o">-*</span>
@@ -849,14 +912,14 @@ specifying this option as a blank string (<code class="docutils literal notransl
 <span id="cmdoption-version"></span><span class="sig-name descname"><span class="pre">-V</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--version</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-V" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-V <var>VERSION</var></span>, <span class="option">--version <var>VERSION</var></span></kbd></dt>
-<dd><p>The desired version of the clang tools to use. Accepted options are
-strings which can be 8, 9, 10, 11, 12, 13, 14, 15.</p>
+<dd><p>The desired version of the clang tools to use.</p>
 <ul class="simple">
-<li><p>Set this option to a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>) to use the
-platform’s default installed version.</p></li>
-<li><p>This value can also be a path to where the clang tools are
-installed (if using a custom install location). All paths specified
-here are converted to absolute.</p></li>
+<li><p>Set this option to a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>) to use
+the platform’s default installed version.</p></li>
+<li><p>This value can also be a path to where the clang
+tools are installed (if using a custom install
+location). All paths specified here are converted
+to absolute.</p></li>
 </ul>
 <p>Default is a blank string.</p>
 </dd>
@@ -882,9 +945,9 @@ This comma-separated string defaults to:</p>
 <span id="cmdoption-repo-root"></span><span class="sig-name descname"><span class="pre">-r</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--repo-root</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-r" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-r <var>REPO_ROOT</var></span>, <span class="option">--repo-root <var>REPO_ROOT</var></span></kbd></dt>
-<dd><p>The relative path to the repository root directory. This path is
-relative to the runner’s <code class="docutils literal notranslate"><span class="pre">GITHUB_WORKSPACE</span></code> environment variable (or
-the current working directory if not using a CI runner).</p>
+<dd><p>The relative path to the repository root directory.
+This path is relative to the working directory from
+which cpp-linter was executed.</p>
 <p>The default value is <code class="docutils literal notranslate"><span class="pre">.</span></code></p>
 </dd>
 </dl>
@@ -897,17 +960,22 @@ the current working directory if not using a CI runner).</p>
 <dt><kbd><span class="option">-i <var>IGNORE</var></span>, <span class="option">--ignore <var>IGNORE</var></span></kbd></dt>
 <dd><p>Set this option with path(s) to ignore (or not ignore).</p>
 <ul class="simple">
-<li><p>In the case of multiple paths, you can use <code class="docutils literal notranslate"><span class="pre">|</span></code> to separate each path.</p></li>
-<li><p>There is no need to use <code class="docutils literal notranslate"><span class="pre">./</span></code> for each entry; a blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>)
-represents the repo-root path.</p></li>
-<li><p>This can also have files, but the file’s path (relative to
-the <a class="reference internal" href="#cmdoption-r"><code class="xref std std-option docutils literal notranslate"><span class="pre">--repo-root</span></code></a>) has to be specified with the filename.</p></li>
-<li><p>Submodules are automatically ignored. Hidden directories (beginning
-with a <code class="docutils literal notranslate"><span class="pre">.</span></code>) are also ignored automatically.</p></li>
-<li><p>Prefix a path with <code class="docutils literal notranslate"><span class="pre">!</span></code> to explicitly not ignore it. This can be
-applied to a submodule’s path (if desired) but not hidden directories.</p></li>
-<li><p>Glob patterns are not supported here. All asterisk characters (<code class="docutils literal notranslate"><span class="pre">*</span></code>)
-are literal.</p></li>
+<li><p>In the case of multiple paths, you can use <code class="docutils literal notranslate"><span class="pre">|</span></code> to
+separate each path.</p></li>
+<li><p>There is no need to use <code class="docutils literal notranslate"><span class="pre">./</span></code> for each entry; a
+blank string (<code class="docutils literal notranslate"><span class="pre">''</span></code>) represents the repo-root
+path.</p></li>
+<li><p>This can also have files, but the file’s path
+(relative to the <a class="reference internal" href="#cmdoption-r"><code class="xref std std-option docutils literal notranslate"><span class="pre">--repo-root</span></code></a>) has to
+be specified with the filename.</p></li>
+<li><p>Submodules are automatically ignored. Hidden
+directories (beginning with a <code class="docutils literal notranslate"><span class="pre">.</span></code>) are also
+ignored automatically.</p></li>
+<li><p>Prefix a path with <code class="docutils literal notranslate"><span class="pre">!</span></code> to explicitly not ignore
+it. This can be applied to a submodule’s path (if
+desired) but not hidden directories.</p></li>
+<li><p>Glob patterns are not supported here. All asterisk
+characters (<code class="docutils literal notranslate"><span class="pre">*</span></code>) are literal.</p></li>
 </ul>
 </dd>
 </dl>
@@ -921,10 +989,11 @@ are literal.</p></li>
 <dd><p>This controls what part of the files are analyzed.
 The following values are accepted:</p>
 <ul class="simple">
-<li><p>false: All lines in a file are analyzed.</p></li>
-<li><p>true: Only lines in the diff that contain additions are analyzed.</p></li>
-<li><p>diff: All lines in the diff are analyzed (including unchanged
-lines but not subtractions).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">false</span></code>: All lines in a file are analyzed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">true</span></code>: Only lines in the diff that contain
+additions are analyzed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diff</span></code>: All lines in the diff are analyzed
+including unchanged lines but not subtractions.</p></li>
 </ul>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
 </dd>
@@ -936,14 +1005,16 @@ lines but not subtractions).</p></li>
 <span id="cmdoption-files-changed-only"></span><span class="sig-name descname"><span class="pre">-f</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--files-changed-only</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-f" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-f <var>FILES_CHANGED_ONLY</var></span>, <span class="option">--files-changed-only <var>FILES_CHANGED_ONLY</var></span></kbd></dt>
-<dd><p>Set this option to false to analyze any source files in the repo.
-This is automatically enabled if
+<dd><p>Set this option to false to analyze any source
+files in the repo. This is automatically enabled if
 <a class="reference internal" href="#cmdoption-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lines-changed-only</span></code></a> is enabled.</p>
 <div class="note admonition">
 <p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> should be supplied when running on a
-private repository with this option enabled, otherwise the runner
-does not not have the privilege to list the changed files for an event.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> should be supplied when
+running on a private repository with this option
+enabled, otherwise the runner does not not have
+the privilege to list the changed files for an
+event.</p>
 <p>See <a class="reference external" href="https://docs.github.com/en/actions/reference/authentication-in-a-workflow">Authenticating with the GITHUB_TOKEN</a></p>
 </div>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
@@ -956,11 +1027,13 @@ does not not have the privilege to list the changed files for an event.</p>
 <span id="cmdoption-no-lgtm"></span><span class="sig-name descname"><span class="pre">-g</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--no-lgtm</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-g" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-g <var>NO_LGTM</var></span>, <span class="option">--no-lgtm <var>NO_LGTM</var></span></kbd></dt>
-<dd><p>Set this option to true or false to enable or disable the use of a
-thread comment that basically says ‘Looks Good To Me’ (when all checks pass).</p>
+<dd><p>Set this option to true or false to enable or
+disable the use of a thread comment that basically says
+‘Looks Good To Me’ (when all checks pass).</p>
 <div class="seealso admonition">
 <p class="admonition-title">Seealso</p>
-<p>The <a class="reference internal" href="#cmdoption-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--thread-comments</span></code></a> option also notes further implications.</p>
+<p>The <a class="reference internal" href="#cmdoption-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--thread-comments</span></code></a> option also
+notes further implications.</p>
 </div>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
 </dd>
@@ -971,22 +1044,24 @@ thread comment that basically says ‘Looks Good To Me’ (when all checks pass)
 <dt class="sig sig-object highlight std" id="cmdoption-t">
 <span id="cmdoption-thread-comments"></span><span class="sig-name descname"><span class="pre">-t</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--thread-comments</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-t" title="Link to this definition">¶</a></dt>
 <dd><dl>
-<dt><code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">{true,false,update},</span> <span class="pre">--thread-comments</span> <span class="pre">{true,false,update}</span></code></dt><dd><p>Set this option to ‘true’ or ‘false’ to enable or disable the use of
-thread comments as feedback. Set this to ‘update’ to update an existing comment
-if one exists; the value ‘true’ will always delete an old comment and post a new one
-if necessary.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">{true,false,update},</span> <span class="pre">--thread-comments</span> <span class="pre">{true,false,update}</span></code></dt><dd><p>Set this option to <code class="docutils literal notranslate"><span class="pre">true</span></code> or <code class="docutils literal notranslate"><span class="pre">false</span></code> to enable
+or disable the use of thread comments as feedback.
+Set this to <code class="docutils literal notranslate"><span class="pre">update</span></code> to update an existing comment
+if one exists; the value <code class="docutils literal notranslate"><span class="pre">true</span></code> will always delete
+an old comment and post a new one if necessary.</p>
 <div class="note admonition">
 <p class="admonition-title">Note</p>
-<p>To use thread comments, the <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code> (provided by
-Github to each repository) must be declared as an environment
-variable.</p>
+<p>To use thread comments, the <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code>
+(provided by Github to each repository) must
+be declared as an environment variable.</p>
 <p>See <a class="reference external" href="https://docs.github.com/en/actions/reference/authentication-in-a-workflow">Authenticating with the GITHUB_TOKEN</a></p>
 </div>
 <div class="hint admonition">
 <p class="admonition-title">Hint</p>
-<p>If run on a private repository, then this feature is
-disabled because the GitHub REST API behaves
-differently for thread comments on a private repository.</p>
+<p>If run on a private repository, then this feature
+is disabled because the GitHub REST API behaves
+differently for thread comments on a private
+repository.</p>
 </div>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
 </dd>
@@ -998,8 +1073,9 @@ differently for thread comments on a private repository.</p>
 <span id="cmdoption-step-summary"></span><span class="sig-name descname"><span class="pre">-w</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--step-summary</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-w" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-w <var>STEP_SUMMARY</var></span>, <span class="option">--step-summary <var>STEP_SUMMARY</var></span></kbd></dt>
-<dd><p>Set this option to true or false to enable or disable the use of
-a workflow step summary when the run has concluded.</p>
+<dd><p>Set this option to true or false to enable or
+disable the use of a workflow step summary when the run
+has concluded.</p>
 <p>Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
 </dd>
 </dl>
@@ -1022,14 +1098,15 @@ file annotations as feedback.</p>
 <span id="cmdoption-extra-arg"></span><span class="sig-name descname"><span class="pre">-x</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--extra-arg</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-x" title="Link to this definition">¶</a></dt>
 <dd><dl class="option-list">
 <dt><kbd><span class="option">-x <var>EXTRA_ARG</var></span>, <span class="option">--extra-arg <var>EXTRA_ARG</var></span></kbd></dt>
-<dd><p>A string of extra arguments passed to clang-tidy for use as
-compiler arguments. This can be specified more than once for each
-additional argument. Recommend using quotes around the value and
-avoid using spaces between name and value (use <code class="docutils literal notranslate"><span class="pre">=</span></code> instead):</p>
+<dd><p>A string of extra arguments passed to clang-tidy
+for use as compiler arguments. This can be specified
+more than once for each additional argument. Recommend
+using quotes around the value and avoid using spaces
+between name and value (use <code class="docutils literal notranslate"><span class="pre">=</span></code> instead):</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><code>cpp-linter<span class="w"> </span>--extra-arg<span class="o">=</span><span class="s2">&quot;-std=c++17&quot;</span><span class="w"> </span>--extra-arg<span class="o">=</span><span class="s2">&quot;-Wall&quot;</span>
 </code></pre></div>
 </div>
-<p>Defaults to <code class="docutils literal notranslate"><span class="pre">'[]'</span></code>.</p>
+<p>Defaults to none.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1076,13 +1153,13 @@ avoid using spaces between name and value (use <code class="docutils literal not
       
       
         
-        <a href="API-Reference/cpp_linter.html" class="md-footer__link md-footer__link--next" aria-label="Next: __init__ module" rel="next">
+        <a href="API-Reference/cpp_linter.html" class="md-footer__link md-footer__link--next" aria-label="Next: __init__" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              __init__ module
+              __init__
             </div>
           </div>
           <div class="md-footer__button md-icon">

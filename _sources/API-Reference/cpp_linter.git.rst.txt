@@ -1,4 +1,4 @@
-``git`` module
+``git``
 ==============
 
 .. automodule:: cpp_linter.git
