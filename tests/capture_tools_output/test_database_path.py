@@ -7,10 +7,10 @@ import re
 import sys
 import shutil
 import pytest
-from cpp_linter import logger, FileObj
-import cpp_linter.run
-import cpp_linter
-from cpp_linter.run import capture_clang_tools_output, make_annotations
+from cpp_linter.loggers import logger
+from cpp_linter.common_fs import FileObj, CACHE_PATH
+from cpp_linter.rest_api.github_api import GithubApiClient
+from cpp_linter.clang_tools import capture_clang_tools_output
 from mesonbuild.mesonmain import main as meson  # type: ignore[import-untyped]
 
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
@@ -33,29 +33,23 @@ ABS_DB_PATH = str(Path("tests/demo").resolve())
 def test_db_detection(
     caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
-    pytestconfig: pytest.Config,
     database: str,
     expected_args: List[str],
 ):
     """test clang-tidy using a implicit path to the compilation database."""
-    monkeypatch.chdir(PurePath(__file__).parent.as_posix())
-    cpp_linter.CACHE_PATH.mkdir(exist_ok=True)
-    demo_src = "../demo/demo.cpp"
-    monkeypatch.setattr(
-        cpp_linter.run,
-        "RUNNER_WORKSPACE",
-        Path(pytestconfig.rootpath, "tests").resolve().as_posix(),
-    )
-    monkeypatch.setattr(cpp_linter.Globals, "FILES", [FileObj(demo_src, [], [])])
-
+    monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
+    CACHE_PATH.mkdir(exist_ok=True)
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    capture_clang_tools_output(
+    demo_src = "../demo/demo.cpp"
+    files = [FileObj(demo_src, [], [])]
+
+    _ = capture_clang_tools_output(
+        files,
         version=os.getenv("CLANG_VERSION", "12"),
         checks="",  # let clang-tidy use a .clang-tidy config file
         style="",  # don't invoke clang-format
         lines_changed_only=0,  # analyze complete file
         database=database,
-        repo_root=".",
         extra_args=[],
     )
     matched_args = []
@@ -65,7 +59,7 @@ def test_db_detection(
         if msg_match is not None:
             matched_args = msg_match.group(0).split()[1:]
             break
-    else:
+    else:  # pragma: no cover
         raise RuntimeError("failed to find args passed in clang-tidy in log records")
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args
@@ -92,40 +86,33 @@ def test_ninja_database(
     )
     meson()
 
-    caplog.set_level(logging.DEBUG, logger=cpp_linter.logger.name)
-    monkeypatch.setattr(
-        cpp_linter.Globals,
-        "FILES",
-        [FileObj("demo.cpp", [], [])],
-    )
-    for attr in ["OUTPUT", "FORMAT_COMMENT", "TIDY_COMMENT"]:
-        monkeypatch.setattr(cpp_linter.Globals, attr, "")
-    for attr in ["tidy_notes", "format_advice"]:
-        monkeypatch.setattr(cpp_linter.GlobalParser, attr, [])
-    for attr in ["tidy_failed_count", "format_failed_count"]:
-        monkeypatch.setattr(cpp_linter.Globals, attr, 0)
-    monkeypatch.setattr(cpp_linter.run, "RUNNER_WORKSPACE", str(tmp_path_demo))
+    caplog.set_level(logging.DEBUG, logger=logger.name)
+    files = [FileObj("demo.cpp", [], [])]
+    gh_client = GithubApiClient()
 
-    cpp_linter.CLANG_TIDY_STDOUT.parent.mkdir(parents=True)
     # run clang-tidy and verify paths of project files were matched with database paths
-    capture_clang_tools_output(
+    (format_advice, tidy_advice) = capture_clang_tools_output(
+        files,
         version=os.getenv("CLANG_VERSION", "12"),
         checks="",  # let clang-tidy use a .clang-tidy config file
         style="",  # don't invoke clang-format
         lines_changed_only=0,  # analyze complete file
         database="build",  # point to generated compile_commands.txt
-        repo_root=".",  # already changed cwd
         extra_args=[],
     )
     found_project_file = False
-    for note in cpp_linter.GlobalParser.tidy_notes:
-        if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
-            assert not Path(note.filename).is_absolute()
-            found_project_file = True
-    if not found_project_file:
+    for notes in tidy_advice:
+        for note in notes:
+            if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
+                assert not Path(note.filename).is_absolute()
+                found_project_file = True
+    if not found_project_file:  # pragma: no cover
         raise RuntimeError("no project files raised concerns with clang-tidy")
-    assert make_annotations("", True, 0)
-    # write step-summary for manual verification
-    Path(tmp_path, "job_summary.md").write_text(
-        cpp_linter.Globals.OUTPUT, encoding="utf-8"
+    (comment, format_checks_failed, tidy_checks_failed) = gh_client.make_comment(
+        files, format_advice, tidy_advice
     )
+    assert tidy_checks_failed
+    assert not format_checks_failed
+
+    # write step-summary for manual verification
+    Path(tmp_path, "job_summary.md").write_text(comment, encoding="utf-8")
