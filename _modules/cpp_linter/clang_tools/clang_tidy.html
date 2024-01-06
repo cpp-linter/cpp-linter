@@ -545,6 +545,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">Patch</span>  <span class="c1"># type: ignore[import]</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
 
@@ -576,16 +577,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
             <span class="c1">#: The columns of the line that triggered the notification.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">note_type</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">note_info</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">severity</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rationale</span><span class="p">,</span>
             <span class="c1">#: The clang-tidy check that enabled the notification.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">=</span> <span class="n">notification_line</span>
 
         <span class="c1">#: The rationale of the notification.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">note_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">note_info</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rationale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rationale</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1">#: The priority level of notification (warning/error).</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">note_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">note_type</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">severity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">severity</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="c1">#: The line number of the source file.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
@@ -617,12 +618,25 @@
         <span class="c1">#: A `list` of lines for the code-block in the notification.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">diagnostic_link</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a markdown link to the diagnostic documentation.&quot;&quot;&quot;</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnostic</span><span class="si">}</span><span class="s2">](https://clang.llvm.org/extra/clang-tidy/checks/&quot;</span>
+        <span class="k">return</span> <span class="n">link</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">.html)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnostic</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&lt;TidyNotification </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="si">}</span><span class="s2"> &quot;</span>
             <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">diagnostic</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
         <span class="p">)</span></div>
 
+
+
+<span class="k">class</span> <span class="nc">TidyAdvice</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">notes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#: A patch of the suggested fixes from clang-tidy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suggestion</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Patch</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="n">notes</span>
 
 
 <div class="viewcode-block" id="run_clang_tidy">
@@ -635,7 +649,7 @@
     <span class="n">database</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">extra_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">db_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TidyAdvice</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run clang-tidy on a certain file.</span>
 
 <span class="sd">    :param command: The clang-tidy command to use (usually a resolved path).</span>
@@ -701,7 +715,7 @@
 <a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_tidy.html#cpp_linter.clang_tools.clang_tidy.parse_tidy_output">[docs]</a>
 <span class="k">def</span> <span class="nf">parse_tidy_output</span><span class="p">(</span>
     <span class="n">tidy_out</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">database</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TidyAdvice</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse clang-tidy stdout.</span>
 
 <span class="sd">    :param tidy_out: The stdout from clang-tidy.</span>
@@ -726,7 +740,7 @@
             <span class="c1"># append lines of code that are part of</span>
             <span class="c1"># the previous line&#39;s notification</span>
             <span class="n">notification</span><span class="o">.</span><span class="n">fixit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">tidy_notes</span></div>
+    <span class="k">return</span> <span class="n">TidyAdvice</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="n">tidy_notes</span><span class="p">)</span></div>
 
 </code></pre></div>
 

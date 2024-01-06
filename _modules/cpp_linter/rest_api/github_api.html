@@ -557,7 +557,7 @@
 
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="n">FormatAdvice</span><span class="p">,</span> <span class="n">formalize_style_name</span>
-<span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyNotification</span>
+<span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_response_msg</span><span class="p">,</span> <span class="n">log_commander</span>
 <span class="kn">from</span> <span class="nn">..git</span> <span class="kn">import</span> <span class="n">parse_diff</span><span class="p">,</span> <span class="n">get_diff</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">RestApiClient</span>
@@ -698,7 +698,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">]],</span>
+        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
         <span class="n">thread_comments</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">step_summary</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -762,7 +762,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">TidyNotification</span><span class="p">]],</span>
+        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
         <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Use github log commands to make annotations from clang-format and</span>
@@ -788,19 +788,21 @@
                 <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; does not conform to </span><span class="si">{</span><span class="n">style_guide</span><span class="si">}</span><span class="s2"> style guidelines. &quot;</span>
                 <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;(lines </span><span class="si">{lines}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lines</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">))</span>
                 <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">note</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tidy_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">note</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">concern</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tidy_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concern</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
                     <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;::</span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="s2">&quot;notice&quot;</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">note_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;note&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">n</span><span class="o">.</span><span class="n">note_type</span>
+                        <span class="s2">&quot;notice&quot;</span>
+                        <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">severity</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;note&quot;</span><span class="p">)</span>
+                        <span class="k">else</span> <span class="n">note</span><span class="o">.</span><span class="n">severity</span>
                     <span class="p">)</span>
                     <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;file=</span><span class="si">{file}</span><span class="s2">,line=</span><span class="si">{line}</span><span class="s2">,title=</span><span class="si">{file}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">line</span>
+                        <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">line</span>
                     <span class="p">)</span>
                     <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{cols}</span><span class="s2"> [</span><span class="si">{diag}</span><span class="s2">]::</span><span class="si">{info}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">cols</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
-                        <span class="n">diag</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">,</span>
-                        <span class="n">info</span><span class="o">=</span><span class="n">n</span><span class="o">.</span><span class="n">note_info</span><span class="p">,</span>
+                        <span class="n">cols</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
+                        <span class="n">diag</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">diagnostic</span><span class="p">,</span>
+                        <span class="n">info</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">rationale</span><span class="si">}</span><span class="s2"> -- see </span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">diagnostic_link</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">output</span><span class="p">)</span></div>
 
