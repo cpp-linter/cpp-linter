@@ -4,7 +4,7 @@ import requests
 from typing import Optional, Dict, List, Tuple
 from ..common_fs import FileObj
 from ..clang_tools.clang_format import FormatAdvice
-from ..clang_tools.clang_tidy import TidyNotification
+from ..clang_tools.clang_tidy import TidyAdvice
 from ..loggers import logger
 
 
@@ -63,7 +63,7 @@ class RestApiClient(ABC):
     def make_comment(
         files: List[FileObj],
         format_advice: List[FormatAdvice],
-        tidy_advice: List[List[TidyNotification]],
+        tidy_advice: List[TidyAdvice],
     ) -> Tuple[str, int, int]:
         """Make an MarkDown comment from the given advice. Also returns a count of
         checks failed for each tool (clang-format and clang-tidy)
@@ -88,8 +88,8 @@ class RestApiClient(ABC):
                 format_checks_failed += 1
 
         tidy_comment = ""
-        for file_obj, notes in zip(files, tidy_advice):
-            for note in notes:
+        for file_obj, concern in zip(files, tidy_advice):
+            for note in concern.notes:
                 if file_obj.name == note.filename:
                     tidy_comment += f"- {file_obj.name}\n\n"
                     tidy_comment += (
@@ -137,7 +137,7 @@ class RestApiClient(ABC):
         self,
         files: List[FileObj],
         format_advice: List[FormatAdvice],
-        tidy_advice: List[List[TidyNotification]],
+        tidy_advice: List[TidyAdvice],
         thread_comments: str,
         no_lgtm: bool,
         step_summary: bool,

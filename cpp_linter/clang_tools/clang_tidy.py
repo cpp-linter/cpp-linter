@@ -5,6 +5,7 @@ from pathlib import Path, PurePath
 import re
 import subprocess
 from typing import Tuple, Union, List, cast, Optional, Dict
+from pygit2 import Patch  # type: ignore[import]
 from ..loggers import logger
 from ..common_fs import FileObj
 
@@ -88,6 +89,13 @@ class TidyNotification:
         )
 
 
+class TidyAdvice:
+    def __init__(self, notes: List[TidyNotification]) -> None:
+        #: A patch of the suggested fixes from clang-tidy
+        self.suggestion: Optional[Patch] = None
+        self.notes = notes
+
+
 def run_clang_tidy(
     command: str,
     file_obj: FileObj,
@@ -96,7 +104,7 @@ def run_clang_tidy(
     database: str,
     extra_args: List[str],
     db_json: Optional[List[Dict[str, str]]],
-) -> List[TidyNotification]:
+) -> TidyAdvice:
     """Run clang-tidy on a certain file.
 
     :param command: The clang-tidy command to use (usually a resolved path).
@@ -159,7 +167,7 @@ def run_clang_tidy(
 
 def parse_tidy_output(
     tidy_out: str, database: Optional[List[Dict[str, str]]]
-) -> List[TidyNotification]:
+) -> TidyAdvice:
     """Parse clang-tidy stdout.
 
     :param tidy_out: The stdout from clang-tidy.
@@ -184,4 +192,4 @@ def parse_tidy_output(
             # append lines of code that are part of
             # the previous line's notification
             notification.fixit_lines.append(line)
-    return tidy_notes
+    return TidyAdvice(notes=tidy_notes)

@@ -17,7 +17,7 @@ from typing import Dict, List, Any, cast, Optional, Tuple
 
 from ..common_fs import FileObj, CACHE_PATH
 from ..clang_tools.clang_format import FormatAdvice, formalize_style_name
-from ..clang_tools.clang_tidy import TidyNotification
+from ..clang_tools.clang_tidy import TidyAdvice
 from ..loggers import start_log_group, logger, log_response_msg, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient
@@ -142,7 +142,7 @@ class GithubApiClient(RestApiClient):
         self,
         files: List[FileObj],
         format_advice: List[FormatAdvice],
-        tidy_advice: List[List[TidyNotification]],
+        tidy_advice: List[TidyAdvice],
         thread_comments: str,
         no_lgtm: bool,
         step_summary: bool,
@@ -203,7 +203,7 @@ class GithubApiClient(RestApiClient):
         self,
         files: List[FileObj],
         format_advice: List[FormatAdvice],
-        tidy_advice: List[List[TidyNotification]],
+        tidy_advice: List[TidyAdvice],
         style: str,
     ) -> None:
         """Use github log commands to make annotations from clang-format and
@@ -229,21 +229,21 @@ class GithubApiClient(RestApiClient):
                 output += f" does not conform to {style_guide} style guidelines. "
                 output += "(lines {lines})".format(lines=", ".join(line_list))
                 log_commander.info(output)
-        for note, file in zip(tidy_advice, files):
-            for n in note:
-                if n.filename == file.name:
+        for concern, file in zip(tidy_advice, files):
+            for note in concern.notes:
+                if note.filename == file.name:
                     output = "::{} ".format(
                         "notice"
-                        if n.severity.startswith("note")
-                        else n.severity
+                        if note.severity.startswith("note")
+                        else note.severity
                     )
                     output += "file={file},line={line},title={file}:{line}:".format(
-                        file=file.name, line=n.line
+                        file=file.name, line=note.line
                     )
                     output += "{cols} [{diag}]::{info}".format(
-                        cols=n.cols,
-                        diag=n.diagnostic,
-                        info=f"{n.rationale} -- see {n.diagnostic_link}",
+                        cols=note.cols,
+                        diag=note.diagnostic,
+                        info=f"{note.rationale} -- see {note.diagnostic_link}",
                     )
                     log_commander.info(output)
 
