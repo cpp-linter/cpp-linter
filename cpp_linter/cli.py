@@ -281,6 +281,22 @@ done with :std:option:`--extensions`, the files
 specified as positional arguments will be exempt from
 explicitly ignored domains (see :std:option:`--ignore`).""",
 )
+cli_arg_parser.add_argument(
+    "--tidy-review",
+    "-tr",
+    default="false",
+    type=lambda input: input.lower() == "true",
+    help="""Set to ``true`` to enable PR review suggestions
+from clang-tidy.""",
+)
+cli_arg_parser.add_argument(
+    "--format-review",
+    "-fr",
+    default="false",
+    type=lambda input: input.lower() == "true",
+    help="""Set to ``true`` to enable PR review suggestions
+from clang-format.""",
+)
 
 
 def parse_ignore_option(

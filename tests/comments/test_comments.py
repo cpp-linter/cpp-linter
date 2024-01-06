@@ -43,6 +43,8 @@ def test_post_feedback(
         lines_changed_only=0,
         database="",
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     # add a non project file to tidy_advice to intentionally cover a log.debug()
     assert tidy_advice
@@ -122,4 +124,6 @@ def test_post_feedback(
             step_summary=True,
             file_annotations=True,
             style="llvm",
+            tidy_review=False,
+            format_review=False,
         )

@@ -39,6 +39,8 @@ def capture_clang_tools_output(
     lines_changed_only: int,
     database: str,
     extra_args: List[str],
+    tidy_review: bool,
+    format_review: bool,
 ) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
@@ -54,6 +56,10 @@ def capture_clang_tools_output(
     :param database: The path to the compilation database.
     :param extra_args: A list of extra arguments used by clang-tidy as compiler
         arguments.
+    :param tidy_review: A flag to enable/disable creating a diff suggestion for
+        PR review comments using clang-tidy.
+    :param format_review: A flag to enable/disable creating a diff suggestion for
+        PR review comments using clang-format.
     """
 
     def show_tool_version_output(cmd: str):  # show version output for executable used
@@ -81,7 +87,7 @@ def capture_clang_tools_output(
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
     # temporary cache of parsed notifications for use in log commands
-    tidy_notes: List[TidyAdvice] = []
+    tidy_notes = []
     format_advice = []
     for file in files:
         start_log_group(f"Performing checkup on {file.name}")
@@ -95,11 +101,14 @@ def capture_clang_tools_output(
                     database,
                     extra_args,
                     db_json,
+                    tidy_review,
                 )
             )
         if format_cmd is not None:
             format_advice.append(
-                run_clang_format(format_cmd, file, style, lines_changed_only)
+                run_clang_format(
+                    format_cmd, file, style, lines_changed_only, format_review
+                )
             )
         end_log_group()
     return (format_advice, tidy_notes)

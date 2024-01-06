@@ -104,6 +104,7 @@ def run_clang_tidy(
     database: str,
     extra_args: List[str],
     db_json: Optional[List[Dict[str, str]]],
+    tidy_review: bool,
 ) -> TidyAdvice:
     """Run clang-tidy on a certain file.
 
@@ -134,6 +135,8 @@ def run_clang_tidy(
     :param db_json: The compilation database deserialized from JSON, only if
         ``database`` parameter points to a valid path containing a
         ``compile_commands.json file``.
+    :param tidy_review: A flag to enable/disable creating a diff suggestion for
+        PR review comments.
     """
     filename = file_obj.name.replace("/", os.sep)
     cmds = [command]
@@ -162,7 +165,28 @@ def run_clang_tidy(
         logger.debug(
             "clang-tidy made the following summary:\n%s", results.stderr.decode()
         )
-    return parse_tidy_output(results.stdout.decode(), database=db_json)
+
+    advice = parse_tidy_output(results.stdout.decode(), database=db_json)
+
+    if tidy_review:
+        # clang-tidy overwrites the file contents when applying fixes.
+        original_buf = Path(
+            file_obj.name
+        ).read_bytes()  # create a cache of original contents
+        cmds.insert(1, "--fix-errors")  # include compiler-suggested fixes
+        # run clang-tidy again to apply any fixes
+        fixed_result = subprocess.run(cmds, capture_output=True)
+        if (
+            fixed_result.returncode
+        ):  # log if any problems encountered (whatever they are)
+            logger.error("clang-tidy had problems applying fixes to %s", file_obj.name)
+        # create a patch for the file changes
+        advice.suggestion = Patch.create_from(
+            original_buf, Path(file_obj.name).read_bytes()
+        )
+        # re-write original file contents (can probably skip this on CI runners)
+        Path(file_obj.name).write_bytes(original_buf)
+    return advice
 
 
 def parse_tidy_output(

@@ -146,6 +146,8 @@ class GithubApiClient(RestApiClient):
         step_summary: bool,
         file_annotations: bool,
         style: str,
+        tidy_review: bool,
+        format_review: bool,
     ):
         (comment, format_checks_failed, tidy_checks_failed) = super().make_comment(
             files, format_advice, tidy_advice
@@ -227,8 +229,8 @@ class GithubApiClient(RestApiClient):
                 output += f" does not conform to {style_guide} style guidelines. "
                 output += "(lines {lines})".format(lines=", ".join(line_list))
                 log_commander.info(output)
-        for concern, file in zip(tidy_advice, files):
-            for note in concern.notes:
+        for concerns, file in zip(tidy_advice, files):
+            for note in concerns.notes:
                 if note.filename == file.name:
                     output = "::{} ".format(
                         "notice" if note.severity.startswith("note") else note.severity

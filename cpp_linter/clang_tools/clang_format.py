@@ -1,8 +1,11 @@
 """Parse output from clang-format's XML suggestions."""
-from pathlib import PurePath
+from pathlib import PurePath, Path
 import subprocess
-from typing import List, cast
+from typing import List, cast, Optional
+
+from pygit2 import Patch  # type: ignore[import]
 import xml.etree.ElementTree as ET
+
 from ..common_fs import get_line_cnt_from_cols, FileObj
 from ..loggers import logger
 
@@ -65,6 +68,8 @@ class FormatAdvice:
         self.replaced_lines: List[FormatReplacementLine] = []
         """A list of `FormatReplacementLine` representing replacement(s)
         on a single line."""
+
+        self.suggestion: Optional[Patch] = None
 
     def __repr__(self) -> str:
         return (
@@ -140,6 +145,7 @@ def run_clang_format(
     file_obj: FileObj,
     style: str,
     lines_changed_only: int,
+    format_review: bool,
 ) -> FormatAdvice:
     """Run clang-format on a certain file
 
@@ -149,6 +155,8 @@ def run_clang_format(
         use the relative-most .clang-format configuration file.
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
+    :param format_review: A flag to enable/disable creating a diff suggestion for
+        PR review comments.
     """
     cmds = [
         command,
@@ -168,6 +176,15 @@ def run_clang_format(
         logger.debug(
             "%s raised the following error(s):\n%s", cmds[0], results.stderr.decode()
         )
-    return parse_format_replacements_xml(
+    advice = parse_format_replacements_xml(
         results.stdout.decode(encoding="utf-8").strip(), file_obj, lines_changed_only
     )
+    if format_review:
+        del cmds[2]  # remove `--output-replacements-xml` flag
+        # get formatted file from stdout
+        formatted_output = subprocess.run(cmds, capture_output=True)
+        # create and store a patch between original file and formatted_output
+        advice.suggestion = Patch.create_from(
+            Path(file_obj.name).read_bytes(), formatted_output.stdout
+        )
+    return advice

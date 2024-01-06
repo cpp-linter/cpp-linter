@@ -40,7 +40,7 @@ def test_db_detection(
     monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
     CACHE_PATH.mkdir(exist_ok=True)
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    demo_src = "../demo/demo.cpp"
+    demo_src = "demo/demo.cpp"
     files = [FileObj(demo_src, [], [])]
 
     _ = capture_clang_tools_output(
@@ -51,6 +51,8 @@ def test_db_detection(
         lines_changed_only=0,  # analyze complete file
         database=database,
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     matched_args = []
     for record in caplog.records:
@@ -99,6 +101,8 @@ def test_ninja_database(
         lines_changed_only=0,  # analyze complete file
         database="build",  # point to generated compile_commands.txt
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     found_project_file = False
     for concern in tidy_advice:

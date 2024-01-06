@@ -143,6 +143,8 @@ class RestApiClient(ABC):
         step_summary: bool,
         file_annotations: bool,
         style: str,
+        tidy_review: bool,
+        format_review: bool,
     ):
         """Post action's results using REST API.
 
@@ -161,5 +163,9 @@ class RestApiClient(ABC):
         :param file_annotations: A flag that describes if file annotations should
             be posted. See :std:option:`--file-annotations`.
         :param style: The style used for clang-format. See :std:option:`--style`.
+        :param tidy_review: A flag to enable/disable creating a diff suggestion for
+            PR review comments using clang-tidy.
+        :param format_review: A flag to enable/disable creating a diff suggestion for
+            PR review comments using clang-format.
         """
         raise NotImplementedError("Must be defined in the derivative")

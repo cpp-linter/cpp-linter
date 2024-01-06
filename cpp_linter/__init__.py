@@ -67,6 +67,8 @@ def main():
         args.lines_changed_only,
         args.database,
         args.extra_arg,
+        args.tidy_review,
+        args.format_review,
     )
 
     start_log_group("Posting comment(s)")

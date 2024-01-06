@@ -40,6 +40,8 @@ class Args:
     extra_arg: List[str] = []
     no_lgtm: bool = True
     files: List[str] = []
+    tidy_review: bool = False
+    format_review: bool = False
 
 
 def test_defaults():
