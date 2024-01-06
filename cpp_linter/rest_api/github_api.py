@@ -243,7 +243,7 @@ class GithubApiClient(RestApiClient):
                     output += "{cols} [{diag}]::{info}".format(
                         cols=note.cols,
                         diag=note.diagnostic,
-                        info=f"{note.rationale} -- see {note.diagnostic_link}",
+                        info=note.rationale,
                     )
                     log_commander.info(output)
 
