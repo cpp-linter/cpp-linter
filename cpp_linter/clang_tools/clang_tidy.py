@@ -5,6 +5,7 @@ from pathlib import Path, PurePath
 import re
 import subprocess
 from typing import Tuple, Union, List, cast, Optional, Dict
+from pygit2 import Patch  # type: ignore[import]
 from ..loggers import logger
 from ..common_fs import FileObj
 
@@ -34,16 +35,16 @@ class TidyNotification:
             self.line,
             #: The columns of the line that triggered the notification.
             self.cols,
-            self.note_type,
-            self.note_info,
+            self.severity,
+            self.rationale,
             #: The clang-tidy check that enabled the notification.
             self.diagnostic,
         ) = notification_line
 
         #: The rationale of the notification.
-        self.note_info = self.note_info.strip()
+        self.rationale = self.rationale.strip()
         #: The priority level of notification (warning/error).
-        self.note_type = self.note_type.strip()
+        self.severity = self.severity.strip()
         #: The line number of the source file.
         self.line = int(self.line)
         self.cols = int(self.cols)
@@ -75,11 +76,24 @@ class TidyNotification:
         #: A `list` of lines for the code-block in the notification.
         self.fixit_lines: List[str] = []
 
+    @property
+    def diagnostic_link(self) -> str:
+        """Creates a markdown link to the diagnostic documentation."""
+        link = f"[{self.diagnostic}](https://clang.llvm.org/extra/clang-tidy/checks/"
+        return link + "{}/{}.html)".format(*self.diagnostic.split("-", maxsplit=1))
+
     def __repr__(self) -> str:
         return (
             f"<TidyNotification {self.filename}:{self.line}:{self.cols} "
             + f"{self.diagnostic}>"
         )
+
+
+class TidyAdvice:
+    def __init__(self, notes: List[TidyNotification]) -> None:
+        #: A patch of the suggested fixes from clang-tidy
+        self.suggestion: Optional[Patch] = None
+        self.notes = notes
 
 
 def run_clang_tidy(
@@ -90,7 +104,7 @@ def run_clang_tidy(
     database: str,
     extra_args: List[str],
     db_json: Optional[List[Dict[str, str]]],
-) -> List[TidyNotification]:
+) -> TidyAdvice:
     """Run clang-tidy on a certain file.
 
     :param command: The clang-tidy command to use (usually a resolved path).
@@ -153,7 +167,7 @@ def run_clang_tidy(
 
 def parse_tidy_output(
     tidy_out: str, database: Optional[List[Dict[str, str]]]
-) -> List[TidyNotification]:
+) -> TidyAdvice:
     """Parse clang-tidy stdout.
 
     :param tidy_out: The stdout from clang-tidy.
@@ -178,4 +192,4 @@ def parse_tidy_output(
             # append lines of code that are part of
             # the previous line's notification
             notification.fixit_lines.append(line)
-    return tidy_notes
+    return TidyAdvice(notes=tidy_notes)

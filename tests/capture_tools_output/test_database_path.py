@@ -11,7 +11,7 @@ from cpp_linter.loggers import logger
 from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
-from mesonbuild.mesonmain import main as meson  # type: ignore[import-untyped]
+from mesonbuild.mesonmain import main as meson  # type: ignore
 
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
@@ -101,8 +101,8 @@ def test_ninja_database(
         extra_args=[],
     )
     found_project_file = False
-    for notes in tidy_advice:
-        for note in notes:
+    for concern in tidy_advice:
+        for note in concern.notes:
             if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
                 assert not Path(note.filename).is_absolute()
                 found_project_file = True

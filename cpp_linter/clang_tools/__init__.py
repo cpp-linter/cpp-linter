@@ -7,7 +7,7 @@ import shutil
 
 from ..common_fs import FileObj
 from ..loggers import start_log_group, end_log_group, logger
-from .clang_tidy import run_clang_tidy, TidyNotification
+from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 
 
@@ -39,7 +39,7 @@ def capture_clang_tools_output(
     lines_changed_only: int,
     database: str,
     extra_args: List[str],
-) -> Tuple[List[FormatAdvice], List[List[TidyNotification]]]:
+) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
 
@@ -81,7 +81,7 @@ def capture_clang_tools_output(
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
     # temporary cache of parsed notifications for use in log commands
-    tidy_notes: List[List[TidyNotification]] = []
+    tidy_notes: List[TidyAdvice] = []
     format_advice = []
     for file in files:
         start_log_group(f"Performing checkup on {file.name}")

@@ -46,7 +46,7 @@ def test_post_feedback(
     )
     # add a non project file to tidy_advice to intentionally cover a log.debug()
     assert tidy_advice
-    tidy_advice[-1].append(
+    tidy_advice[-1].notes.append(
         TidyNotification(
             notification_line=(
                 "/usr/include/stdio.h",

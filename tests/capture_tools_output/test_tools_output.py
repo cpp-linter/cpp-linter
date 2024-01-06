@@ -9,7 +9,7 @@ import shutil
 from typing import Dict, cast, List, Optional
 import warnings
 
-import pygit2  # type: ignore[import-not-found]
+import pygit2  # type: ignore
 import pytest
 import requests_mock
 
@@ -253,8 +253,8 @@ def test_format_annotations(
         database="",
         extra_args=[],
     )
-    assert [n for n in format_advice]
-    assert not [n for note in tidy_advice for n in note]
+    assert [note for note in format_advice]
+    assert not [note for concern in tidy_advice for note in concern.notes]
 
     caplog.set_level(logging.INFO, logger=log_commander.name)
     log_commander.propagate = True
@@ -329,8 +329,8 @@ def test_tidy_annotations(
         database="",
         extra_args=[],
     )
-    assert [n for note in tidy_advice for n in note]
-    assert not [n for n in format_advice]
+    assert [note for concern in tidy_advice for note in concern.notes]
+    assert not [note for note in format_advice]
     caplog.set_level(logging.DEBUG)
     log_commander.propagate = True
     gh_client.make_annotations(files, format_advice, tidy_advice, style="")
