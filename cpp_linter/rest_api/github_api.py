@@ -233,7 +233,9 @@ class GithubApiClient(RestApiClient):
             for n in note:
                 if n.filename == file.name:
                     output = "::{} ".format(
-                        "notice" if n.note_type.startswith("note") else n.note_type
+                        "notice"
+                        if n.severity.startswith("note")
+                        else n.severity
                     )
                     output += "file={file},line={line},title={file}:{line}:".format(
                         file=file.name, line=n.line
@@ -241,7 +243,7 @@ class GithubApiClient(RestApiClient):
                     output += "{cols} [{diag}]::{info}".format(
                         cols=n.cols,
                         diag=n.diagnostic,
-                        info=n.note_info,
+                        info=f"{n.rationale} -- see {n.diagnostic_link}",
                     )
                     log_commander.info(output)
 

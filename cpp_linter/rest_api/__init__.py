@@ -101,9 +101,9 @@ class RestApiClient(ABC):
                     )
                     tidy_comment += (
                         "{severity}: [{diagnostic}]\n   > {rationale}\n".format(
-                            severity=note.note_type,
-                            diagnostic=note.diagnostic,
-                            rationale=note.note_info,
+                            severity=note.severity,
+                            diagnostic=note.diagnostic_link,
+                            rationale=note.rationale,
                         )
                     )
                     if note.fixit_lines:

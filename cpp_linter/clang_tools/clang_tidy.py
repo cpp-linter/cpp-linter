@@ -34,16 +34,16 @@ class TidyNotification:
             self.line,
             #: The columns of the line that triggered the notification.
             self.cols,
-            self.note_type,
-            self.note_info,
+            self.severity,
+            self.rationale,
             #: The clang-tidy check that enabled the notification.
             self.diagnostic,
         ) = notification_line
 
         #: The rationale of the notification.
-        self.note_info = self.note_info.strip()
+        self.rationale = self.rationale.strip()
         #: The priority level of notification (warning/error).
-        self.note_type = self.note_type.strip()
+        self.severity = self.severity.strip()
         #: The line number of the source file.
         self.line = int(self.line)
         self.cols = int(self.cols)
@@ -74,6 +74,12 @@ class TidyNotification:
         self.filename = rel_path
         #: A `list` of lines for the code-block in the notification.
         self.fixit_lines: List[str] = []
+
+    @property
+    def diagnostic_link(self) -> str:
+        """Creates a markdown link to the diagnostic documentation."""
+        link = f"[{self.diagnostic}](https://clang.llvm.org/extra/clang-tidy/checks/"
+        return link + "{}/{}.html)".format(*self.diagnostic.split("-", maxsplit=1))
 
     def __repr__(self) -> str:
         return (
