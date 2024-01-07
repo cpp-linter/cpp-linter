@@ -3,7 +3,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        exclude: tests/capture_tools_output/cpp-linter/cpp-linter/test_git_lib.patch
+        exclude: ^tests/.*\.(?:patch|diff)$
       - id: end-of-file-fixer
       - id: check-docstring-first
       - id: check-added-large-files

@@ -91,6 +91,9 @@ def test_post_feedback(
                 text=(cache_path / f"pr_comments_pg{i}.json").read_text(
                     encoding="utf-8"
                 ),
+                # to trigger a logged error, we'll modify the response when
+                # fetching page 2 of old comments and thread-comments is true
+                status_code=404 if i == 2 and thread_comments == "true" else 200
             )
 
         # load mock responses for push event
