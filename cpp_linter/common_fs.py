@@ -1,7 +1,7 @@
 from os import environ
 from os.path import commonpath
 from pathlib import PurePath, Path
-from typing import List, Dict, Any, Union, Tuple
+from typing import List, Dict, Any, Union, Tuple, Optional
 from .loggers import logger, start_log_group
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
@@ -19,16 +19,21 @@ class FileObj:
         for all hunks in the diff.
     """
 
-    def __init__(self, name: str, additions: List[int], diff_chunks: List[List[int]]):
+    def __init__(
+        self,
+        name: str,
+        additions: Optional[List[int]] = None,
+        diff_chunks: Optional[List[List[int]]] = None,
+    ):
         self.name: str = name  #: The file name
-        self.additions: List[int] = additions
+        self.additions: List[int] = additions or []
         """A list of line numbers that contain added changes. This will be empty if
         not focusing on lines changed only."""
-        self.diff_chunks: List[List[int]] = diff_chunks
+        self.diff_chunks: List[List[int]] = diff_chunks or []
         """A list of line numbers that define the beginning and ending of hunks in the
         diff. This will be empty if not focusing on lines changed only."""
         self.lines_added: List[List[int]] = FileObj._consolidate_list_to_ranges(
-            additions
+            additions or []
         )
         """A list of line numbers that define the beginning and ending of ranges that
         have added changes. This will be empty if not focusing on lines changed only.
@@ -92,6 +97,14 @@ class FileObj:
                 "lines_added": self.lines_added,
             },
         }
+
+    def is_in_1_hunk(self, start: int, end: int) -> bool:
+        """Is a given ``start`` and ``end`` line numbers within a single diff hunk?"""
+        for hunk in self.diff_chunks:
+            chunk_range = range(hunk[0], hunk[1])
+            if start in chunk_range and end in chunk_range:
+                return True
+        return False
 
 
 def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:
@@ -195,7 +208,7 @@ def list_source_files(
                 if is_file_in_list(
                     not_ignored, file_path, "not ignored"
                 ) or not is_file_in_list(ignored, file_path, "ignored"):
-                    files.append(FileObj(file_path, [], []))
+                    files.append(FileObj(file_path))
     return files
 
 

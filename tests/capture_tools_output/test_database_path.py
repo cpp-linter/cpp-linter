@@ -41,7 +41,7 @@ def test_db_detection(
     CACHE_PATH.mkdir(exist_ok=True)
     caplog.set_level(logging.DEBUG, logger=logger.name)
     demo_src = "demo/demo.cpp"
-    files = [FileObj(demo_src, [], [])]
+    files = [FileObj(demo_src)]
 
     _ = capture_clang_tools_output(
         files,
@@ -89,7 +89,7 @@ def test_ninja_database(
     meson()
 
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    files = [FileObj("demo.cpp", [], [])]
+    files = [FileObj("demo.cpp")]
     gh_client = GithubApiClient()
 
     # run clang-tidy and verify paths of project files were matched with database paths

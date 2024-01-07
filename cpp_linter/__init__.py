@@ -23,6 +23,7 @@ def main():
 
     rest_api_client = GithubApiClient()
     logger.info("processing %s event", rest_api_client.event_name)
+    is_pr_event = rest_api_client.event_name == "pull_request"
 
     # set logging verbosity
     logger.setLevel(10 if args.verbosity or rest_api_client.debug_enabled else 20)
@@ -67,8 +68,8 @@ def main():
         args.lines_changed_only,
         args.database,
         args.extra_arg,
-        args.tidy_review,
-        args.format_review,
+        is_pr_event and args.tidy_review,
+        is_pr_event and args.format_review,
     )
 
     start_log_group("Posting comment(s)")
@@ -81,6 +82,8 @@ def main():
         args.step_summary,
         args.file_annotations,
         args.style,
+        is_pr_event and args.format_review,
+        is_pr_event and args.tidy_review,
     )
     end_log_group()
 

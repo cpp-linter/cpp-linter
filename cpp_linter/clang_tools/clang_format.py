@@ -1,9 +1,8 @@
 """Parse output from clang-format's XML suggestions."""
-from pathlib import PurePath, Path
+from pathlib import PurePath
 import subprocess
 from typing import List, cast, Optional
 
-from pygit2 import Patch  # type: ignore[import]
 import xml.etree.ElementTree as ET
 
 from ..common_fs import get_line_cnt_from_cols, FileObj
@@ -69,7 +68,8 @@ class FormatAdvice:
         """A list of `FormatReplacementLine` representing replacement(s)
         on a single line."""
 
-        self.suggestion: Optional[Patch] = None
+        #: A buffer of the applied fixes from clang-format
+        self.patched: Optional[bytes] = None
 
     def __repr__(self) -> str:
         return (
@@ -183,8 +183,6 @@ def run_clang_format(
         del cmds[2]  # remove `--output-replacements-xml` flag
         # get formatted file from stdout
         formatted_output = subprocess.run(cmds, capture_output=True)
-        # create and store a patch between original file and formatted_output
-        advice.suggestion = Patch.create_from(
-            Path(file_obj.name).read_bytes(), formatted_output.stdout
-        )
+        # store formatted_output (for comparing later)
+        advice.patched = formatted_output.stdout
     return advice

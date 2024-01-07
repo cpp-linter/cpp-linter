@@ -467,7 +467,7 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]
     args = cli_arg_parser.parse_args(cli_in)
     assert len(user_input) == len(args.extra_arg)
     _, _ = capture_clang_tools_output(
-        files=[FileObj("tests/demo/demo.cpp", [], [])],
+        files=[FileObj("tests/demo/demo.cpp")],
         version=CLANG_VERSION,
         checks="",  # use .clang-tidy config
         style="",  # disable clang-format

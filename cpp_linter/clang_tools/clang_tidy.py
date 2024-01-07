@@ -5,7 +5,6 @@ from pathlib import Path, PurePath
 import re
 import subprocess
 from typing import Tuple, Union, List, cast, Optional, Dict
-from pygit2 import Patch  # type: ignore[import]
 from ..loggers import logger
 from ..common_fs import FileObj
 
@@ -91,8 +90,8 @@ class TidyNotification:
 
 class TidyAdvice:
     def __init__(self, notes: List[TidyNotification]) -> None:
-        #: A patch of the suggested fixes from clang-tidy
-        self.suggestion: Optional[Patch] = None
+        #: A buffer of the applied fixes from clang-tidy
+        self.patched: Optional[bytes] = None
         self.notes = notes
 
 
@@ -170,20 +169,16 @@ def run_clang_tidy(
 
     if tidy_review:
         # clang-tidy overwrites the file contents when applying fixes.
-        original_buf = Path(
-            file_obj.name
-        ).read_bytes()  # create a cache of original contents
+        # create a cache of original contents
+        original_buf = Path(file_obj.name).read_bytes()
         cmds.insert(1, "--fix-errors")  # include compiler-suggested fixes
         # run clang-tidy again to apply any fixes
         fixed_result = subprocess.run(cmds, capture_output=True)
-        if (
-            fixed_result.returncode
-        ):  # log if any problems encountered (whatever they are)
+        if fixed_result.returncode:
+            # log if any problems encountered (whatever they are)
             logger.error("clang-tidy had problems applying fixes to %s", file_obj.name)
-        # create a patch for the file changes
-        advice.suggestion = Patch.create_from(
-            original_buf, Path(file_obj.name).read_bytes()
-        )
+        # store the modified output from clang-tidy
+        advice.patched = Path(file_obj.name).read_bytes()
         # re-write original file contents (can probably skip this on CI runners)
         Path(file_obj.name).write_bytes(original_buf)
     return advice
