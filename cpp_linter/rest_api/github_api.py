@@ -420,18 +420,10 @@ class GithubApiClient(RestApiClient):
             full_patch += patch.text
             for hunk in patch.hunks:
                 total += 1
-                start_lines, end_lines = (
-                    hunk.old_start,
-                    hunk.old_start + hunk.old_lines,
-                )
-                if not file.is_in_1_hunk(start_lines, end_lines):
-                    logger.warning(
-                        "lines %d - %d are not within a single diff hunk for file %s.",
-                        start_lines,
-                        end_lines,
-                        file.name,
-                    )
+                new_hunk_range = file.is_hunk_contained(hunk)
+                if new_hunk_range is None:
                     continue
+                start_lines, end_lines = new_hunk_range
                 comment: Dict[str, Any] = {"path": file.name}
                 body = ""
                 if isinstance(advice, TidyAdvice):

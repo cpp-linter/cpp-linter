@@ -2,6 +2,7 @@ from os import environ
 from os.path import commonpath
 from pathlib import PurePath, Path
 from typing import List, Dict, Any, Union, Tuple, Optional
+from pygit2 import DiffHunk  # type: ignore
 from .loggers import logger, start_log_group
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
@@ -98,13 +99,28 @@ class FileObj:
             },
         }
 
-    def is_in_1_hunk(self, start: int, end: int) -> bool:
+    def is_hunk_contained(self, hunk: DiffHunk) -> Optional[Tuple[int, int]]:
         """Is a given ``start`` and ``end`` line numbers within a single diff hunk?"""
+        if hunk.old_lines > 0:
+            start = hunk.old_start
+            # span of old_lines is an inclusive range
+            end = hunk.old_start + hunk.old_lines - 1
+        else:  # if number of old lines is 0
+            # start hunk at new line number
+            start = hunk.new_start
+            # make it span 1 line
+            end = start
         for hunk in self.diff_chunks:
             chunk_range = range(hunk[0], hunk[1])
             if start in chunk_range and end in chunk_range:
-                return True
-        return False
+                return (start, end)
+        logger.warning(
+            "lines %d - %d are not within a single diff hunk for file %s.",
+            start,
+            end,
+            self.name,
+        )
+        return None
 
 
 def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:

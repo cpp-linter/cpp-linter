@@ -75,3 +75,30 @@ def test_ignored_diff():
     files = parse_diff_str(TYPICAL_DIFF, ["hpp"], [], [], 0)
     # binary files are ignored during parsing
     assert not files
+
+
+def test_terse_hunk_header():
+    """For coverage completeness"""
+    diff_str = "\n".join(
+        [
+            "diff --git a/src/demo.cpp b/src/demo.cpp",
+            "--- a/src/demo.cpp",
+            "+++ b/src/demo.cpp",
+            "@@ -3 +3 @@",
+            "-#include <stdio.h>",
+            "+#include <cstdio>",
+            "@@ -4,0 +5,2 @@",
+            "+auto main() -> int",
+            "+{",
+            "@@ -18 +17,2 @@ int main(){",
+            "-    return 0;}",
+            "+    return 0;",
+            "+}",
+        ]
+    )
+    files = parse_diff_str(diff_str, ["cpp"], [], [], 0)
+    assert files
+    assert files[0].diff_chunks == [[3, 4], [5, 7], [17, 19]]
+    git_files = parse_diff(diff_str, ["cpp"], [], [], 0)
+    assert git_files
+    assert files[0].diff_chunks == git_files[0].diff_chunks
