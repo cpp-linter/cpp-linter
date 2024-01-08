@@ -182,7 +182,7 @@ def run_clang_format(
     if format_review:
         del cmds[2]  # remove `--output-replacements-xml` flag
         # get formatted file from stdout
-        formatted_output = subprocess.run(cmds, capture_output=True)
+        formatted_output = subprocess.run(cmds, capture_output=True, check=True)
         # store formatted_output (for comparing later)
         advice.patched = formatted_output.stdout
     return advice

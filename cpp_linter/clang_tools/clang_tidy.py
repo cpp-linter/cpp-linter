@@ -182,10 +182,7 @@ def run_clang_tidy(
         original_buf = Path(file_obj.name).read_bytes()
         cmds.insert(1, "--fix-errors")  # include compiler-suggested fixes
         # run clang-tidy again to apply any fixes
-        fixed_result = subprocess.run(cmds, capture_output=True)
-        if fixed_result.returncode:
-            # log if any problems encountered (whatever they are)
-            logger.error("clang-tidy had problems applying fixes to %s", file_obj.name)
+        subprocess.run(cmds, check=True)
         # store the modified output from clang-tidy
         advice.patched = Path(file_obj.name).read_bytes()
         # re-write original file contents (can probably skip this on CI runners)
