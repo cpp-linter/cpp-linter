@@ -427,21 +427,32 @@ class GithubApiClient(RestApiClient):
                 comment: Dict[str, Any] = {"path": file.name}
                 body = ""
                 if isinstance(advice, TidyAdvice):
-                    body += "### clang-tidy diagnostics\n"
+                    body += "### clang-tidy "
+                    diagnostics = ""
                     for note in advice.notes:
-                        if note.line in range(start_lines, end_lines):
-                            body += f"- {note.rationale} [{note.diagnostic_link}]\n"
+                        if note.line in range(start_lines, end_lines + 1):
+                            diagnostics += (
+                                f"- {note.rationale} [{note.diagnostic_link}]\n"
+                            )
+                    if diagnostics:
+                        body += "diagnostics\n" + diagnostics
+                    else:
+                        body += "suggestions\n"
                 else:
                     body += "### clang-format suggestions\n"
                 if start_lines < end_lines:
                     comment["start_line"] = start_lines
                 comment["line"] = end_lines
                 suggestion = ""
+                removed = []
                 for line in hunk.lines:
                     if line.origin in ["+", " "]:
                         suggestion += line.content
-                if not suggestion:
-                    body += "\nPlease remove this line(s)."
+                    else:
+                        removed.append(line.old_lineno)
+                if not suggestion and removed:
+                    body += "\nPlease remove the line(s)\n- "
+                    body += "\n- ".join([str(x) for x in removed])
                 else:
                     body += f"\n```suggestion\n{suggestion}```"
                 comment["body"] = body
