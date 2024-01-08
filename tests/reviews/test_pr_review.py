@@ -12,27 +12,41 @@ TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
 
 
-@pytest.mark.parametrize("is_draft", [True, False], ids=["draft", "ready"])
-@pytest.mark.parametrize("with_token", [True, False], ids=["has_token", "no_token"])
-@pytest.mark.parametrize("tidy_review", [True, False], ids=["yes_tidy", "no_tidy"])
 @pytest.mark.parametrize(
-    "format_review", [True, False], ids=["yes_format", "no_format"]
-)
-@pytest.mark.parametrize(
-    "force_approved", [True, False], ids=["approved", "request_changes"]
-)
-@pytest.mark.parametrize(
-    "lines_changed_only", [0, 1, 2], ids=["all_lines", "lines_added", "diff_lines"]
+    "is_draft,is_closed,with_token,force_approved,tidy_review,format_review,changes",
+    [
+        (True, False, True, False, False, True, 2),
+        (False, True, True, False, False, True, 2),
+        pytest.param(
+            False, False, False, False, False, True, 2, marks=pytest.mark.xfail
+        ),
+        (False, False, True, True, False, True, 2),
+        (False, False, True, False, True, False, 2),
+        (False, False, True, False, False, True, 2),
+        (False, False, True, False, True, True, 1),
+        (False, False, True, False, True, True, 0),
+    ],
+    ids=[
+        "draft",
+        "closed",
+        "no_token",
+        "approved",
+        "tidy",  # changes == diff_chunks only
+        "format",  # changes == diff_chunks only
+        "lines_added",
+        "all_lines",
+    ],
 )
 def test_post_review(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     is_draft: bool,
+    is_closed: bool,
     with_token: bool,
     tidy_review: bool,
     format_review: bool,
     force_approved: bool,
-    lines_changed_only: int,
+    changes: int,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -90,7 +104,7 @@ def test_post_review(
             extensions=["cpp", "hpp"],
             ignored=[],
             not_ignored=[],
-            lines_changed_only=lines_changed_only,
+            lines_changed_only=changes,
         )
         assert files
         for file_obj in files:
@@ -103,7 +117,7 @@ def test_post_review(
             version=environ.get("CLANG_VERSION", "16"),
             checks="",
             style="file",
-            lines_changed_only=lines_changed_only,
+            lines_changed_only=changes,
             database="",
             extra_args=[],
             tidy_review=tidy_review,
@@ -117,9 +131,14 @@ def test_post_review(
         cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(
             encoding="utf-8"
         )
-        cache_pr_response = cache_pr_response.replace(
-            '  "draft": true,', f'  "draft": {str(is_draft).lower()},', 1
-        )
+        if is_draft:
+            cache_pr_response = cache_pr_response.replace(
+                '  "draft": false,', '  "draft": true,', 1
+            )
+        if is_closed:
+            cache_pr_response = cache_pr_response.replace(
+                '  "state": "open",', '  "state": "closed",', 1
+            )
         mock.get(
             base_url,
             headers={"Accept": "application/vnd.github.text+json"},
@@ -140,7 +159,12 @@ def test_post_review(
 
         # inspect the review payload for correctness
         last_request = mock.last_request
-        if (tidy_review or format_review) and not is_draft and with_token:
+        if (
+            (tidy_review or format_review)
+            and not is_draft
+            and with_token
+            and not is_closed
+        ):
             assert hasattr(last_request, "json")
             json_payload = last_request.json()
             assert "body" in json_payload

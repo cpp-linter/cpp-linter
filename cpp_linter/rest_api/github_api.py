@@ -360,13 +360,15 @@ class GithubApiClient(RestApiClient):
         url += "/reviews"
         is_draft = True
         if log_response_msg(response_buffer):
-            is_draft = cast(Dict[str, bool], response_buffer.json()).get("draft", False)
+            pr_payload = response_buffer.json()
+            is_draft = cast(Dict[str, bool], pr_payload).get("draft", False)
+            is_open = cast(Dict[str, str], pr_payload).get("state", "open") == "open"
         if "GITHUB_TOKEN" not in environ:
             logger.error("A GITHUB_TOKEN env var is required to post review comments")
-            return
+            sys.exit(self.set_exit_code(1))
         self._dismiss_stale_reviews(url)
-        if is_draft:
-            return  # don't post reviews for PRs marked as "draft"
+        if is_draft or not is_open:  # is PR open and ready for review
+            return  # don't post reviews
         body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
         total_changes = 0
