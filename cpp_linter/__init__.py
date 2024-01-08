@@ -47,10 +47,27 @@ def main():
             not_ignored,
             args.lines_changed_only,
         )
-        if files:
-            rest_api_client.verify_files_are_present(files)
+        rest_api_client.verify_files_are_present(files)
     else:
         files = list_source_files(args.extensions, ignored, not_ignored)
+        # at this point, files have no info about git changes.
+        # for PR reviews, we need this info
+        if is_pr_event and (args.tidy_review or args.format_review):
+            # get file changes from diff
+            git_changes = rest_api_client.get_list_of_changed_files(
+                args.extensions,
+                ignored,
+                not_ignored,
+                lines_changed_only=0,  # prevent filtering out unchanged files
+            )
+            # merge info from git changes into list of all files
+            for git_file in git_changes:
+                for file in files:
+                    if git_file.name == file.name:
+                        file.additions = git_file.additions
+                        file.diff_chunks = git_file.diff_chunks
+                        file.lines_added = git_file.lines_added
+                        break
     if not files:
         logger.info("No source files need checking!")
     else:
@@ -82,8 +99,8 @@ def main():
         args.step_summary,
         args.file_annotations,
         args.style,
-        is_pr_event and args.format_review,
-        is_pr_event and args.tidy_review,
+        args.format_review,
+        args.tidy_review,
     )
     end_log_group()
 
