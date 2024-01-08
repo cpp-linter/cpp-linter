@@ -44,8 +44,6 @@ class GithubApiClient(RestApiClient):
             self.event_payload = json.loads(
                 Path(event_path).read_text(encoding="utf-8")
             )
-        #: The user's account ID number. Defaults to the generic bot's ID.
-        self.user_id = 41898282
 
     def set_exit_code(
         self,
@@ -233,9 +231,7 @@ class GithubApiClient(RestApiClient):
             for note in concern.notes:
                 if note.filename == file.name:
                     output = "::{} ".format(
-                        "notice"
-                        if note.severity.startswith("note")
-                        else note.severity
+                        "notice" if note.severity.startswith("note") else note.severity
                     )
                     output += "file={file},line={line},title={file}:{line}:".format(
                         file=file.name, line=note.line
@@ -319,13 +315,9 @@ class GithubApiClient(RestApiClient):
             page += 1
             count -= len(comments)
             for comment in comments:
-                # only search for comments from the user's ID and
-                # whose comment body begins with a specific html comment
-                if (
-                    int(comment["user"]["id"]) == self.user_id
-                    # the specific html comment is our action's name
-                    and comment["body"].startswith("<!-- cpp linter action -->")
-                ):
+                # only search for comments that begin with a specific html comment.
+                # the specific html comment is our action's name
+                if cast(str, comment["body"]).startswith("<!-- cpp linter action -->"):
                     logger.debug(
                         "comment id %d from user %s (%d)",
                         comment["id"],
@@ -339,8 +331,7 @@ class GithubApiClient(RestApiClient):
                         # use saved comment_url if not None else current comment url
                         url = comment_url or comment["url"]
                         response_buffer = self.session.delete(
-                            url,
-                            headers=self.make_headers(),
+                            url, headers=self.make_headers()
                         )
                         logger.info(
                             "Got %d from DELETE %s",
