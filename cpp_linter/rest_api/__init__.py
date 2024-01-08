@@ -8,6 +8,13 @@ from ..clang_tools.clang_tidy import TidyAdvice
 from ..loggers import logger
 
 
+USER_OUTREACH = (
+    "\n\nHave any feedback or feature suggestions? [Share it here.]"
+    + "(https://github.com/cpp-linter/cpp-linter-action/issues)"
+)
+COMMENT_MARKER = "<!-- cpp linter action -->\n"
+
+
 class RestApiClient(ABC):
     def __init__(self) -> None:
         self.session = requests.Session()
@@ -114,7 +121,7 @@ class RestApiClient(ABC):
                 else:
                     logger.debug("%s != %s", file_obj.name, note.filename)
 
-        comment = "<!-- cpp linter action -->\n# Cpp-Linter Report "
+        comment = f"{COMMENT_MARKER}# Cpp-Linter Report "
         if format_comment or tidy_comment:
             comment += ":warning:\nSome files did not pass the configured checks!\n"
             if format_comment:
@@ -127,10 +134,7 @@ class RestApiClient(ABC):
                 comment += f"{tidy_comment}\n</details>"
         else:
             comment += ":heavy_check_mark:\nNo problems need attention."
-        comment += (
-            "\n\nHave any feedback or feature suggestions? [Share it here.]"
-            + "(https://github.com/cpp-linter/cpp-linter-action/issues)"
-        )
+        comment += USER_OUTREACH
         return (comment, format_checks_failed, tidy_checks_failed)
 
     def post_feedback(

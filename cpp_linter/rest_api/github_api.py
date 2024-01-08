@@ -21,7 +21,7 @@ from ..clang_tools.clang_format import FormatAdvice, formalize_style_name
 from ..clang_tools.clang_tidy import TidyAdvice
 from ..loggers import start_log_group, logger, log_response_msg, log_commander
 from ..git import parse_diff, get_diff
-from . import RestApiClient
+from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER
 
 
 class GithubApiClient(RestApiClient):
@@ -323,7 +323,7 @@ class GithubApiClient(RestApiClient):
             for comment in comments:
                 # only search for comments that begin with a specific html comment.
                 # the specific html comment is our action's name
-                if cast(str, comment["body"]).startswith("<!-- cpp linter action -->"):
+                if cast(str, comment["body"]).startswith(COMMENT_MARKER):
                     logger.debug(
                         "comment id %d from user %s (%d)",
                         comment["id"],
@@ -367,7 +367,7 @@ class GithubApiClient(RestApiClient):
         self._dismiss_stale_reviews(url)
         if is_draft:
             return  # don't post reviews for PRs marked as "draft"
-        body = "<!-- cpp-linter-action -->\n## Cpp-linter Review\n"
+        body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
         total_changes = 0
         for index, tool_advice in enumerate([format_advice, tidy_advice]):
@@ -384,10 +384,14 @@ class GithubApiClient(RestApiClient):
             if patch:
                 body += f"\n<details><summary>Click here for the full {tool} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
+            else:
+                body += f"No objections from {tool}."
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
+            body += "\nGreat job!"
             event = "APPROVE"
+        body += USER_OUTREACH
         payload = {
             "body": body,
             "event": event,
@@ -428,12 +432,7 @@ class GithubApiClient(RestApiClient):
                 body = ""
                 if isinstance(advice, TidyAdvice):
                     body += "### clang-tidy "
-                    diagnostics = ""
-                    for note in advice.notes:
-                        if note.line in range(start_lines, end_lines + 1):
-                            diagnostics += (
-                                f"- {note.rationale} [{note.diagnostic_link}]\n"
-                            )
+                    diagnostics = advice.diagnostics_in_range(start_lines, end_lines)
                     if diagnostics:
                         body += "diagnostics\n" + diagnostics
                     else:
@@ -470,9 +469,7 @@ class GithubApiClient(RestApiClient):
             for review in reviews:
                 if (
                     "body" in review
-                    and cast(str, review["body"]).startswith(
-                        "<!-- cpp-linter-action -->\n"
-                    )
+                    and cast(str, review["body"]).startswith(COMMENT_MARKER)
                     and "state" in review
                     and review["state"] not in ["PENDING", "DISMISSED"]
                 ):

@@ -94,6 +94,15 @@ class TidyAdvice:
         self.patched: Optional[bytes] = None
         self.notes = notes
 
+    def diagnostics_in_range(self, start: int, end: int) -> str:
+        """Get a markdown formatted list of diagnostics found between a ``start``
+        and ``end`` range of lines."""
+        diagnostics = ""
+        for note in self.notes:
+            if note.line in range(start, end + 1):  # range is inclusive
+                diagnostics += f"- {note.rationale} [{note.diagnostic_link}]\n"
+        return diagnostics
+
 
 def run_clang_tidy(
     command: str,

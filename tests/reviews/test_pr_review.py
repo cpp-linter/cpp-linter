@@ -18,6 +18,12 @@ TEST_PR = 27
 @pytest.mark.parametrize(
     "format_review", [True, False], ids=["yes_format", "no_format"]
 )
+@pytest.mark.parametrize(
+    "force_approved", [True, False], ids=["approved", "request_changes"]
+)
+@pytest.mark.parametrize(
+    "lines_changed_only", [0, 1, 2], ids=["all_lines", "lines_added", "diff_lines"]
+)
 def test_post_review(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -25,6 +31,8 @@ def test_post_review(
     with_token: bool,
     tidy_review: bool,
     format_review: bool,
+    force_approved: bool,
+    lines_changed_only: int,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -82,24 +90,28 @@ def test_post_review(
             extensions=["cpp", "hpp"],
             ignored=[],
             not_ignored=[],
-            lines_changed_only=1,
+            lines_changed_only=lines_changed_only,
         )
         assert files
         for file_obj in files:
-            assert file_obj.additions
+            assert file_obj.diff_chunks
+        if force_approved:
+            files.clear()
+
         format_advice, tidy_advice = capture_clang_tools_output(
             files,
             version=environ.get("CLANG_VERSION", "16"),
             checks="",
             style="file",
-            lines_changed_only=1,
+            lines_changed_only=lines_changed_only,
             database="",
             extra_args=[],
             tidy_review=tidy_review,
             format_review=format_review,
         )
-        assert [note for concern in tidy_advice for note in concern.notes]
-        assert [note for note in format_advice]
+        if not force_approved:
+            assert [note for concern in tidy_advice for note in concern.notes]
+            assert [note for note in format_advice]
 
         # simulate draft PR by changing the request response
         cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(
@@ -125,18 +137,26 @@ def test_post_review(
             tidy_review=tidy_review,
             format_review=format_review,
         )
-        # save the body of the review json for manual inspection
+
+        # inspect the review payload for correctness
         last_request = mock.last_request
         if (tidy_review or format_review) and not is_draft and with_token:
             assert hasattr(last_request, "json")
             json_payload = last_request.json()
             assert "body" in json_payload
+            assert "event" in json_payload
             if tidy_review:
                 assert "clang-tidy" in json_payload["body"]
             elif format_review:
                 assert "clang-format" in json_payload["body"]
             else:  # pragma: no cover
-                raise RuntimeError("no review payload sent!")
+                raise RuntimeError("review payload is incorrect")
+            if force_approved:
+                assert json_payload["event"] == "APPROVE"
+            else:
+                assert json_payload["event"] == "REQUEST_CHANGES"
+
+            # save the body of the review json for manual inspection
             assert hasattr(last_request, "text")
             (tmp_path / "review.json").write_text(
                 json.dumps(json_payload, indent=2), encoding="utf-8"
