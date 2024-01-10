@@ -13,14 +13,15 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Dict, List, Any, cast, Optional, Tuple
+from typing import Dict, List, Any, cast, Optional, Tuple, Union, Sequence
 
+from pygit2 import Patch  # type: ignore
 from ..common_fs import FileObj, CACHE_PATH
 from ..clang_tools.clang_format import FormatAdvice, formalize_style_name
 from ..clang_tools.clang_tidy import TidyAdvice
 from ..loggers import start_log_group, logger, log_response_msg, log_commander
 from ..git import parse_diff, get_diff
-from . import RestApiClient
+from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER
 
 
 class GithubApiClient(RestApiClient):
@@ -146,6 +147,8 @@ class GithubApiClient(RestApiClient):
         step_summary: bool,
         file_annotations: bool,
         style: str,
+        tidy_review: bool,
+        format_review: bool,
     ):
         (comment, format_checks_failed, tidy_checks_failed) = super().make_comment(
             files, format_advice, tidy_advice
@@ -169,6 +172,9 @@ class GithubApiClient(RestApiClient):
                 self.update_comment(
                     comment, comments_url, count, no_lgtm, update_only, is_lgtm
                 )
+
+        if self.event_name == "pull_request" and (tidy_review or format_review):
+            self.post_review(files, tidy_advice, format_advice)
 
         if file_annotations:
             self.make_annotations(files, format_advice, tidy_advice, style)
@@ -227,8 +233,8 @@ class GithubApiClient(RestApiClient):
                 output += f" does not conform to {style_guide} style guidelines. "
                 output += "(lines {lines})".format(lines=", ".join(line_list))
                 log_commander.info(output)
-        for concern, file in zip(tidy_advice, files):
-            for note in concern.notes:
+        for concerns, file in zip(tidy_advice, files):
+            for note in concerns.notes:
                 if note.filename == file.name:
                     output = "::{} ".format(
                         "notice" if note.severity.startswith("note") else note.severity
@@ -317,7 +323,7 @@ class GithubApiClient(RestApiClient):
             for comment in comments:
                 # only search for comments that begin with a specific html comment.
                 # the specific html comment is our action's name
-                if cast(str, comment["body"]).startswith("<!-- cpp linter action -->"):
+                if cast(str, comment["body"]).startswith(COMMENT_MARKER):
                     logger.debug(
                         "comment id %d from user %s (%d)",
                         comment["id"],
@@ -342,3 +348,139 @@ class GithubApiClient(RestApiClient):
                     if not delete:
                         comment_url = cast(str, comment["url"])
         return comment_url
+
+    def post_review(
+        self,
+        files: List[FileObj],
+        tidy_advice: List[TidyAdvice],
+        format_advice: List[FormatAdvice],
+    ):
+        url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
+        response_buffer = self.session.get(url, headers=self.make_headers())
+        url += "/reviews"
+        is_draft = True
+        if log_response_msg(response_buffer):
+            pr_payload = response_buffer.json()
+            is_draft = cast(Dict[str, bool], pr_payload).get("draft", False)
+            is_open = cast(Dict[str, str], pr_payload).get("state", "open") == "open"
+        if "GITHUB_TOKEN" not in environ:
+            logger.error("A GITHUB_TOKEN env var is required to post review comments")
+            sys.exit(self.set_exit_code(1))
+        self._dismiss_stale_reviews(url)
+        if is_draft or not is_open:  # is PR open and ready for review
+            return  # don't post reviews
+        body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
+        payload_comments = []
+        total_changes = 0
+        for index, tool_advice in enumerate([format_advice, tidy_advice]):
+            comments, total, patch = self.create_review_comments(
+                files,
+                tool_advice,  # type: ignore[arg-type]
+            )
+            tool = "clang-tidy" if index else "clang-format"
+            total_changes += total
+            payload_comments.extend(comments)
+            if total and total != len(comments):
+                body += f"Only {len(comments)} out of {total} {tool} "
+                body += "suggestions fit within this pull request's diff.\n"
+            if patch:
+                body += f"\n<details><summary>Click here for the full {tool} patch"
+                body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
+            else:
+                body += f"No objections from {tool}.\n"
+        if total_changes:
+            event = "REQUEST_CHANGES"
+        else:
+            body += "\nGreat job!"
+            event = "APPROVE"
+        body += USER_OUTREACH
+        payload = {
+            "body": body,
+            "event": event,
+            "comments": payload_comments,
+        }
+        response_buffer = self.session.post(
+            url, headers=self.make_headers(), data=json.dumps(payload)
+        )
+        log_response_msg(response_buffer)
+
+    @staticmethod
+    def create_review_comments(
+        files: List[FileObj],
+        tool_advice: Sequence[Union[FormatAdvice, TidyAdvice]],
+    ) -> Tuple[List[Dict[str, Any]], int, str]:
+        """Creates a batch of comments for a specific clang tool's PR review"""
+        total = 0
+        comments = []
+        full_patch = ""
+        for file, advice in zip(files, tool_advice):
+            if not advice.patched:
+                continue
+            patch = Patch.create_from(
+                old=Path(file.name).read_bytes(),
+                new=advice.patched,
+                old_as_path=file.name,
+                new_as_path=file.name,
+                context_lines=0,  # trim all unchanged lines from start/end of hunks
+            )
+            full_patch += patch.text
+            for hunk in patch.hunks:
+                total += 1
+                new_hunk_range = file.is_hunk_contained(hunk)
+                if new_hunk_range is None:
+                    continue
+                start_lines, end_lines = new_hunk_range
+                comment: Dict[str, Any] = {"path": file.name}
+                body = ""
+                if isinstance(advice, TidyAdvice):
+                    body += "### clang-tidy "
+                    diagnostics = advice.diagnostics_in_range(start_lines, end_lines)
+                    if diagnostics:
+                        body += "diagnostics\n" + diagnostics
+                    else:
+                        body += "suggestions\n"
+                else:
+                    body += "### clang-format suggestions\n"
+                if start_lines < end_lines:
+                    comment["start_line"] = start_lines
+                comment["line"] = end_lines
+                suggestion = ""
+                removed = []
+                for line in hunk.lines:
+                    if line.origin in ["+", " "]:
+                        suggestion += line.content
+                    else:
+                        removed.append(line.old_lineno)
+                if not suggestion and removed:
+                    body += "\nPlease remove the line(s)\n- "
+                    body += "\n- ".join([str(x) for x in removed])
+                else:
+                    body += f"\n```suggestion\n{suggestion}```"
+                comment["body"] = body
+                comments.append(comment)
+        return (comments, total, full_patch)
+
+    def _dismiss_stale_reviews(self, url: str):
+        """Dismiss all reviews that were previously created by cpp-linter"""
+        response_buffer = self.session.get(url, headers=self.make_headers())
+        if not log_response_msg(response_buffer):
+            logger.error("Failed to poll existing reviews for dismissal")
+        else:
+            headers = self.make_headers()
+            reviews: List[Dict[str, Any]] = response_buffer.json()
+            for review in reviews:
+                if (
+                    "body" in review
+                    and cast(str, review["body"]).startswith(COMMENT_MARKER)
+                    and "state" in review
+                    and review["state"] not in ["PENDING", "DISMISSED"]
+                ):
+                    assert "id" in review
+                    response_buffer = self.session.put(
+                        f"{url}/{review['id']}/dismissals",
+                        headers=headers,
+                        data=json.dumps(
+                            {"message": "outdated suggestion", "event": "DISMISS"}
+                        ),
+                    )
+                    log_response_msg(response_buffer)

@@ -51,8 +51,9 @@ def log_response_msg(response_buffer: Response) -> bool:
     """
     if response_buffer.status_code >= 400:
         logger.error(
-            "response returned %d message: %s",
+            "response returned %d from %s with message: %s",
             response_buffer.status_code,
+            response_buffer.url,
             response_buffer.text,
         )
         return False

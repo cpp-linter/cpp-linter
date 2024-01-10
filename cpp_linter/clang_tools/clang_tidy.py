@@ -5,7 +5,6 @@ from pathlib import Path, PurePath
 import re
 import subprocess
 from typing import Tuple, Union, List, cast, Optional, Dict
-from pygit2 import Patch  # type: ignore[import]
 from ..loggers import logger
 from ..common_fs import FileObj
 
@@ -91,9 +90,18 @@ class TidyNotification:
 
 class TidyAdvice:
     def __init__(self, notes: List[TidyNotification]) -> None:
-        #: A patch of the suggested fixes from clang-tidy
-        self.suggestion: Optional[Patch] = None
+        #: A buffer of the applied fixes from clang-tidy
+        self.patched: Optional[bytes] = None
         self.notes = notes
+
+    def diagnostics_in_range(self, start: int, end: int) -> str:
+        """Get a markdown formatted list of diagnostics found between a ``start``
+        and ``end`` range of lines."""
+        diagnostics = ""
+        for note in self.notes:
+            if note.line in range(start, end + 1):  # range is inclusive
+                diagnostics += f"- {note.rationale} [{note.diagnostic_link}]\n"
+        return diagnostics
 
 
 def run_clang_tidy(
@@ -104,6 +112,7 @@ def run_clang_tidy(
     database: str,
     extra_args: List[str],
     db_json: Optional[List[Dict[str, str]]],
+    tidy_review: bool,
 ) -> TidyAdvice:
     """Run clang-tidy on a certain file.
 
@@ -134,6 +143,8 @@ def run_clang_tidy(
     :param db_json: The compilation database deserialized from JSON, only if
         ``database`` parameter points to a valid path containing a
         ``compile_commands.json file``.
+    :param tidy_review: A flag to enable/disable creating a diff suggestion for
+        PR review comments.
     """
     filename = file_obj.name.replace("/", os.sep)
     cmds = [command]
@@ -162,7 +173,21 @@ def run_clang_tidy(
         logger.debug(
             "clang-tidy made the following summary:\n%s", results.stderr.decode()
         )
-    return parse_tidy_output(results.stdout.decode(), database=db_json)
+
+    advice = parse_tidy_output(results.stdout.decode(), database=db_json)
+
+    if tidy_review:
+        # clang-tidy overwrites the file contents when applying fixes.
+        # create a cache of original contents
+        original_buf = Path(file_obj.name).read_bytes()
+        cmds.insert(1, "--fix-errors")  # include compiler-suggested fixes
+        # run clang-tidy again to apply any fixes
+        subprocess.run(cmds, check=True)
+        # store the modified output from clang-tidy
+        advice.patched = Path(file_obj.name).read_bytes()
+        # re-write original file contents (can probably skip this on CI runners)
+        Path(file_obj.name).write_bytes(original_buf)
+    return advice
 
 
 def parse_tidy_output(

@@ -11,7 +11,7 @@ DIFF_FILE_DELIMITER = re.compile(r"^diff --git a/.*$", re.MULTILINE)
 DIFF_FILE_NAME = re.compile(r"^\+\+\+\sb?/(.*)$", re.MULTILINE)
 DIFF_RENAMED_FILE = re.compile(r"^rename to (.*)$", re.MULTILINE)
 DIFF_BINARY_FILE = re.compile(r"^Binary\sfiles\s", re.MULTILINE)
-HUNK_INFO = re.compile(r"@@\s\-\d+,\d+\s\+(\d+,\d+)\s@@", re.MULTILINE)
+HUNK_INFO = re.compile(r"^@@\s\-\d+,?\d*\s\+(\d+,?\d*)\s@@", re.MULTILINE)
 
 
 def _get_filename_from_diff(front_matter: str) -> Optional[re.Match]:
@@ -94,7 +94,11 @@ def _parse_patch(full_patch: str) -> Tuple[List[List[int]], List[int]]:
     for index, chunk in enumerate(chunks):
         if index % 2 == 1:
             # each odd element holds the starting line number and number of lines
-            start_line, hunk_length = [int(x) for x in chunk.split(",")]
+            if "," in chunk:
+                start_line, hunk_length = [int(x) for x in chunk.split(",")]
+            else:
+                start_line = int(chunk)
+                hunk_length = 1
             ranges.append([start_line, hunk_length + start_line])
             line_numb_in_diff = start_line
             continue

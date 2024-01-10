@@ -16,11 +16,26 @@ TEST_SHA = "8d68756375e0483c7ac2b4d6bbbece420dbbb495"
 
 @pytest.mark.parametrize("event_name", ["pull_request", "push"])
 @pytest.mark.parametrize(
-    "thread_comments",
-    ["update", "true", "false", pytest.param("fail", marks=pytest.mark.xfail)],
-    ids=["updated_only", "only_new", "disable_comment", "no_token"],
+    "thread_comments,no_lgtm",
+    [
+        ("update", True),
+        ("update", False),
+        ("true", True),
+        ("true", False),
+        ("false", True),
+        ("false", False),
+        pytest.param("fail", False, marks=pytest.mark.xfail),
+    ],
+    ids=[
+        "updated-lgtm",
+        "updated-no_lgtm",
+        "new-lgtm",
+        "new-no_lgtm",
+        "disabled-lgtm",
+        "disabled-no_lgtm",
+        "no_token",
+    ],
 )
-@pytest.mark.parametrize("no_lgtm", [True, False], ids=["no_lgtm", "yes_lgtm"])
 def test_post_feedback(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -43,6 +58,8 @@ def test_post_feedback(
         lines_changed_only=0,
         database="",
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     # add a non project file to tidy_advice to intentionally cover a log.debug()
     assert tidy_advice
@@ -78,38 +95,41 @@ def test_post_feedback(
     with requests_mock.Mocker() as mock:
         cache_path = Path(__file__).parent
         base_url = f"{gh_client.api_url}/repos/{TEST_REPO}/"
-        # load mock responses for pull_request event
-        mock.get(
-            f"{base_url}issues/{TEST_PR}",
-            text=(cache_path / f"pr_{TEST_PR}.json").read_text(encoding="utf-8"),
-        )
-        for i in [1, 2]:
+
+        if event_name == "pull_request":
+            # load mock responses for pull_request event
             mock.get(
-                f"{base_url}issues/{TEST_PR}/comments?page={i}",
-                text=(cache_path / f"pr_comments_pg{i}.json").read_text(
+                f"{base_url}issues/{TEST_PR}",
+                text=(cache_path / f"pr_{TEST_PR}.json").read_text(encoding="utf-8"),
+            )
+            for i in [1, 2]:
+                mock.get(
+                    f"{base_url}issues/{TEST_PR}/comments?page={i}",
+                    text=(cache_path / f"pr_comments_pg{i}.json").read_text(
+                        encoding="utf-8"
+                    ),
+                    # to trigger a logged error, we'll modify the response when
+                    # fetching page 2 of old comments and thread-comments is true
+                    status_code=404 if i == 2 and thread_comments == "true" else 200,
+                )
+        else:
+            # load mock responses for push event
+            mock.get(
+                f"{base_url}commits/{TEST_SHA}",
+                text=(cache_path / f"push_{TEST_SHA}.json").read_text(encoding="utf-8"),
+            )
+            mock.get(
+                f"{base_url}commits/{TEST_SHA}/comments",
+                text=(cache_path / f"push_comments_{TEST_SHA}.json").read_text(
                     encoding="utf-8"
                 ),
             )
 
-        # load mock responses for push event
-        mock.get(
-            f"{base_url}commits/{TEST_SHA}",
-            text=(cache_path / f"push_{TEST_SHA}.json").read_text(encoding="utf-8"),
-        )
-        mock.get(
-            f"{base_url}commits/{TEST_SHA}/comments",
-            text=(cache_path / f"push_comments_{TEST_SHA}.json").read_text(
-                encoding="utf-8"
-            ),
-        )
-
         # acknowledge any DELETE, PATCH, and POST requests about specific comments
         comment_url = f"{base_url}comments/"
-        for comment_id in [
-            76453652,
-        ]:
-            mock.delete(f"{comment_url}{comment_id}")
-            mock.patch(f"{comment_url}{comment_id}")
+        comment_id = 76453652
+        mock.delete(f"{comment_url}{comment_id}")
+        mock.patch(f"{comment_url}{comment_id}")
         mock.post(f"{base_url}commits/{TEST_SHA}/comments")
         mock.post(f"{base_url}issues/{TEST_PR}/comments")
 
@@ -119,7 +139,9 @@ def test_post_feedback(
             tidy_advice,
             thread_comments,
             no_lgtm,
-            step_summary=True,
-            file_annotations=True,
+            step_summary=thread_comments == "update" and not no_lgtm,
+            file_annotations=thread_comments == "update" and no_lgtm,
             style="llvm",
+            tidy_review=False,
+            format_review=False,
         )

@@ -252,6 +252,8 @@ def test_format_annotations(
         lines_changed_only=lines_changed_only,
         database="",
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
@@ -328,6 +330,8 @@ def test_tidy_annotations(
         lines_changed_only=lines_changed_only,
         database="",
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     assert [note for concern in tidy_advice for note in concern.notes]
     assert not [note for note in format_advice]
@@ -379,6 +383,8 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         lines_changed_only=0,
         database="",
         extra_args=[],
+        tidy_review=False,
+        format_review=False,
     )
     comment, format_checks_failed, tidy_checks_failed = GithubApiClient.make_comment(
         files, format_advice, tidy_advice
@@ -461,13 +467,15 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]
     args = cli_arg_parser.parse_args(cli_in)
     assert len(user_input) == len(args.extra_arg)
     _, _ = capture_clang_tools_output(
-        files=[FileObj("test/demo/demo.cpp", [], [])],
+        files=[FileObj("tests/demo/demo.cpp")],
         version=CLANG_VERSION,
         checks="",  # use .clang-tidy config
         style="",  # disable clang-format
         lines_changed_only=0,
         database="",
         extra_args=args.extra_arg,
+        tidy_review=False,
+        format_review=False,
     )
     messages = [
         r.message
