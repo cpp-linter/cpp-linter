@@ -230,3 +230,9 @@ Command Line Interface Options
                             cpp-linter --extra-arg="-std=c++17" --extra-arg="-Wall"
                         
                         Defaults to none.
+  --tidy-review TIDY_REVIEW, -tr TIDY_REVIEW
+                        Set to ``true`` to enable PR review suggestions
+                        from clang-tidy.
+  --format-review FORMAT_REVIEW, -fr FORMAT_REVIEW
+                        Set to ``true`` to enable PR review suggestions
+                        from clang-format.

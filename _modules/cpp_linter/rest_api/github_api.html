@@ -553,14 +553,15 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">urllib.parse</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span>
 
+<span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">Patch</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="n">FormatAdvice</span><span class="p">,</span> <span class="n">formalize_style_name</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_response_msg</span><span class="p">,</span> <span class="n">log_commander</span>
 <span class="kn">from</span> <span class="nn">..git</span> <span class="kn">import</span> <span class="n">parse_diff</span><span class="p">,</span> <span class="n">get_diff</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">RestApiClient</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">RestApiClient</span><span class="p">,</span> <span class="n">USER_OUTREACH</span><span class="p">,</span> <span class="n">COMMENT_MARKER</span>
 
 
 <div class="viewcode-block" id="GithubApiClient">
@@ -702,6 +703,8 @@
         <span class="n">step_summary</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">file_annotations</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="p">(</span><span class="n">comment</span><span class="p">,</span> <span class="n">format_checks_failed</span><span class="p">,</span> <span class="n">tidy_checks_failed</span><span class="p">)</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">make_comment</span><span class="p">(</span>
             <span class="n">files</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_advice</span>
@@ -725,6 +728,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">update_comment</span><span class="p">(</span>
                     <span class="n">comment</span><span class="p">,</span> <span class="n">comments_url</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">no_lgtm</span><span class="p">,</span> <span class="n">update_only</span><span class="p">,</span> <span class="n">is_lgtm</span>
                 <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">tidy_review</span> <span class="ow">or</span> <span class="n">format_review</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">post_review</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">file_annotations</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">make_annotations</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">,</span> <span class="n">style</span><span class="p">)</span>
@@ -786,8 +792,8 @@
                 <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; does not conform to </span><span class="si">{</span><span class="n">style_guide</span><span class="si">}</span><span class="s2"> style guidelines. &quot;</span>
                 <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;(lines </span><span class="si">{lines}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lines</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">))</span>
                 <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">concern</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tidy_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concern</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">concerns</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tidy_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concerns</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
                     <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;::</span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="s2">&quot;notice&quot;</span> <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">severity</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;note&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">note</span><span class="o">.</span><span class="n">severity</span>
@@ -882,7 +888,7 @@
             <span class="k">for</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">comments</span><span class="p">:</span>
                 <span class="c1"># only search for comments that begin with a specific html comment.</span>
                 <span class="c1"># the specific html comment is our action&#39;s name</span>
-                <span class="k">if</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;&lt;!-- cpp linter action --&gt;&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">COMMENT_MARKER</span><span class="p">):</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
                         <span class="s2">&quot;comment id </span><span class="si">%d</span><span class="s2"> from user </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span>
                         <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
@@ -907,7 +913,146 @@
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">delete</span><span class="p">:</span>
                         <span class="n">comment_url</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">comment_url</span></div>
-</div>
+
+
+    <span class="k">def</span> <span class="nf">post_review</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
+        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
+        <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
+    <span class="p">):</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_url</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2">/pulls/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">event_payload</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">response_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">())</span>
+        <span class="n">url</span> <span class="o">+=</span> <span class="s2">&quot;/reviews&quot;</span>
+        <span class="n">is_draft</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">log_response_msg</span><span class="p">(</span><span class="n">response_buffer</span><span class="p">):</span>
+            <span class="n">pr_payload</span> <span class="o">=</span> <span class="n">response_buffer</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="n">is_draft</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">],</span> <span class="n">pr_payload</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;draft&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">is_open</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">pr_payload</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;open&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;GITHUB_TOKEN&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A GITHUB_TOKEN env var is required to post review comments&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">set_exit_code</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dismiss_stale_reviews</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_draft</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_open</span><span class="p">:</span>  <span class="c1"># is PR open and ready for review</span>
+            <span class="k">return</span>  <span class="c1"># don&#39;t post reviews</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">COMMENT_MARKER</span><span class="si">}</span><span class="s2">## Cpp-linter Review</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">payload_comments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">total_changes</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">tool_advice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">]):</span>
+            <span class="n">comments</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_review_comments</span><span class="p">(</span>
+                <span class="n">files</span><span class="p">,</span>
+                <span class="n">tool_advice</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="p">)</span>
+            <span class="n">tool</span> <span class="o">=</span> <span class="s2">&quot;clang-tidy&quot;</span> <span class="k">if</span> <span class="n">index</span> <span class="k">else</span> <span class="s2">&quot;clang-format&quot;</span>
+            <span class="n">total_changes</span> <span class="o">+=</span> <span class="n">total</span>
+            <span class="n">payload_comments</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total</span> <span class="ow">and</span> <span class="n">total</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">):</span>
+                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">tool</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;suggestions fit within this pull request&#39;s diff.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">patch</span><span class="p">:</span>
+                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;Click here for the full </span><span class="si">{</span><span class="n">tool</span><span class="si">}</span><span class="s2"> patch&quot;</span>
+                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;/summary&gt;</span><span class="se">\n\n\n</span><span class="s2">```diff</span><span class="se">\n</span><span class="si">{</span><span class="n">patch</span><span class="si">}</span><span class="se">\n</span><span class="s2">```</span><span class="se">\n\n\n</span><span class="s2">&lt;/details&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;No objections from </span><span class="si">{</span><span class="n">tool</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">total_changes</span><span class="p">:</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;REQUEST_CHANGES&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Great job!&quot;</span>
+            <span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;APPROVE&quot;</span>
+        <span class="n">body</span> <span class="o">+=</span> <span class="n">USER_OUTREACH</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span>
+            <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="n">event</span><span class="p">,</span>
+            <span class="s2">&quot;comments&quot;</span><span class="p">:</span> <span class="n">payload_comments</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">response_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">(),</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">log_response_msg</span><span class="p">(</span><span class="n">response_buffer</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GithubApiClient.create_review_comments">
+<a class="viewcode-back" href="../../../API-Reference/cpp_linter.rest_api.github_api.html#cpp_linter.rest_api.github_api.GithubApiClient.create_review_comments">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">create_review_comments</span><span class="p">(</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
+        <span class="n">tool_advice</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">,</span> <span class="n">TidyAdvice</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a batch of comments for a specific clang tool&#39;s PR review&quot;&quot;&quot;</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">full_patch</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">file</span><span class="p">,</span> <span class="n">advice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tool_advice</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">advice</span><span class="o">.</span><span class="n">patched</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">patch</span> <span class="o">=</span> <span class="n">Patch</span><span class="o">.</span><span class="n">create_from</span><span class="p">(</span>
+                <span class="n">old</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span>
+                <span class="n">new</span><span class="o">=</span><span class="n">advice</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span>
+                <span class="n">old_as_path</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">new_as_path</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">context_lines</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># trim all unchanged lines from start/end of hunks</span>
+            <span class="p">)</span>
+            <span class="n">full_patch</span> <span class="o">+=</span> <span class="n">patch</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">for</span> <span class="n">hunk</span> <span class="ow">in</span> <span class="n">patch</span><span class="o">.</span><span class="n">hunks</span><span class="p">:</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">new_hunk_range</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">is_hunk_contained</span><span class="p">(</span><span class="n">hunk</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">new_hunk_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">start_lines</span><span class="p">,</span> <span class="n">end_lines</span> <span class="o">=</span> <span class="n">new_hunk_range</span>
+                <span class="n">comment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+                <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">advice</span><span class="p">,</span> <span class="n">TidyAdvice</span><span class="p">):</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;### clang-tidy &quot;</span>
+                    <span class="n">diagnostics</span> <span class="o">=</span> <span class="n">advice</span><span class="o">.</span><span class="n">diagnostics_in_range</span><span class="p">(</span><span class="n">start_lines</span><span class="p">,</span> <span class="n">end_lines</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">diagnostics</span><span class="p">:</span>
+                        <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;diagnostics</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">diagnostics</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;suggestions</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;### clang-format suggestions</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="n">start_lines</span> <span class="o">&lt;</span> <span class="n">end_lines</span><span class="p">:</span>
+                    <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;start_line&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start_lines</span>
+                <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;line&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end_lines</span>
+                <span class="n">suggestion</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">removed</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">hunk</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">origin</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">]:</span>
+                        <span class="n">suggestion</span> <span class="o">+=</span> <span class="n">line</span><span class="o">.</span><span class="n">content</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">removed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">old_lineno</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">suggestion</span> <span class="ow">and</span> <span class="n">removed</span><span class="p">:</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Please remove the line(s)</span><span class="se">\n</span><span class="s2">- &quot;</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">- &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">removed</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">```suggestion</span><span class="se">\n</span><span class="si">{</span><span class="n">suggestion</span><span class="si">}</span><span class="s2">```&quot;</span>
+                <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">body</span>
+                <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">comments</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">full_patch</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_dismiss_stale_reviews</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dismiss all reviews that were previously created by cpp-linter&quot;&quot;&quot;</span>
+        <span class="n">response_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">log_response_msg</span><span class="p">(</span><span class="n">response_buffer</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to poll existing reviews for dismissal&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">()</span>
+            <span class="n">reviews</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">response_buffer</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">review</span> <span class="ow">in</span> <span class="n">reviews</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="s2">&quot;body&quot;</span> <span class="ow">in</span> <span class="n">review</span>
+                    <span class="ow">and</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">review</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">COMMENT_MARKER</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="s2">&quot;state&quot;</span> <span class="ow">in</span> <span class="n">review</span>
+                    <span class="ow">and</span> <span class="n">review</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PENDING&quot;</span><span class="p">,</span> <span class="s2">&quot;DISMISSED&quot;</span><span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="k">assert</span> <span class="s2">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">review</span>
+                    <span class="n">response_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">review</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/dismissals&quot;</span><span class="p">,</span>
+                        <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                            <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;outdated suggestion&quot;</span><span class="p">,</span> <span class="s2">&quot;event&quot;</span><span class="p">:</span> <span class="s2">&quot;DISMISS&quot;</span><span class="p">}</span>
+                        <span class="p">),</span>
+                    <span class="p">)</span>
+                    <span class="n">log_response_msg</span><span class="p">(</span><span class="n">response_buffer</span><span class="p">)</span></div>
 
 </code></pre></div>
 

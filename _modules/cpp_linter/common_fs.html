@@ -541,7 +541,8 @@
 <span></span><code><span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">commonpath</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span><span class="p">,</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">DiffHunk</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">.loggers</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">start_log_group</span>
 
 <span class="c1">#: A path to generated cache artifacts. (only used when verbosity is in debug mode)</span>
@@ -561,16 +562,21 @@
 <span class="sd">        for all hunks in the diff.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">additions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">diff_chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">additions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">diff_chunks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">name</span>  <span class="c1">#: The file name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">additions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">additions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">additions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">additions</span> <span class="ow">or</span> <span class="p">[]</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of line numbers that contain added changes. This will be empty if</span>
 <span class="sd">        not focusing on lines changed only.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">diff_chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">diff_chunks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">diff_chunks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">diff_chunks</span> <span class="ow">or</span> <span class="p">[]</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of line numbers that define the beginning and ending of hunks in the</span>
 <span class="sd">        diff. This will be empty if not focusing on lines changed only.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lines_added</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">FileObj</span><span class="o">.</span><span class="n">_consolidate_list_to_ranges</span><span class="p">(</span>
-            <span class="n">additions</span>
+            <span class="n">additions</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="p">)</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of line numbers that define the beginning and ending of ranges that</span>
 <span class="sd">        have added changes. This will be empty if not focusing on lines changed only.</span>
@@ -639,6 +645,42 @@
                 <span class="s2">&quot;lines_added&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines_added</span><span class="p">,</span>
             <span class="p">},</span>
         <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="FileObj.is_hunk_contained">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj.is_hunk_contained">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_hunk_contained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hunk</span><span class="p">:</span> <span class="n">DiffHunk</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Does a given ``hunk`` start and end within a single diff hunk?</span>
+
+<span class="sd">        This also includes some compensations for hunk headers that are oddly formed.</span>
+
+<span class="sd">        .. tip:: This is mostly useful to create comments that can be posted within a</span>
+<span class="sd">            git changes&#39; diff. Ideally, designed for PR reviews based on patches</span>
+<span class="sd">            generated by clang tools&#39; output.</span>
+
+<span class="sd">        :returns: The appropriate starting and ending line numbers of the given hunk.</span>
+<span class="sd">            If hunk cannot fit in a single hunk, this returns `None`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">hunk</span><span class="o">.</span><span class="n">old_lines</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">hunk</span><span class="o">.</span><span class="n">old_start</span>
+            <span class="c1"># span of old_lines is an inclusive range</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">hunk</span><span class="o">.</span><span class="n">old_start</span> <span class="o">+</span> <span class="n">hunk</span><span class="o">.</span><span class="n">old_lines</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># if number of old lines is 0</span>
+            <span class="c1"># start hunk at new line number</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">hunk</span><span class="o">.</span><span class="n">new_start</span>
+            <span class="c1"># make it span 1 line</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="k">for</span> <span class="n">hunk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">diff_chunks</span><span class="p">:</span>
+            <span class="n">chunk_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">hunk</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">hunk</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">chunk_range</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">chunk_range</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;lines </span><span class="si">%d</span><span class="s2"> - </span><span class="si">%d</span><span class="s2"> are not within a single diff hunk for file </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="n">start</span><span class="p">,</span>
+            <span class="n">end</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 </div>
 
 
@@ -755,7 +797,7 @@
                 <span class="k">if</span> <span class="n">is_file_in_list</span><span class="p">(</span>
                     <span class="n">not_ignored</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;not ignored&quot;</span>
                 <span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_file_in_list</span><span class="p">(</span><span class="n">ignored</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;ignored&quot;</span><span class="p">):</span>
-                    <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FileObj</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[]))</span>
+                    <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FileObj</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">files</span></div>
 
 

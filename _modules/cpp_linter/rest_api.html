@@ -548,6 +548,13 @@
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
 
 
+<span class="n">USER_OUTREACH</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Have any feedback or feature suggestions? [Share it here.]&quot;</span>
+    <span class="o">+</span> <span class="s2">&quot;(https://github.com/cpp-linter/cpp-linter-action/issues)&quot;</span>
+<span class="p">)</span>
+<span class="n">COMMENT_MARKER</span> <span class="o">=</span> <span class="s2">&quot;&lt;!-- cpp linter action --&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+
 <div class="viewcode-block" id="RestApiClient">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient">[docs]</a>
 <span class="k">class</span> <span class="nc">RestApiClient</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
@@ -667,7 +674,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
 
-        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;&lt;!-- cpp linter action --&gt;</span><span class="se">\n</span><span class="s2"># Cpp-Linter Report &quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">COMMENT_MARKER</span><span class="si">}</span><span class="s2"># Cpp-Linter Report &quot;</span>
         <span class="k">if</span> <span class="n">format_comment</span> <span class="ow">or</span> <span class="n">tidy_comment</span><span class="p">:</span>
             <span class="n">comment</span> <span class="o">+=</span> <span class="s2">&quot;:warning:</span><span class="se">\n</span><span class="s2">Some files did not pass the configured checks!</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">if</span> <span class="n">format_comment</span><span class="p">:</span>
@@ -680,10 +687,7 @@
                 <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tidy_comment</span><span class="si">}</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">comment</span> <span class="o">+=</span> <span class="s2">&quot;:heavy_check_mark:</span><span class="se">\n</span><span class="s2">No problems need attention.&quot;</span>
-        <span class="n">comment</span> <span class="o">+=</span> <span class="p">(</span>
-            <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Have any feedback or feature suggestions? [Share it here.]&quot;</span>
-            <span class="o">+</span> <span class="s2">&quot;(https://github.com/cpp-linter/cpp-linter-action/issues)&quot;</span>
-        <span class="p">)</span>
+        <span class="n">comment</span> <span class="o">+=</span> <span class="n">USER_OUTREACH</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">comment</span><span class="p">,</span> <span class="n">format_checks_failed</span><span class="p">,</span> <span class="n">tidy_checks_failed</span><span class="p">)</span></div>
 
 
@@ -699,6 +703,8 @@
         <span class="n">step_summary</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">file_annotations</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Post action&#39;s results using REST API.</span>
 
@@ -717,6 +723,10 @@
 <span class="sd">        :param file_annotations: A flag that describes if file annotations should</span>
 <span class="sd">            be posted. See :std:option:`--file-annotations`.</span>
 <span class="sd">        :param style: The style used for clang-format. See :std:option:`--style`.</span>
+<span class="sd">        :param tidy_review: A flag to enable/disable creating a diff suggestion for</span>
+<span class="sd">            PR review comments using clang-tidy.</span>
+<span class="sd">        :param format_review: A flag to enable/disable creating a diff suggestion for</span>
+<span class="sd">            PR review comments using clang-format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be defined in the derivative&quot;</span><span class="p">)</span></div>
 </div>
