@@ -387,7 +387,7 @@ class GithubApiClient(RestApiClient):
                 body += f"\n<details><summary>Click here for the full {tool} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
             else:
-                body += f"No objections from {tool}."
+                body += f"No objections from {tool}.\n"
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
