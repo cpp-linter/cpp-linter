@@ -174,7 +174,9 @@ class GithubApiClient(RestApiClient):
                 )
 
         if self.event_name == "pull_request" and (tidy_review or format_review):
-            self.post_review(files, tidy_advice, format_advice)
+            self.post_review(
+                files, tidy_advice, format_advice, tidy_review, format_review
+            )
 
         if file_annotations:
             self.make_annotations(files, format_advice, tidy_advice, style)
@@ -354,6 +356,8 @@ class GithubApiClient(RestApiClient):
         files: List[FileObj],
         tidy_advice: List[TidyAdvice],
         format_advice: List[FormatAdvice],
+        tidy_review: bool,
+        format_review: bool,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
         response_buffer = self.session.get(url, headers=self.make_headers())
@@ -386,12 +390,13 @@ class GithubApiClient(RestApiClient):
             if patch:
                 body += f"\n<details><summary>Click here for the full {tool} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
-            else:
+            elif (index and tidy_review) or (not index and format_review):
+                # only include this line if it is relevant.
                 body += f"No objections from {tool}.\n"
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
-            body += "\nGreat job!"
+            body += "\nGreat job! :tada:"
             event = "APPROVE"
         body += USER_OUTREACH
         payload = {
