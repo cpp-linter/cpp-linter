@@ -376,23 +376,26 @@ class GithubApiClient(RestApiClient):
         body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
         total_changes = 0
-        for index, tool_advice in enumerate([format_advice, tidy_advice]):
+        advice: Dict[str, Sequence[Union[TidyAdvice, FormatAdvice]]] = {}
+        if format_review:
+            advice["clang-format"] = format_advice
+        if tidy_review:
+            advice["clang-tidy"] = tidy_advice
+        for tool_name, tool_advice in advice.items():
             comments, total, patch = self.create_review_comments(
                 files,
                 tool_advice,  # type: ignore[arg-type]
             )
-            tool = "clang-tidy" if index else "clang-format"
             total_changes += total
             payload_comments.extend(comments)
             if total and total != len(comments):
-                body += f"Only {len(comments)} out of {total} {tool} "
+                body += f"Only {len(comments)} out of {total} {tool_name} "
                 body += "suggestions fit within this pull request's diff.\n"
             if patch:
-                body += f"\n<details><summary>Click here for the full {tool} patch"
+                body += f"\n<details><summary>Click here for the full {tool_name} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
-            elif (index and tidy_review) or (not index and format_review):
-                # only include this line if it is relevant.
-                body += f"No objections from {tool}.\n"
+            else:
+                body += f"No objections from {tool_name}.\n"
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
@@ -419,8 +422,7 @@ class GithubApiClient(RestApiClient):
         comments = []
         full_patch = ""
         for file, advice in zip(files, tool_advice):
-            if not advice.patched:
-                continue
+            assert advice.patched, f"No suggested patch found for {file.name}"
             patch = Patch.create_from(
                 old=Path(file.name).read_bytes(),
                 new=advice.patched,

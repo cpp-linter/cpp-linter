@@ -185,7 +185,7 @@ def run_clang_tidy(
         subprocess.run(cmds, check=True)
         # store the modified output from clang-tidy
         advice.patched = Path(file_obj.name).read_bytes()
-        # re-write original file contents (can probably skip this on CI runners)
+        # re-write original file contents
         Path(file_obj.name).write_bytes(original_buf)
     return advice
 
