@@ -13,18 +13,19 @@ TEST_PR = 27
 
 
 @pytest.mark.parametrize(
-    "is_draft,is_closed,with_token,force_approved,tidy_review,format_review,changes",
+    "is_draft,is_closed,with_token,force_approved,tidy_review,format_review,changes,summary_only",
     [
-        (True, False, True, False, False, True, 2),
-        (False, True, True, False, False, True, 2),
+        (True, False, True, False, False, True, 2, False),
+        (False, True, True, False, False, True, 2, False),
         pytest.param(
-            False, False, False, False, False, True, 2, marks=pytest.mark.xfail
+            False, False, False, False, False, True, 2, False, marks=pytest.mark.xfail
         ),
-        (False, False, True, True, False, True, 2),
-        (False, False, True, False, True, False, 2),
-        (False, False, True, False, False, True, 2),
-        (False, False, True, False, True, True, 1),
-        (False, False, True, False, True, True, 0),
+        (False, False, True, True, False, True, 2, False),
+        (False, False, True, False, True, False, 2, False),
+        (False, False, True, False, False, True, 2, False),
+        (False, False, True, False, True, True, 1, False),
+        (False, False, True, False, True, True, 0, False),
+        (False, False, True, False, True, True, 0, True),
     ],
     ids=[
         "draft",
@@ -35,6 +36,7 @@ TEST_PR = 27
         "format",  # changes == diff_chunks only
         "lines_added",
         "all_lines",
+        "summary_only",
     ],
 )
 def test_post_review(
@@ -47,6 +49,7 @@ def test_post_review(
     format_review: bool,
     force_approved: bool,
     changes: int,
+    summary_only: bool,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -57,6 +60,8 @@ def test_post_review(
     monkeypatch.setenv("CI", "true")
     if with_token:
         monkeypatch.setenv("GITHUB_TOKEN", "123456")
+    if summary_only:
+        monkeypatch.setenv("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "true")
     monkeypatch.chdir(str(tmp_path))
     (tmp_path / "src").mkdir()
     demo_dir = Path(__file__).parent.parent / "demo"
