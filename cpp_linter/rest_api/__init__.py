@@ -98,13 +98,10 @@ class RestApiClient(ABC):
         for file_obj, concern in zip(files, tidy_advice):
             for note in concern.notes:
                 if file_obj.name == note.filename:
-                    tidy_comment += f"- {file_obj.name}\n\n"
-                    tidy_comment += (
-                        "   <strong>{filename}:{line}:{cols}:</strong> ".format(
-                            filename=file_obj.name,
-                            line=note.line,
-                            cols=note.cols,
-                        )
+                    tidy_comment += "- **{filename}:{line}:{cols}:** ".format(
+                        filename=file_obj.name,
+                        line=note.line,
+                        cols=note.cols,
                     )
                     tidy_comment += (
                         "{severity}: [{diagnostic}]\n   > {rationale}\n".format(
