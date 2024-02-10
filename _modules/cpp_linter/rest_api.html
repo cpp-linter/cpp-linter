@@ -32,7 +32,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.752ffd597a2cbce58.min.css?v=f1fa3a75" />
+        <link rel="stylesheet" type="text/css" href="../../_static/sphinx_immaterial_theme.1cd64e305be4c6cbd.min.css?v=47d7abb1" />
         <link rel="stylesheet" type="text/css" href="../../_static/extra_css.css?v=cd45be07" />
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -651,13 +651,10 @@
         <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">concern</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concern</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
-                    <span class="n">tidy_comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-                    <span class="n">tidy_comment</span> <span class="o">+=</span> <span class="p">(</span>
-                        <span class="s2">&quot;   &lt;strong&gt;</span><span class="si">{filename}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:</span><span class="si">{cols}</span><span class="s2">:&lt;/strong&gt; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                            <span class="n">filename</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                            <span class="n">line</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
-                            <span class="n">cols</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
-                        <span class="p">)</span>
+                    <span class="n">tidy_comment</span> <span class="o">+=</span> <span class="s2">&quot;- **</span><span class="si">{filename}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:</span><span class="si">{cols}</span><span class="s2">:** &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">filename</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">line</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
+                        <span class="n">cols</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="n">tidy_comment</span> <span class="o">+=</span> <span class="p">(</span>
                         <span class="s2">&quot;</span><span class="si">{severity}</span><span class="s2">: [</span><span class="si">{diagnostic}</span><span class="s2">]</span><span class="se">\n</span><span class="s2">   &gt; </span><span class="si">{rationale}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
