@@ -287,7 +287,9 @@ cli_arg_parser.add_argument(
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable PR review suggestions
-from clang-tidy.""",
+from clang-tidy.
+
+Defaults to ``%(default)s``.""",
 )
 cli_arg_parser.add_argument(
     "--format-review",
@@ -295,7 +297,9 @@ cli_arg_parser.add_argument(
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable PR review suggestions
-from clang-format.""",
+from clang-format.
+
+Defaults to ``%(default)s``.""",
 )
 
 

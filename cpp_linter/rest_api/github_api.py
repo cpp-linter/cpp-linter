@@ -382,10 +382,7 @@ class GithubApiClient(RestApiClient):
         if tidy_review:
             advice["clang-tidy"] = tidy_advice
         for tool_name, tool_advice in advice.items():
-            comments, total, patch = self.create_review_comments(
-                files,
-                tool_advice,  # type: ignore[arg-type]
-            )
+            comments, total, patch = self.create_review_comments(files, tool_advice)
             total_changes += total
             payload_comments.extend(comments)
             if total and total != len(comments):
@@ -422,7 +419,9 @@ class GithubApiClient(RestApiClient):
         comments = []
         full_patch = ""
         for file, advice in zip(files, tool_advice):
-            assert advice.patched, f"No suggested patch found for {file.name}"
+            assert (
+                advice.patched
+            ), f"No suggested patch found for {file.name} in {type(advice)}"
             patch = Patch.create_from(
                 old=Path(file.name).read_bytes(),
                 new=advice.patched,
