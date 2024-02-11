@@ -735,6 +735,7 @@
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">format_review</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">cmds</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># remove `--output-replacements-xml` flag</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting fixes with &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmds</span><span class="p">))</span>
         <span class="c1"># get formatted file from stdout</span>
         <span class="n">formatted_output</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># store formatted_output (for comparing later)</span>

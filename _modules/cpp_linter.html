@@ -584,10 +584,10 @@
 
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">files_changed_only</span><span class="p">:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">get_list_of_changed_files</span><span class="p">(</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
-            <span class="n">ignored</span><span class="p">,</span>
-            <span class="n">not_ignored</span><span class="p">,</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
+            <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
+            <span class="n">ignored</span><span class="o">=</span><span class="n">ignored</span><span class="p">,</span>
+            <span class="n">not_ignored</span><span class="o">=</span><span class="n">not_ignored</span><span class="p">,</span>
+            <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">rest_api_client</span><span class="o">.</span><span class="n">verify_files_are_present</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -597,9 +597,9 @@
         <span class="k">if</span> <span class="n">is_pr_event</span> <span class="ow">and</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">):</span>
             <span class="c1"># get file changes from diff</span>
             <span class="n">git_changes</span> <span class="o">=</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">get_list_of_changed_files</span><span class="p">(</span>
-                <span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
-                <span class="n">ignored</span><span class="p">,</span>
-                <span class="n">not_ignored</span><span class="p">,</span>
+                <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
+                <span class="n">ignored</span><span class="o">=</span><span class="n">ignored</span><span class="p">,</span>
+                <span class="n">not_ignored</span><span class="o">=</span><span class="n">not_ignored</span><span class="p">,</span>
                 <span class="n">lines_changed_only</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># prevent filtering out unchanged files</span>
             <span class="p">)</span>
             <span class="c1"># merge info from git changes into list of all files</span>
@@ -620,29 +620,29 @@
     <span class="n">end_log_group</span><span class="p">()</span>
 
     <span class="p">(</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">)</span> <span class="o">=</span> <span class="n">capture_clang_tools_output</span><span class="p">(</span>
-        <span class="n">files</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">tidy_checks</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">,</span>
-        <span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
-        <span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
+        <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+        <span class="n">checks</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_checks</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
+        <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
+        <span class="n">database</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+        <span class="n">extra_args</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">,</span>
+        <span class="n">tidy_review</span><span class="o">=</span><span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
+        <span class="n">format_review</span><span class="o">=</span><span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Posting comment(s)&quot;</span><span class="p">)</span>
     <span class="n">rest_api_client</span><span class="o">.</span><span class="n">post_feedback</span><span class="p">(</span>
-        <span class="n">files</span><span class="p">,</span>
-        <span class="n">format_advice</span><span class="p">,</span>
-        <span class="n">tidy_advice</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">thread_comments</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">no_lgtm</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">step_summary</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">file_annotations</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
+        <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
+        <span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
+        <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
+        <span class="n">thread_comments</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">thread_comments</span><span class="p">,</span>
+        <span class="n">no_lgtm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">no_lgtm</span><span class="p">,</span>
+        <span class="n">step_summary</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">step_summary</span><span class="p">,</span>
+        <span class="n">file_annotations</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">file_annotations</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
+        <span class="n">tidy_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
+        <span class="n">format_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">end_log_group</span><span class="p">()</span></div>
 
