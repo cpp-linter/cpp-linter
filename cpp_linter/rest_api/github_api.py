@@ -174,7 +174,9 @@ class GithubApiClient(RestApiClient):
                 )
 
         if self.event_name == "pull_request" and (tidy_review or format_review):
-            self.post_review(files, tidy_advice, format_advice)
+            self.post_review(
+                files, tidy_advice, format_advice, tidy_review, format_review
+            )
 
         if file_annotations:
             self.make_annotations(files, format_advice, tidy_advice, style)
@@ -354,6 +356,8 @@ class GithubApiClient(RestApiClient):
         files: List[FileObj],
         tidy_advice: List[TidyAdvice],
         format_advice: List[FormatAdvice],
+        tidy_review: bool,
+        format_review: bool,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
         response_buffer = self.session.get(url, headers=self.make_headers())
@@ -372,26 +376,27 @@ class GithubApiClient(RestApiClient):
         body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
         total_changes = 0
-        for index, tool_advice in enumerate([format_advice, tidy_advice]):
-            comments, total, patch = self.create_review_comments(
-                files,
-                tool_advice,  # type: ignore[arg-type]
-            )
-            tool = "clang-tidy" if index else "clang-format"
+        advice: Dict[str, Sequence[Union[TidyAdvice, FormatAdvice]]] = {}
+        if format_review:
+            advice["clang-format"] = format_advice
+        if tidy_review:
+            advice["clang-tidy"] = tidy_advice
+        for tool_name, tool_advice in advice.items():
+            comments, total, patch = self.create_review_comments(files, tool_advice)
             total_changes += total
             payload_comments.extend(comments)
             if total and total != len(comments):
-                body += f"Only {len(comments)} out of {total} {tool} "
+                body += f"Only {len(comments)} out of {total} {tool_name} "
                 body += "suggestions fit within this pull request's diff.\n"
             if patch:
-                body += f"\n<details><summary>Click here for the full {tool} patch"
+                body += f"\n<details><summary>Click here for the full {tool_name} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
             else:
-                body += f"No objections from {tool}.\n"
+                body += f"No objections from {tool_name}.\n"
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
-            body += "\nGreat job!"
+            body += "\nGreat job! :tada:"
             event = "APPROVE"
         body += USER_OUTREACH
         payload = {
@@ -414,8 +419,7 @@ class GithubApiClient(RestApiClient):
         comments = []
         full_patch = ""
         for file, advice in zip(files, tool_advice):
-            if not advice.patched:
-                continue
+            assert advice.patched, f"No suggested patch found for {file.name}"
             patch = Patch.create_from(
                 old=Path(file.name).read_bytes(),
                 new=advice.patched,

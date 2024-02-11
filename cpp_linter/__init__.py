@@ -42,10 +42,10 @@ def main():
 
     if args.files_changed_only:
         files = rest_api_client.get_list_of_changed_files(
-            args.extensions,
-            ignored,
-            not_ignored,
-            args.lines_changed_only,
+            extensions=args.extensions,
+            ignored=ignored,
+            not_ignored=not_ignored,
+            lines_changed_only=args.lines_changed_only,
         )
         rest_api_client.verify_files_are_present(files)
     else:
@@ -55,9 +55,9 @@ def main():
         if is_pr_event and (args.tidy_review or args.format_review):
             # get file changes from diff
             git_changes = rest_api_client.get_list_of_changed_files(
-                args.extensions,
-                ignored,
-                not_ignored,
+                extensions=args.extensions,
+                ignored=ignored,
+                not_ignored=not_ignored,
                 lines_changed_only=0,  # prevent filtering out unchanged files
             )
             # merge info from git changes into list of all files
@@ -78,29 +78,29 @@ def main():
     end_log_group()
 
     (format_advice, tidy_advice) = capture_clang_tools_output(
-        files,
-        args.version,
-        args.tidy_checks,
-        args.style,
-        args.lines_changed_only,
-        args.database,
-        args.extra_arg,
-        is_pr_event and args.tidy_review,
-        is_pr_event and args.format_review,
+        files=files,
+        version=args.version,
+        checks=args.tidy_checks,
+        style=args.style,
+        lines_changed_only=args.lines_changed_only,
+        database=args.database,
+        extra_args=args.extra_arg,
+        tidy_review=is_pr_event and args.tidy_review,
+        format_review=is_pr_event and args.format_review,
     )
 
     start_log_group("Posting comment(s)")
     rest_api_client.post_feedback(
-        files,
-        format_advice,
-        tidy_advice,
-        args.thread_comments,
-        args.no_lgtm,
-        args.step_summary,
-        args.file_annotations,
-        args.style,
-        args.format_review,
-        args.tidy_review,
+        files=files,
+        format_advice=format_advice,
+        tidy_advice=tidy_advice,
+        thread_comments=args.thread_comments,
+        no_lgtm=args.no_lgtm,
+        step_summary=args.step_summary,
+        file_annotations=args.file_annotations,
+        style=args.style,
+        tidy_review=args.tidy_review,
+        format_review=args.format_review,
     )
     end_log_group()
 

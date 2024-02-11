@@ -75,6 +75,8 @@ def test_defaults():
         ("file-annotations", "False", "file_annotations", False),
         ("extra-arg", "-std=c++17", "extra_arg", ["-std=c++17"]),
         ("extra-arg", '"-std=c++17 -Wall"', "extra_arg", ['"-std=c++17 -Wall"']),
+        ("tidy-review", "true", "tidy_review", True),
+        ("format-review", "true", "format_review", True),
     ],
 )
 def test_arg_parser(

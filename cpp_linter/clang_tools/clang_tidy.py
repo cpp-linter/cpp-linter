@@ -164,7 +164,7 @@ def run_clang_tidy(
         extra_args = extra_args[0].split()
     for extra_arg in extra_args:
         arg = extra_arg.strip('"')
-        cmds.append(f'--extra-arg="{arg}"')
+        cmds.append(f'--extra-arg={arg}')
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
@@ -182,10 +182,11 @@ def run_clang_tidy(
         original_buf = Path(file_obj.name).read_bytes()
         cmds.insert(1, "--fix-errors")  # include compiler-suggested fixes
         # run clang-tidy again to apply any fixes
+        logger.info('Getting fixes with "%s"', " ".join(cmds))
         subprocess.run(cmds, check=True)
         # store the modified output from clang-tidy
         advice.patched = Path(file_obj.name).read_bytes()
-        # re-write original file contents (can probably skip this on CI runners)
+        # re-write original file contents
         Path(file_obj.name).write_bytes(original_buf)
     return advice
 
