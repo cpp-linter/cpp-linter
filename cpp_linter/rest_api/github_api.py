@@ -376,18 +376,24 @@ class GithubApiClient(RestApiClient):
         body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
         total_changes = 0
+        summary_only = (
+            environ.get("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "false") == "true"
+        )
         advice: Dict[str, Sequence[Union[TidyAdvice, FormatAdvice]]] = {}
         if format_review:
             advice["clang-format"] = format_advice
         if tidy_review:
             advice["clang-tidy"] = tidy_advice
         for tool_name, tool_advice in advice.items():
-            comments, total, patch = self.create_review_comments(files, tool_advice)
+            comments, total, patch = self.create_review_comments(
+                files, tool_advice, summary_only
+            )
             total_changes += total
-            payload_comments.extend(comments)
-            if total and total != len(comments):
-                body += f"Only {len(comments)} out of {total} {tool_name} "
-                body += "suggestions fit within this pull request's diff.\n"
+            if not summary_only:
+                payload_comments.extend(comments)
+                if total and total != len(comments):
+                    body += f"Only {len(comments)} out of {total} {tool_name} "
+                    body += "suggestions fit within this pull request's diff.\n"
             if patch:
                 body += f"\n<details><summary>Click here for the full {tool_name} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
@@ -413,6 +419,7 @@ class GithubApiClient(RestApiClient):
     def create_review_comments(
         files: List[FileObj],
         tool_advice: Sequence[Union[FormatAdvice, TidyAdvice]],
+        summary_only: bool,
     ) -> Tuple[List[Dict[str, Any]], int, str]:
         """Creates a batch of comments for a specific clang tool's PR review"""
         total = 0
@@ -430,6 +437,8 @@ class GithubApiClient(RestApiClient):
             full_patch += patch.text
             for hunk in patch.hunks:
                 total += 1
+                if summary_only:
+                    continue
                 new_hunk_range = file.is_hunk_contained(hunk)
                 if new_hunk_range is None:
                     continue
