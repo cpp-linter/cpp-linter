@@ -181,6 +181,7 @@ def run_clang_format(
     )
     if format_review:
         del cmds[2]  # remove `--output-replacements-xml` flag
+        logger.info('Getting fixes with "%s"', " ".join(cmds))
         # get formatted file from stdout
         formatted_output = subprocess.run(cmds, capture_output=True, check=True)
         # store formatted_output (for comparing later)
