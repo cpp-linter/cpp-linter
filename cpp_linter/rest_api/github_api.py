@@ -419,9 +419,7 @@ class GithubApiClient(RestApiClient):
         comments = []
         full_patch = ""
         for file, advice in zip(files, tool_advice):
-            assert (
-                advice.patched
-            ), f"No suggested patch found for {file.name} in {type(advice)}"
+            assert advice.patched, f"No suggested patch found for {file.name}"
             patch = Patch.create_from(
                 old=Path(file.name).read_bytes(),
                 new=advice.patched,
