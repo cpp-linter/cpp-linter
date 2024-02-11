@@ -486,4 +486,4 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]
     if len(user_input) == 1 and " " in user_input[0]:
         user_input = user_input[0].split()
     for a in user_input:
-        assert f'--extra-arg="{a}"' in messages[0]
+        assert f'--extra-arg={a}' in messages[0]
