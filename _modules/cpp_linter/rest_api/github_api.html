@@ -942,18 +942,24 @@
         <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">COMMENT_MARKER</span><span class="si">}</span><span class="s2">## Cpp-linter Review</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="n">payload_comments</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">total_changes</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">summary_only</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CPP_LINTER_PR_REVIEW_SUMMARY_ONLY&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+        <span class="p">)</span>
         <span class="n">advice</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">,</span> <span class="n">FormatAdvice</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">format_review</span><span class="p">:</span>
             <span class="n">advice</span><span class="p">[</span><span class="s2">&quot;clang-format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">format_advice</span>
         <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
             <span class="n">advice</span><span class="p">[</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tidy_advice</span>
         <span class="k">for</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">tool_advice</span> <span class="ow">in</span> <span class="n">advice</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">comments</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_review_comments</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tool_advice</span><span class="p">)</span>
+            <span class="n">comments</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_review_comments</span><span class="p">(</span>
+                <span class="n">files</span><span class="p">,</span> <span class="n">tool_advice</span><span class="p">,</span> <span class="n">summary_only</span>
+            <span class="p">)</span>
             <span class="n">total_changes</span> <span class="o">+=</span> <span class="n">total</span>
-            <span class="n">payload_comments</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">total</span> <span class="ow">and</span> <span class="n">total</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">):</span>
-                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2"> &quot;</span>
-                <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;suggestions fit within this pull request&#39;s diff.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">summary_only</span><span class="p">:</span>
+                <span class="n">payload_comments</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">total</span> <span class="ow">and</span> <span class="n">total</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">):</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span><span class="si">}</span><span class="s2"> out of </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;suggestions fit within this pull request&#39;s diff.</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="k">if</span> <span class="n">patch</span><span class="p">:</span>
                 <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;Click here for the full </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2"> patch&quot;</span>
                 <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;/summary&gt;</span><span class="se">\n\n\n</span><span class="s2">```diff</span><span class="se">\n</span><span class="si">{</span><span class="n">patch</span><span class="si">}</span><span class="se">\n</span><span class="s2">```</span><span class="se">\n\n\n</span><span class="s2">&lt;/details&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
@@ -981,6 +987,7 @@
     <span class="k">def</span> <span class="nf">create_review_comments</span><span class="p">(</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">tool_advice</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">,</span> <span class="n">TidyAdvice</span><span class="p">]],</span>
+        <span class="n">summary_only</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a batch of comments for a specific clang tool&#39;s PR review&quot;&quot;&quot;</span>
         <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
@@ -998,6 +1005,8 @@
             <span class="n">full_patch</span> <span class="o">+=</span> <span class="n">patch</span><span class="o">.</span><span class="n">text</span>
             <span class="k">for</span> <span class="n">hunk</span> <span class="ow">in</span> <span class="n">patch</span><span class="o">.</span><span class="n">hunks</span><span class="p">:</span>
                 <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">summary_only</span><span class="p">:</span>
+                    <span class="k">continue</span>
                 <span class="n">new_hunk_range</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">is_hunk_contained</span><span class="p">(</span><span class="n">hunk</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">new_hunk_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
