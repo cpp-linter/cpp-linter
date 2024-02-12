@@ -282,8 +282,8 @@ specified as positional arguments will be exempt from
 explicitly ignored domains (see :std:option:`--ignore`).""",
 )
 cli_arg_parser.add_argument(
-    "--tidy-review",
     "-tr",
+    "--tidy-review",
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable PR review suggestions
@@ -292,8 +292,8 @@ from clang-tidy.
 Defaults to ``%(default)s``.""",
 )
 cli_arg_parser.add_argument(
-    "--format-review",
     "-fr",
+    "--format-review",
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable PR review suggestions

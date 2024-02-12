@@ -123,7 +123,7 @@ def setup(app: Sphinx):
         raise OSError("unrecognized output from `cpp-linter -h`")
     output = output[first_line.end(0) :]
     doc = "Command Line Interface Options\n==============================\n\n"
-    CLI_OPT_NAME = re.compile(r"^\s*(\-\w)\s?\{?[A-Za-z_,]*\}?,\s(\-\-.*?)\s")
+    CLI_OPT_NAME = re.compile(r"^\s*(\-\w+)\s?\{?[A-Za-z_,]*\}?,\s(\-\-.*?)\s")
     for line in output.splitlines():
         match = CLI_OPT_NAME.search(line)
         if match is not None:

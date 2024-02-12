@@ -4,6 +4,7 @@
    :hidden:
 
    self
+   pr_review_caveats
    building_docs
 
 .. toctree::
