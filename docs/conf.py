@@ -3,21 +3,19 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import sys
 import re
 from pathlib import Path
+import time
+from importlib.metadata import version as get_version
 from sphinx.application import Sphinx
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from cpp_linter.cli import cli_arg_parser  # noqa: E402
+from cpp_linter.cli import cli_arg_parser
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = "cpp-linter"
-copyright = "2022, 2bndy5"
+copyright = f"{time.localtime().tm_year}, 2bndy5"
 author = "2bndy5"
-release = "2.0.0"
+release = get_version("cpp-linter")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
