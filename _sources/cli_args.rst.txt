@@ -1,6 +1,11 @@
 Command Line Interface Options
 ==============================
 
+.. note::
+
+    These options have a direct relationship with the
+    `cpp-linter-action user inputs <https://github.com/cpp-linter/cpp-linter-action#optional-inputs>`_. Although, some default values may differ.
+
 
 .. std:option:: -h, --help
 
@@ -50,6 +55,8 @@ Command Line Interface Options
                           closest relative .clang-format file.
                         - Set this to a blank string (``""``) to disable
                           using clang-format entirely.
+                        
+                        See `clang-format docs <https://clang.llvm.org/docs/ClangFormat.html>`_ for more info.
 
 .. std:option:: -c, --tidy-checks
 
@@ -73,7 +80,7 @@ Command Line Interface Options
                         
                             boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*
                         
-                        See also clang-tidy docs for more info.
+                        See also `clang-tidy docs <https://clang.llvm.org/extra/clang-tidy>`_ for more info.
 
 .. std:option:: -V, --version
 
@@ -87,7 +94,7 @@ Command Line Interface Options
                           location). All paths specified here are converted
                           to absolute.
                         
-                        Default is a blank string.
+                        Default is ``''``.
 
 .. std:option:: -e, --extensions
 
@@ -230,13 +237,19 @@ Command Line Interface Options
                             cpp-linter --extra-arg="-std=c++17" --extra-arg="-Wall"
                         
                         Defaults to none.
-  --tidy-review TIDY_REVIEW, -tr TIDY_REVIEW
-                        Set to ``true`` to enable PR review suggestions
+
+.. std:option:: -d, --tidy-review
+
+  -d TIDY_REVIEW, --tidy-review TIDY_REVIEW
+                        Set to ``true`` to enable Pull Request reviews
                         from clang-tidy.
                         
                         Defaults to ``false``.
-  --format-review FORMAT_REVIEW, -fr FORMAT_REVIEW
-                        Set to ``true`` to enable PR review suggestions
+
+.. std:option:: -m, --format-review
+
+  -m FORMAT_REVIEW, --format-review FORMAT_REVIEW
+                        Set to ``true`` to enable Pull Request reviews
                         from clang-format.
                         
                         Defaults to ``false``.
