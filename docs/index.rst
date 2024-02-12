@@ -5,11 +5,6 @@
 
    self
    pr_review_caveats
-   building_docs
-
-.. toctree::
-   :hidden:
-
    cli_args
 
 .. toctree::
@@ -27,8 +22,7 @@
    API-Reference/cpp_linter.loggers
    API-Reference/cpp_linter.common_fs
 
-Indices and tables
-==================
+.. toctree::
+   :hidden:
 
-* :ref:`genindex`
-* :ref:`modindex`
+   building_docs

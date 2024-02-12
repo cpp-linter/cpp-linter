@@ -6,7 +6,6 @@
 import sys
 import re
 from pathlib import Path
-import io
 from sphinx.application import Sphinx
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -115,22 +114,26 @@ for name in ("hint", "tip", "important"):
 def setup(app: Sphinx):
     """Generate a doc from the executable script's ``--help`` output."""
 
-    with io.StringIO() as help_out:
-        cli_arg_parser.print_help(help_out)
-        output = help_out.getvalue()
+    output = cli_arg_parser.format_help()
     first_line = re.search(r"^options:\s*\n", output, re.MULTILINE)
     if first_line is None:
         raise OSError("unrecognized output from `cpp-linter -h`")
     output = output[first_line.end(0) :]
     doc = "Command Line Interface Options\n==============================\n\n"
-    CLI_OPT_NAME = re.compile(r"^\s*(\-\w+)\s?\{?[A-Za-z_,]*\}?,\s(\-\-.*?)\s")
+    doc += ".. note::\n\n    These options have a direct relationship with the\n    "
+    doc += "`cpp-linter-action user inputs "
+    doc += "<https://github.com/cpp-linter/cpp-linter-action#optional-inputs>`_. "
+    doc += "Although, some default values may differ.\n\n"
+    CLI_OPT_NAME = re.compile(
+        r"^\s*(\-[A-Za-z]+)\s?\{?[A-Za-z_,0-9]*\}?,\s(\-\-[^\s]*?)\s"
+    )
     for line in output.splitlines():
         match = CLI_OPT_NAME.search(line)
         if match is not None:
             # print(match.groups())
             doc += "\n.. std:option:: " + ", ".join(match.groups()) + "\n\n"
             options_match = re.search(
-                r"\-\w\s\{[a-zA-Z,]+\},\s\-\-[\w\-]+\s\{[a-zA-Z,]+\}", line
+                r"\-\w\s\{[a-zA-Z,0-9]+\},\s\-\-[\w\-]+\s\{[a-zA-Z,0-9]+\}", line
             )
             if options_match is not None:
                 new_txt = options_match.group()

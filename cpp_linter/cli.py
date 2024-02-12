@@ -14,7 +14,7 @@ cli_arg_parser = argparse.ArgumentParser(
     ),
     formatter_class=argparse.RawTextHelpFormatter,
 )
-arg = cli_arg_parser.add_argument(
+cli_arg_parser.add_argument(
     "-v",
     "--verbosity",
     type=lambda a: a.lower() in ["debug", "10"],
@@ -61,7 +61,10 @@ cli_arg_parser.add_argument(
 - Set this to ``file`` to have clang-format use the
   closest relative .clang-format file.
 - Set this to a blank string (``""``) to disable
-  using clang-format entirely.""",
+  using clang-format entirely.
+
+See `clang-format docs <https://clang.llvm.org/docs/ClangFormat.html>`_ for more info.
+""",
 )
 cli_arg_parser.add_argument(
     "-c",
@@ -87,7 +90,7 @@ The defaults is::
 
     %(default)s
 
-See also clang-tidy docs for more info.""",
+See also `clang-tidy docs <https://clang.llvm.org/extra/clang-tidy>`_ for more info.""",
 )
 arg = cli_arg_parser.add_argument(
     "-V",
@@ -105,7 +108,7 @@ arg = cli_arg_parser.add_argument(
 Default is """,
 )
 assert arg.help is not None
-arg.help += "a blank string." if not arg.default else f"``{arg.default}``."
+arg.help += f"``{repr(arg.default)}``."
 arg = cli_arg_parser.add_argument(
     "-e",
     "--extensions",
@@ -151,10 +154,10 @@ cli_arg_parser.add_argument(
 - Glob patterns are not supported here. All asterisk
   characters (``*``) are literal.""",
 )
-arg = cli_arg_parser.add_argument(
+cli_arg_parser.add_argument(
     "-l",
     "--lines-changed-only",
-    default=0,
+    default="false",
     type=lambda a: 2 if a.lower() == "true" else int(a.lower() == "diff"),
     help="""This controls what part of the files are analyzed.
 The following values are accepted:
@@ -165,10 +168,8 @@ The following values are accepted:
 - ``diff``: All lines in the diff are analyzed
   including unchanged lines but not subtractions.
 
-Defaults to """,
+Defaults to ``%(default)s``.""",
 )
-assert arg.help is not None
-arg.help += f"``{str(bool(arg.default)).lower()}``."
 cli_arg_parser.add_argument(
     "-f",
     "--files-changed-only",
@@ -282,21 +283,21 @@ specified as positional arguments will be exempt from
 explicitly ignored domains (see :std:option:`--ignore`).""",
 )
 cli_arg_parser.add_argument(
-    "-tr",
+    "-d",
     "--tidy-review",
     default="false",
     type=lambda input: input.lower() == "true",
-    help="""Set to ``true`` to enable PR review suggestions
+    help="""Set to ``true`` to enable Pull Request reviews
 from clang-tidy.
 
 Defaults to ``%(default)s``.""",
 )
 cli_arg_parser.add_argument(
-    "-fr",
+    "-m",
     "--format-review",
     default="false",
     type=lambda input: input.lower() == "true",
-    help="""Set to ``true`` to enable PR review suggestions
+    help="""Set to ``true`` to enable Pull Request reviews
 from clang-format.
 
 Defaults to ``%(default)s``.""",
