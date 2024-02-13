@@ -488,10 +488,11 @@ class GithubApiClient(RestApiClient):
                             body = f"### clang-tidy diagnostic\n**{file.name}:"
                             body += f"{note.line}:{note.cols}:** {note.severity}: "
                             body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
-                            body += f'```{Path(file.name).suffix.lstrip(".")}\n'
-                            for line in note.fixit_lines:
-                                body += f"{line}\n"
-                            body += "```\n"
+                            if note.fixit_lines:
+                                body += f'```{Path(file.name).suffix.lstrip(".")}\n'
+                                for line in note.fixit_lines:
+                                    body += f"{line}\n"
+                                body += "```\n"
                             diag["body"] = body
                             comments.append(diag)
         return (comments, total, full_patch)

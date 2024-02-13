@@ -97,7 +97,7 @@ class TidyAdvice:
         self.notes = notes
 
     def diagnostics_in_range(self, start: int, end: int) -> str:
-        """Get a markdown formatted list of diagnostics found between a ``start``
+        """Get a markdown formatted list of fixed diagnostics found between a ``start``
         and ``end`` range of lines."""
         diagnostics = ""
         for note in self.notes:
