@@ -221,17 +221,15 @@ def parse_tidy_output(
             tidy_notes.append(notification)
             # begin capturing subsequent lines as part of notification details
             found_fix = False
-        elif fixed_match is not None:
-            assert notification is not None
+        elif fixed_match is not None and notification is not None:
             notification.applied_fixes.add(int(fixed_match.group(1)))
             # suspend capturing subsequent lines as they are not needed
             found_fix = True
-        elif notification is not None:
-            if not found_fix:
-                # append lines of code that are part of
-                # the previous line's notification
-                notification.fixit_lines.append(line)
-            # else: line is part of the applied fix. We don't need to capture
-            # this line because the fix has been applied to the file already.
+        elif notification is not None and not found_fix:
+            # append lines of code that are part of
+            # the previous line's notification
+            notification.fixit_lines.append(line)
+        # else: line is part of the applied fix. We don't need to capture
+        # this line because the fix has been applied to the file already.
 
     return TidyAdvice(notes=tidy_notes)
