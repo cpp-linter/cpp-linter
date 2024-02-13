@@ -10,6 +10,10 @@ from cpp_linter.clang_tools import capture_clang_tools_output
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
+DEFAULT_TIDY_CHECKS = (
+    "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
+    "clang-analyzer-*,cppcoreguidelines-*"
+)
 
 
 @pytest.mark.parametrize(
@@ -120,7 +124,7 @@ def test_post_review(
         format_advice, tidy_advice = capture_clang_tools_output(
             files,
             version=environ.get("CLANG_VERSION", "16"),
-            checks="",
+            checks=DEFAULT_TIDY_CHECKS,
             style="file",
             lines_changed_only=changes,
             database="",

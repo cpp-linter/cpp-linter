@@ -485,7 +485,8 @@ class GithubApiClient(RestApiClient):
                                 "path": file.name,
                                 "line": note.line,
                             }
-                            body = f"### clang-tidy diagnostic\n{note.severity}: "
+                            body = f"### clang-tidy diagnostic\n**{file.name}:"
+                            body += f"{note.line}:{note.cols}:** {note.severity}: "
                             body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
                             body += f'```{Path(file.name).suffix.lstrip(".")}\n'
                             for line in note.fixit_lines:
