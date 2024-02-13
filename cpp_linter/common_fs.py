@@ -120,6 +120,9 @@ class FileObj:
             start = hunk.new_start
             # make it span 1 line
             end = start
+        return self.is_range_contained(start, end)
+
+    def is_range_contained(self, start: int, end: int) -> Optional[Tuple[int, int]]:
         for hunk in self.diff_chunks:
             chunk_range = range(hunk[0], hunk[1])
             if start in chunk_range and end in chunk_range:
