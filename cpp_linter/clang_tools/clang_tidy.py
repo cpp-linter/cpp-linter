@@ -4,12 +4,12 @@ import os
 from pathlib import Path, PurePath
 import re
 import subprocess
-from typing import Tuple, Union, List, cast, Optional, Dict
+from typing import Tuple, Union, List, cast, Optional, Dict, Set
 from ..loggers import logger
 from ..common_fs import FileObj
 
 NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
-
+FIXED_NOTE = re.compile(r"^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$")
 
 class TidyNotification:
     """Create a object that decodes info from the clang-tidy output's initial line that
@@ -74,6 +74,8 @@ class TidyNotification:
         self.filename = rel_path
         #: A `list` of lines for the code-block in the notification.
         self.fixit_lines: List[str] = []
+        #: A list of line numbers where a suggested fix was applied.
+        self.applied_fixes: Set[int] = set()
 
     @property
     def diagnostic_link(self) -> str:
@@ -95,12 +97,14 @@ class TidyAdvice:
         self.notes = notes
 
     def diagnostics_in_range(self, start: int, end: int) -> str:
-        """Get a markdown formatted list of diagnostics found between a ``start``
+        """Get a markdown formatted list of fixed diagnostics found between a ``start``
         and ``end`` range of lines."""
         diagnostics = ""
         for note in self.notes:
-            if note.line in range(start, end + 1):  # range is inclusive
-                diagnostics += f"- {note.rationale} [{note.diagnostic_link}]\n"
+            for fix_line in note.applied_fixes:
+                if fix_line in range(start, end + 1):  # range is inclusive
+                    diagnostics += f"- {note.rationale} [{note.diagnostic_link}]\n"
+                    break
         return diagnostics
 
 
@@ -165,6 +169,11 @@ def run_clang_tidy(
     for extra_arg in extra_args:
         arg = extra_arg.strip('"')
         cmds.append(f'--extra-arg={arg}')
+    if tidy_review:
+        # clang-tidy overwrites the file contents when applying fixes.
+        # create a cache of original contents
+        original_buf = Path(file_obj.name).read_bytes()
+        cmds.append("--fix-errors")  # include compiler-suggested fixes
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
@@ -177,17 +186,11 @@ def run_clang_tidy(
     advice = parse_tidy_output(results.stdout.decode(), database=db_json)
 
     if tidy_review:
-        # clang-tidy overwrites the file contents when applying fixes.
-        # create a cache of original contents
-        original_buf = Path(file_obj.name).read_bytes()
-        cmds.insert(1, "--fix-errors")  # include compiler-suggested fixes
-        # run clang-tidy again to apply any fixes
-        logger.info('Getting fixes with "%s"', " ".join(cmds))
-        subprocess.run(cmds, check=True)
         # store the modified output from clang-tidy
         advice.patched = Path(file_obj.name).read_bytes()
         # re-write original file contents
         Path(file_obj.name).write_bytes(original_buf)
+
     return advice
 
 
@@ -202,20 +205,31 @@ def parse_tidy_output(
         ``compile_commands.json file``.
     """
     notification = None
+    found_fix = False
     tidy_notes = []
     for line in tidy_out.splitlines():
-        match = re.match(NOTE_HEADER, line)
-        if match is not None:
+        note_match = re.match(NOTE_HEADER, line)
+        fixed_match = re.match(FIXED_NOTE, line)
+        if note_match is not None:
             notification = TidyNotification(
                 cast(
                     Tuple[str, Union[int, str], Union[int, str], str, str, str],
-                    match.groups(),
+                    note_match.groups(),
                 ),
                 database,
             )
             tidy_notes.append(notification)
-        elif notification is not None:
+            # begin capturing subsequent lines as part of notification details
+            found_fix = False
+        elif fixed_match is not None and notification is not None:
+            notification.applied_fixes.add(int(fixed_match.group(1)))
+            # suspend capturing subsequent lines as they are not needed
+            found_fix = True
+        elif notification is not None and not found_fix:
             # append lines of code that are part of
             # the previous line's notification
             notification.fixit_lines.append(line)
+        # else: line is part of the applied fix. We don't need to capture
+        # this line because the fix has been applied to the file already.
+
     return TidyAdvice(notes=tidy_notes)

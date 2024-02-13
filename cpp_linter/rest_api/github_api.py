@@ -393,12 +393,12 @@ class GithubApiClient(RestApiClient):
                 payload_comments.extend(comments)
                 if total and total != len(comments):
                     body += f"Only {len(comments)} out of {total} {tool_name} "
-                    body += "suggestions fit within this pull request's diff.\n"
+                    body += "concerns fit within this pull request's diff.\n"
             if patch:
                 body += f"\n<details><summary>Click here for the full {tool_name} patch"
                 body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
-            else:
-                body += f"No objections from {tool_name}.\n"
+            elif not total:
+                body += f"No concerns from {tool_name}.\n"
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
@@ -471,6 +471,30 @@ class GithubApiClient(RestApiClient):
                     body += f"\n```suggestion\n{suggestion}```"
                 comment["body"] = body
                 comments.append(comment)
+
+        if tool_advice and isinstance(tool_advice[0], TidyAdvice):
+            # now check for clang-tidy warnings with no fixes applied
+            for file, tidy_advice in zip(files, tool_advice):
+                assert isinstance(tidy_advice, TidyAdvice)
+                for note in tidy_advice.notes:
+                    if not note.applied_fixes:  # if no fix was applied
+                        total += 1
+                        line_numb = int(note.line)
+                        if file.is_range_contained(start=line_numb, end=line_numb + 1):
+                            diag: Dict[str, Any] = {
+                                "path": file.name,
+                                "line": note.line,
+                            }
+                            body = f"### clang-tidy diagnostic\n**{file.name}:"
+                            body += f"{note.line}:{note.cols}:** {note.severity}: "
+                            body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
+                            if note.fixit_lines:
+                                body += f'```{Path(file.name).suffix.lstrip(".")}\n'
+                                for line in note.fixit_lines:
+                                    body += f"{line}\n"
+                                body += "```\n"
+                            diag["body"] = body
+                            comments.append(diag)
         return (comments, total, full_patch)
 
     def _dismiss_stale_reviews(self, url: str):
