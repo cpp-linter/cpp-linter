@@ -572,12 +572,12 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
 
 <span class="n">NOTE_HEADER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$&quot;</span><span class="p">)</span>
-
+<span class="n">FIXED_NOTE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TidyNotification">
 <a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_tidy.html#cpp_linter.clang_tools.clang_tidy.TidyNotification">[docs]</a>
@@ -644,6 +644,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">rel_path</span>
         <span class="c1">#: A `list` of lines for the code-block in the notification.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1">#: A list of line numbers where a suggested fix was applied.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applied_fixes</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">diagnostic_link</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -666,12 +668,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="n">notes</span>
 
     <span class="k">def</span> <span class="nf">diagnostics_in_range</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a markdown formatted list of diagnostics found between a ``start``</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a markdown formatted list of fixed diagnostics found between a ``start``</span>
 <span class="sd">        and ``end`` range of lines.&quot;&quot;&quot;</span>
         <span class="n">diagnostics</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># range is inclusive</span>
-                <span class="n">diagnostics</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">rationale</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">diagnostic_link</span><span class="si">}</span><span class="s2">]</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">fix_line</span> <span class="ow">in</span> <span class="n">note</span><span class="o">.</span><span class="n">applied_fixes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fix_line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># range is inclusive</span>
+                    <span class="n">diagnostics</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">rationale</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">diagnostic_link</span><span class="si">}</span><span class="s2">]</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">break</span>
         <span class="k">return</span> <span class="n">diagnostics</span>
 
 
@@ -738,6 +742,11 @@
     <span class="k">for</span> <span class="n">extra_arg</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="p">:</span>
         <span class="n">arg</span> <span class="o">=</span> <span class="n">extra_arg</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
         <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;--extra-arg=</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
+        <span class="c1"># clang-tidy overwrites the file contents when applying fixes.</span>
+        <span class="c1"># create a cache of original contents</span>
+        <span class="n">original_buf</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+        <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--fix-errors&quot;</span><span class="p">)</span>  <span class="c1"># include compiler-suggested fixes</span>
     <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Running &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmds</span><span class="p">))</span>
     <span class="n">results</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -750,17 +759,11 @@
     <span class="n">advice</span> <span class="o">=</span> <span class="n">parse_tidy_output</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="n">database</span><span class="o">=</span><span class="n">db_json</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
-        <span class="c1"># clang-tidy overwrites the file contents when applying fixes.</span>
-        <span class="c1"># create a cache of original contents</span>
-        <span class="n">original_buf</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
-        <span class="n">cmds</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;--fix-errors&quot;</span><span class="p">)</span>  <span class="c1"># include compiler-suggested fixes</span>
-        <span class="c1"># run clang-tidy again to apply any fixes</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Getting fixes with &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmds</span><span class="p">))</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmds</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># store the modified output from clang-tidy</span>
         <span class="n">advice</span><span class="o">.</span><span class="n">patched</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
         <span class="c1"># re-write original file contents</span>
         <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">original_buf</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">advice</span></div>
 
 
@@ -778,22 +781,33 @@
 <span class="sd">        ``compile_commands.json file``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">notification</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">found_fix</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">tidy_notes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">tidy_out</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
-        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">NOTE_HEADER</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">note_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">NOTE_HEADER</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="n">fixed_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">FIXED_NOTE</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">note_match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">notification</span> <span class="o">=</span> <span class="n">TidyNotification</span><span class="p">(</span>
                 <span class="n">cast</span><span class="p">(</span>
                     <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-                    <span class="k">match</span><span class="o">.</span><span class="n">groups</span><span class="p">(),</span>
+                    <span class="n">note_match</span><span class="o">.</span><span class="n">groups</span><span class="p">(),</span>
                 <span class="p">),</span>
                 <span class="n">database</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">tidy_notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">notification</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">notification</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># begin capturing subsequent lines as part of notification details</span>
+            <span class="n">found_fix</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">fixed_match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">notification</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">notification</span><span class="o">.</span><span class="n">applied_fixes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">fixed_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span>
+            <span class="c1"># suspend capturing subsequent lines as they are not needed</span>
+            <span class="n">found_fix</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">notification</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">found_fix</span><span class="p">:</span>
             <span class="c1"># append lines of code that are part of</span>
             <span class="c1"># the previous line&#39;s notification</span>
             <span class="n">notification</span><span class="o">.</span><span class="n">fixit_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="c1"># else: line is part of the applied fix. We don&#39;t need to capture</span>
+        <span class="c1"># this line because the fix has been applied to the file already.</span>
+
     <span class="k">return</span> <span class="n">TidyAdvice</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="n">tidy_notes</span><span class="p">)</span></div>
 
 </code></pre></div>
