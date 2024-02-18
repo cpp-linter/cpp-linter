@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 from os import environ
 from pathlib import Path
@@ -15,31 +16,43 @@ DEFAULT_TIDY_CHECKS = (
     "clang-analyzer-*,cppcoreguidelines-*"
 )
 
+test_parameters = OrderedDict(
+    is_draft=False,
+    is_closed=False,
+    with_token=True,
+    force_approved=False,
+    tidy_review=False,
+    format_review=True,
+    changes=2,
+    summary_only=False,
+    no_lgtm=False,
+)
+
+
+def mk_param_set(**kwargs) -> OrderedDict:
+    """Creates a dict of parameters values."""
+    ret = test_parameters.copy()
+    for key, value in kwargs.items():
+        ret[key] = value
+    return ret
+
 
 @pytest.mark.parametrize(
-    "is_draft,is_closed,with_token,force_approved,tidy_review,format_review,changes,summary_only,no_lgtm",
-    [
-        (True, False, True, False, False, True, 2, False, False),
-        (False, True, True, False, False, True, 2, False, False),
+    argnames=list(test_parameters.keys()),
+    argvalues=[
+        tuple(mk_param_set(is_draft=True).values()),
+        tuple(mk_param_set(is_closed=True).values()),
         pytest.param(
-            False,
-            False,
-            False,
-            False,
-            False,
-            True,
-            2,
-            False,
-            False,
+            *tuple(mk_param_set(with_token=False).values()),
             marks=pytest.mark.xfail,
         ),
-        (False, False, True, True, False, True, 2, False, False),
-        (False, False, True, False, True, False, 2, False, True),
-        (False, False, True, False, True, False, 2, False, False),
-        (False, False, True, False, False, True, 2, False, False),
-        (False, False, True, False, True, True, 1, False, False),
-        (False, False, True, False, True, True, 0, False, False),
-        (False, False, True, False, True, True, 0, True, False),
+        tuple(mk_param_set(force_approved=True).values()),
+        tuple(mk_param_set(force_approved=True, no_lgtm=True).values()),
+        tuple(mk_param_set(tidy_review=True, format_review=False).values()),
+        tuple(mk_param_set(format_review=True).values()),
+        tuple(mk_param_set(tidy_review=True, changes=1).values()),
+        tuple(mk_param_set(tidy_review=True, changes=0).values()),
+        tuple(mk_param_set(tidy_review=True, changes=0, summary_only=True).values()),
     ],
     ids=[
         "draft",
