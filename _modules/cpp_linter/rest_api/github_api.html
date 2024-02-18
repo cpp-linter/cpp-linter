@@ -759,7 +759,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">tidy_review</span> <span class="ow">or</span> <span class="n">format_review</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">post_review</span><span class="p">(</span>
-                <span class="n">files</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_review</span><span class="p">,</span> <span class="n">format_review</span>
+                <span class="n">files</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_review</span><span class="p">,</span> <span class="n">format_review</span><span class="p">,</span> <span class="n">no_lgtm</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">file_annotations</span><span class="p">:</span>
@@ -952,6 +952,7 @@
         <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
         <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_url</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2">/pulls/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">event_payload</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">response_buffer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">())</span>
@@ -996,6 +997,9 @@
         <span class="k">if</span> <span class="n">total_changes</span><span class="p">:</span>
             <span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;REQUEST_CHANGES&quot;</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">no_lgtm</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Not posting an approved review because `no-lgtm` is true&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
             <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Great job! :tada:&quot;</span>
             <span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;APPROVE&quot;</span>
         <span class="n">body</span> <span class="o">+=</span> <span class="n">USER_OUTREACH</span>
