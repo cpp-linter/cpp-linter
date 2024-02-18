@@ -175,7 +175,7 @@ class GithubApiClient(RestApiClient):
 
         if self.event_name == "pull_request" and (tidy_review or format_review):
             self.post_review(
-                files, tidy_advice, format_advice, tidy_review, format_review
+                files, tidy_advice, format_advice, tidy_review, format_review, no_lgtm
             )
 
         if file_annotations:
@@ -358,6 +358,7 @@ class GithubApiClient(RestApiClient):
         format_advice: List[FormatAdvice],
         tidy_review: bool,
         format_review: bool,
+        no_lgtm: bool,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
         response_buffer = self.session.get(url, headers=self.make_headers())
@@ -402,6 +403,9 @@ class GithubApiClient(RestApiClient):
         if total_changes:
             event = "REQUEST_CHANGES"
         else:
+            if no_lgtm:
+                logger.debug("Not posting an approved review because `no-lgtm` is true")
+                return
             body += "\nGreat job! :tada:"
             event = "APPROVE"
         body += USER_OUTREACH
