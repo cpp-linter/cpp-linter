@@ -197,8 +197,9 @@ cli_arg_parser.add_argument(
     default="true",
     type=lambda input: input.lower() == "true",
     help="""Set this option to true or false to enable or
-disable the use of a thread comment that basically says
-'Looks Good To Me' (when all checks pass).
+disable the use of a thread comment or PR review
+that basically says 'Looks Good To Me' (when all
+checks pass).
 
 .. seealso::
     The :std:option:`--thread-comments` option also
