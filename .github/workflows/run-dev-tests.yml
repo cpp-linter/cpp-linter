@@ -18,6 +18,7 @@ on:
       - pyproject.toml
       - ".github/workflows/run-dev-tests.yml"
       - "!docs/**"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -102,12 +103,11 @@ jobs:
           name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
           path: .coverage*
 
-  coverage-report:
+  reports:
     needs: [test]
-    uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
-
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ./coverage.xml
+    coverage-report:
+      uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
+    codacy-report:
+      uses: cpp-linter/.github/.github/workflows/codacy.yml@main
+      with:
+        path-to-report: ./coverage.xml
