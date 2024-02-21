@@ -1,0 +1,10 @@
+name: Run pre-commit
+
+on:
+  push:
+  pull_request:
+    types: opened
+
+jobs:
+  pre-commit:
+    uses: cpp-linter/.github/.github/workflows/pre-commit.yml@main
