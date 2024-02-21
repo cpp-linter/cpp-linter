@@ -108,6 +108,10 @@ jobs:
     coverage-report:
       uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
     codacy-report:
-      uses: cpp-linter/.github/.github/workflows/codacy.yml@main
-      with:
-        path-to-report: ./coverage.xml
+      runs-on: ubuntu-latest
+      steps:
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ./coverage.xml
