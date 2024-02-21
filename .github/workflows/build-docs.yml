@@ -7,14 +7,3 @@ jobs:
     uses: cpp-linter/.github/.github/workflows/sphinx.yml@main
     with:
       path-to-doc: docs/_build/html
-
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-    - name: upload to github pages
-      # only publish doc changes from main branch
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build/html
