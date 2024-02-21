@@ -103,15 +103,15 @@ jobs:
           name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
           path: .coverage*
 
-  coverage-reports:
+  coverage-report:
     needs: [test]
     uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
-
-  codacy-reports:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Run codacy-coverage-reporter
-      uses: codacy/codacy-coverage-reporter-action@v1
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        coverage-reports: ./coverage.xml
+  # Can not get coverage.xml from above reusable workflows.
+  # codacy-report:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Run codacy-coverage-reporter
+  #     uses: codacy/codacy-coverage-reporter-action@v1
+  #     with:
+  #       project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+  #       coverage-reports: ./coverage.xml
