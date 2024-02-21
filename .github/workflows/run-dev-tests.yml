@@ -105,8 +105,7 @@ jobs:
 
   reports:
     needs: [test]
-    coverage-report:
-      uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
+    uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
     codacy-report:
       runs-on: ubuntu-latest
       steps:
