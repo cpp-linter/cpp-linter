@@ -106,12 +106,4 @@ jobs:
   coverage-report:
     needs: [test]
     uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
-  # Can not get coverage.xml from above reusable workflows.
-  # codacy-report:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Run codacy-coverage-reporter
-  #     uses: codacy/codacy-coverage-reporter-action@v1
-  #     with:
-  #       project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-  #       coverage-reports: ./coverage.xml
+    secrets: inherit
