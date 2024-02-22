@@ -1,4 +1,4 @@
-name: "Check python code"
+name: Build and Test
 
 on:
   push:
@@ -18,6 +18,7 @@ on:
       - pyproject.toml
       - ".github/workflows/run-dev-tests.yml"
       - "!docs/**"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -52,7 +53,7 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      - name: download wheel artifact
+      - name: Download wheel artifact
         uses: actions/download-artifact@v4
         with:
           name: cpp-linter_wheel
@@ -104,47 +105,5 @@ jobs:
 
   coverage-report:
     needs: [test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ci-artifacts
-          pattern: coverage-data-*
-
-      - run: mv ci-artifacts/**/.coverage* ./
-
-      - name: Setup python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-
-      - name: Create coverage report
-        run: |
-          pip3 install coverage[toml]
-          coverage combine
-          coverage html
-
-      - name: Upload comprehensive coverage HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: htmlcov/
-
-      - run: coverage report && coverage xml
-
-      - uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: true # optional (default = false)
-          verbose: true # optional (default = false)
-
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ./coverage.xml
+    uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
+    secrets: inherit
