@@ -154,12 +154,7 @@ class GithubApiClient(RestApiClient):
             files, format_advice, tidy_advice
         )
         checks_failed = format_checks_failed + tidy_checks_failed
-        thread_comments_allowed = True
-        if self.event_payload and "private" in self.event_payload["repository"]:
-            thread_comments_allowed = (
-                self.event_payload["repository"]["private"] is not True
-            )
-        if thread_comments != "false" and thread_comments_allowed:
+        if thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
                 sys.exit(self.set_exit_code(1))
