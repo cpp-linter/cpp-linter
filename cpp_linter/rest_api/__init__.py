@@ -25,7 +25,7 @@ class RestApiClient(ABC):
         method: Optional[str] = None,
         data: Optional[str] = None,
         headers: Optional[Dict[str, Any]] = None,
-    ) -> Optional[requests.Response]:
+    ) -> requests.Response:
         """A helper function to streamline handling of HTTP requests' responses.
 
         :param url: The  HTTP request URL.
@@ -35,8 +35,8 @@ class RestApiClient(ABC):
         :param headers: The HTTP request headers to use. This can be used to override
             the default headers used.
 
-        Returns:
-            A HTTP response body upon success, otherwise `None`.
+        :returns:
+            The HTTP request's response object.
         """
         raise NotImplementedError("Must be defined in the derivative")
 

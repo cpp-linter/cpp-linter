@@ -92,6 +92,7 @@ class GithubApiClient(RestApiClient):
                 "Github REST API rate limit resets on %s",
                 time.strftime("%d %B %Y %H:%M +0000", reset_epoch),
             )
+        sys.exit(1)
 
     def api_request(
         self,
@@ -99,10 +100,9 @@ class GithubApiClient(RestApiClient):
         method: Optional[str] = None,
         data: Optional[str] = None,
         headers: Optional[Dict[str, Any]] = None,
-    ) -> Optional[requests.Response]:
+    ) -> requests.Response:
         if self._rate_limit_back_step > 5 or self._rate_limit_remaining == 0:
             self._rate_limit_exceeded({})
-            return None
         response = self.session.request(
             method=method or ("GET" if data is None else "POST"),
             url=url,
@@ -113,27 +113,23 @@ class GithubApiClient(RestApiClient):
             response.headers.get("x-ratelimit-remaining", "-1")
         )
         log_response_msg(response)
-        if response.status_code >= 400:
-            if response.status_code in [403, 429]:  # rate limit exceeded
-                # secondary rate limit handling
-                if "retry-after" in response.headers:
-                    wait_time = (
-                        float(cast(str, response.headers.get("retry-after")))
-                        * self._rate_limit_back_step
-                    )
-                    logger.warning(
-                        "SECONDARY RATE LIMIT HIT! Backing off for %f seconds",
-                        wait_time,
-                    )
-                    time.sleep(wait_time)
-                    self._rate_limit_back_step += 1
-                    return self.api_request(
-                        url, method=method, data=data, headers=headers
-                    )
-                # primary rate limit handling
-                if self._rate_limit_remaining == 0:
-                    self._rate_limit_exceeded(response.headers)
-            return None
+        if response.status_code in [403, 429]:  # rate limit exceeded
+            # secondary rate limit handling
+            if "retry-after" in response.headers:
+                wait_time = (
+                    float(cast(str, response.headers.get("retry-after")))
+                    * self._rate_limit_back_step
+                )
+                logger.warning(
+                    "SECONDARY RATE LIMIT HIT! Backing off for %f seconds",
+                    wait_time,
+                )
+                time.sleep(wait_time)
+                self._rate_limit_back_step += 1
+                return self.api_request(url, method=method, data=data, headers=headers)
+            # primary rate limit handling
+            if self._rate_limit_remaining == 0:
+                self._rate_limit_exceeded(response.headers)
         self._rate_limit_back_step = 0
         return response
 
@@ -161,16 +157,12 @@ class GithubApiClient(RestApiClient):
             response_buffer = self.api_request(
                 url=files_link, headers=self.make_headers(use_diff=True)
             )
-            files = (
-                []
-                if response_buffer is None
-                else parse_diff(
-                    response_buffer.text,
-                    extensions,
-                    ignored,
-                    not_ignored,
-                    lines_changed_only,
-                )
+            files = parse_diff(
+                response_buffer.text,
+                extensions,
+                ignored,
+                not_ignored,
+                lines_changed_only,
             )
         else:
             files = parse_diff(
@@ -200,10 +192,7 @@ class GithubApiClient(RestApiClient):
                 response_buffer = self.api_request(url=raw_url)
                 # retain the repo's original structure
                 Path.mkdir(file_name.parent, parents=True, exist_ok=True)
-                file_name.write_text(
-                    "" if response_buffer is None else response_buffer.text,
-                    encoding="utf-8",
-                )
+                file_name.write_text(response_buffer.text, encoding="utf-8")
 
     def make_headers(self, use_diff: bool = False) -> Dict[str, str]:
         headers = {
@@ -265,12 +254,12 @@ class GithubApiClient(RestApiClient):
         if self.event_name == "pull_request":
             comments_url = base_url + f'issues/{self.event_payload["number"]}'
             response_buffer = self.api_request(comments_url)
-            if response_buffer is not None:
+            if response_buffer.status_code == 200:
                 count = cast(int, response_buffer.json()["comments"])
         else:
             comments_url = base_url + f"commits/{self.sha}"
             response_buffer = self.api_request(comments_url)
-            if response_buffer is not None:
+            if response_buffer.status_code == 200:
                 count = cast(int, response_buffer.json()["commit"]["comment_count"])
         return count, comments_url + "/comments"
 
@@ -358,7 +347,7 @@ class GithubApiClient(RestApiClient):
             response_buffer = self.api_request(
                 comments_url, method=req_meth, data=payload
             )
-            if response_buffer is not None:
+            if response_buffer.status_code < 400:
                 logger.info(
                     "Got %d response from %sing comment",
                     response_buffer.status_code,
@@ -383,7 +372,7 @@ class GithubApiClient(RestApiClient):
         comment_url: Optional[str] = None
         while count:
             response_buffer = self.api_request(comments_url + f"?page={page}")
-            if response_buffer is None:
+            if response_buffer.status_code >= 400:
                 return comment_url  # error getting comments for the thread; stop here
             comments = cast(List[Dict[str, Any]], response_buffer.json())
             if logger.level >= logging.DEBUG:
@@ -411,7 +400,7 @@ class GithubApiClient(RestApiClient):
                         # use saved comment_url if not None else current comment url
                         url = comment_url or comment["url"]
                         response_buffer = self.api_request(url, method="DELETE")
-                        if response_buffer is not None:
+                        if response_buffer.status_code < 400:
                             logger.info(
                                 "Got %d from DELETE %s",
                                 response_buffer.status_code,
@@ -434,7 +423,7 @@ class GithubApiClient(RestApiClient):
         response_buffer = self.api_request(url)
         url += "/reviews"
         is_draft = True
-        if response_buffer is not None:
+        if response_buffer.status_code == 200:
             pr_payload = response_buffer.json()
             is_draft = cast(Dict[str, bool], pr_payload).get("draft", False)
             is_open = cast(Dict[str, str], pr_payload).get("state", "open") == "open"
@@ -484,7 +473,7 @@ class GithubApiClient(RestApiClient):
             "event": event,
             "comments": payload_comments,
         }
-        response_buffer = self.api_request(url, data=json.dumps(payload))
+        self.api_request(url, data=json.dumps(payload))
 
     @staticmethod
     def create_review_comments(
@@ -571,7 +560,7 @@ class GithubApiClient(RestApiClient):
     def _dismiss_stale_reviews(self, url: str):
         """Dismiss all reviews that were previously created by cpp-linter"""
         response_buffer = self.api_request(url)
-        if response_buffer is None:
+        if response_buffer.status_code >= 400:
             logger.error("Failed to poll existing reviews for dismissal")
         else:
             reviews: List[Dict[str, Any]] = response_buffer.json()
