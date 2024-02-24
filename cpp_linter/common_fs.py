@@ -223,16 +223,13 @@ def is_source_or_ignored(
 def list_source_files(
     extensions: List[str], ignored: List[str], not_ignored: List[str]
 ) -> List[FileObj]:
-    """Make a list of source files to be checked. The resulting list is stored in
-    :attr:`~cpp_linter.Globals.FILES`.
+    """Make a list of source files to be checked.
 
     :param extensions: A list of file extensions that should by attended.
     :param ignored: A list of paths to explicitly ignore.
     :param not_ignored: A list of paths to explicitly not ignore.
 
-    :returns:
-        True if there are files to check. False will invoke a early exit (in
-        `main()` when no files to be checked.
+    :returns: A list of `FileObj` objects.
     """
     start_log_group("Get list of specified source files")
 
