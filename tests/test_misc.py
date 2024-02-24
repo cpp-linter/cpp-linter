@@ -7,7 +7,6 @@ import shutil
 from typing import List, cast
 
 import pytest
-import requests
 import requests_mock
 
 from cpp_linter.common_fs import (
@@ -19,7 +18,6 @@ from cpp_linter.clang_tools import assemble_version_exec
 from cpp_linter.loggers import (
     logger,
     log_commander,
-    log_response_msg,
     start_log_group,
     end_log_group,
 )
@@ -62,19 +60,6 @@ def test_start_group(caplog: pytest.LogCaptureFixture):
     start_log_group("TEST")
     messages = caplog.messages
     assert "::group::TEST" in messages
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        ("https://github.com/orgs/cpp-linter/repositories"),
-        pytest.param(("https://github.com/cpp-linter/repo"), marks=pytest.mark.xfail),
-    ],
-)
-def test_response_logs(url: str):
-    """Test the log output for a requests.response buffer."""
-    response_buffer = requests.get(url)
-    assert log_response_msg(response_buffer)
 
 
 @pytest.mark.parametrize(

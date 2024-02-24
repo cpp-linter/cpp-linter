@@ -1,7 +1,7 @@
 from abc import ABC
 from pathlib import PurePath
 import requests
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List, Tuple, Any
 from ..common_fs import FileObj
 from ..clang_tools.clang_format import FormatAdvice
 from ..clang_tools.clang_tidy import TidyAdvice
@@ -18,6 +18,27 @@ COMMENT_MARKER = "<!-- cpp linter action -->\n"
 class RestApiClient(ABC):
     def __init__(self) -> None:
         self.session = requests.Session()
+
+    def api_request(
+        self,
+        url: str,
+        method: Optional[str] = None,
+        data: Optional[str] = None,
+        headers: Optional[Dict[str, Any]] = None,
+    ) -> Optional[requests.Response]:
+        """A helper function to streamline handling of HTTP requests' responses.
+
+        :param url: The  HTTP request URL.
+        :param method: The HTTP request method. The default value `None` means
+            "GET" if ``data`` is `None` else "POST"
+        :param data: The HTTP request payload data.
+        :param headers: The HTTP request headers to use. This can be used to override
+            the default headers used.
+
+        Returns:
+            A HTTP response body upon success, otherwise `None`.
+        """
+        raise NotImplementedError("Must be defined in the derivative")
 
     def set_exit_code(
         self,
