@@ -253,12 +253,12 @@ class GithubApiClient(RestApiClient):
         count = -1
         if self.event_name == "pull_request":
             comments_url = base_url + f'issues/{self.event_payload["number"]}'
-            response_buffer = self.api_request(comments_url)
+            response_buffer = self.api_request(url=comments_url)
             if response_buffer.status_code == 200:
                 count = cast(int, response_buffer.json()["comments"])
         else:
             comments_url = base_url + f"commits/{self.sha}"
-            response_buffer = self.api_request(comments_url)
+            response_buffer = self.api_request(url=comments_url)
             if response_buffer.status_code == 200:
                 count = cast(int, response_buffer.json()["commit"]["comment_count"])
         return count, comments_url + "/comments"
@@ -345,13 +345,13 @@ class GithubApiClient(RestApiClient):
             payload = json.dumps({"body": comment})
             logger.debug("payload body:\n%s", payload)
             response_buffer = self.api_request(
-                comments_url, method=req_meth, data=payload
+                url=comments_url, method=req_meth, data=payload
             )
             if response_buffer.status_code < 400:
                 logger.info(
                     "Got %d response from %sing comment",
                     response_buffer.status_code,
-                    "POST" if comment_url is None else "PATCH",
+                    req_meth,
                 )
 
     def remove_bot_comments(
@@ -371,7 +371,7 @@ class GithubApiClient(RestApiClient):
         page = 1
         comment_url: Optional[str] = None
         while count:
-            response_buffer = self.api_request(comments_url + f"?page={page}")
+            response_buffer = self.api_request(url=comments_url + f"?page={page}")
             if response_buffer.status_code >= 400:
                 return comment_url  # error getting comments for the thread; stop here
             comments = cast(List[Dict[str, Any]], response_buffer.json())
@@ -399,12 +399,12 @@ class GithubApiClient(RestApiClient):
 
                         # use saved comment_url if not None else current comment url
                         url = comment_url or comment["url"]
-                        response_buffer = self.api_request(url, method="DELETE")
+                        response_buffer = self.api_request(url=url, method="DELETE")
                         if response_buffer.status_code < 400:
                             logger.info(
                                 "Got %d from DELETE %s",
                                 response_buffer.status_code,
-                                url[url.find(".com") + 4 :],
+                                url.lstrip(self.api_url),
                             )
                     if not delete:
                         comment_url = cast(str, comment["url"])
@@ -420,7 +420,7 @@ class GithubApiClient(RestApiClient):
         no_lgtm: bool,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
-        response_buffer = self.api_request(url)
+        response_buffer = self.api_request(url=url)
         url += "/reviews"
         is_draft = True
         if response_buffer.status_code == 200:
@@ -473,7 +473,7 @@ class GithubApiClient(RestApiClient):
             "event": event,
             "comments": payload_comments,
         }
-        self.api_request(url, data=json.dumps(payload))
+        self.api_request(url=url, data=json.dumps(payload))
 
     @staticmethod
     def create_review_comments(
@@ -559,7 +559,7 @@ class GithubApiClient(RestApiClient):
 
     def _dismiss_stale_reviews(self, url: str):
         """Dismiss all reviews that were previously created by cpp-linter"""
-        response_buffer = self.api_request(url)
+        response_buffer = self.api_request(url=url)
         if response_buffer.status_code >= 400:
             logger.error("Failed to poll existing reviews for dismissal")
         else:
@@ -573,7 +573,7 @@ class GithubApiClient(RestApiClient):
                 ):
                     assert "id" in review
                     response_buffer = self.api_request(
-                        f"{url}/{review['id']}/dismissals",
+                        url=f"{url}/{review['id']}/dismissals",
                         method="PUT",
                         data=json.dumps(
                             {"message": "outdated suggestion", "event": "DISMISS"}
