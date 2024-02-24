@@ -226,12 +226,6 @@ an old comment and post a new one if necessary.
     See `Authenticating with the GITHUB_TOKEN
     <https://docs.github.com/en/actions/reference/authentication-in-a-workflow>`_
 
-.. hint::
-    If run on a private repository, then this feature
-    is disabled because the GitHub REST API behaves
-    differently for thread comments on a private
-    repository.
-
 Defaults to ``%(default)s``.""",
 )
 cli_arg_parser.add_argument(
