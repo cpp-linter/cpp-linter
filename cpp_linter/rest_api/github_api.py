@@ -131,7 +131,7 @@ class GithubApiClient(RestApiClient):
 
     def make_headers(self, use_diff: bool = False) -> Dict[str, str]:
         headers = {
-            "Accept": "application/vnd.github." + ("diff" if use_diff else "text+json"),
+            "Accept": "application/vnd.github." + ("diff" if use_diff else "raw+json"),
         }
         gh_token = environ.get("GITHUB_TOKEN", "")
         if gh_token:
