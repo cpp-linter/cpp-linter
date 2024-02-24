@@ -9,6 +9,7 @@ designed around GitHub's REST API.
     - `github rest API reference for issues <https://docs.github.com/en/rest/issues>`_
 """
 import json
+import logging
 from os import environ
 from pathlib import Path
 import urllib.parse
@@ -312,8 +313,11 @@ class GithubApiClient(RestApiClient):
             if not log_response_msg(response_buffer):
                 return comment_url  # error getting comments for the thread; stop here
             comments = cast(List[Dict[str, Any]], response_buffer.json())
-            json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
-            json_comments.write_text(json.dumps(comments, indent=2), encoding="utf-8")
+            if logger.level >= logging.DEBUG:
+                json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
+                json_comments.write_text(
+                    json.dumps(comments, indent=2), encoding="utf-8"
+                )
 
             page += 1
             count -= len(comments)
