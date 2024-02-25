@@ -9,6 +9,7 @@ designed around GitHub's REST API.
     - `github rest API reference for issues <https://docs.github.com/en/rest/issues>`_
 """
 import json
+import logging
 from os import environ
 from pathlib import Path
 import urllib.parse
@@ -130,7 +131,7 @@ class GithubApiClient(RestApiClient):
 
     def make_headers(self, use_diff: bool = False) -> Dict[str, str]:
         headers = {
-            "Accept": "application/vnd.github." + ("diff" if use_diff else "text+json"),
+            "Accept": "application/vnd.github." + ("diff" if use_diff else "raw+json"),
         }
         gh_token = environ.get("GITHUB_TOKEN", "")
         if gh_token:
@@ -154,12 +155,7 @@ class GithubApiClient(RestApiClient):
             files, format_advice, tidy_advice
         )
         checks_failed = format_checks_failed + tidy_checks_failed
-        thread_comments_allowed = True
-        if self.event_payload and "private" in self.event_payload["repository"]:
-            thread_comments_allowed = (
-                self.event_payload["repository"]["private"] is not True
-            )
-        if thread_comments != "false" and thread_comments_allowed:
+        if thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
                 sys.exit(self.set_exit_code(1))
@@ -317,8 +313,11 @@ class GithubApiClient(RestApiClient):
             if not log_response_msg(response_buffer):
                 return comment_url  # error getting comments for the thread; stop here
             comments = cast(List[Dict[str, Any]], response_buffer.json())
-            json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
-            json_comments.write_text(json.dumps(comments, indent=2), encoding="utf-8")
+            if logger.level >= logging.DEBUG:
+                json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
+                json_comments.write_text(
+                    json.dumps(comments, indent=2), encoding="utf-8"
+                )
 
             page += 1
             count -= len(comments)

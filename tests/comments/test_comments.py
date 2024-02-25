@@ -1,4 +1,5 @@
 import json
+import logging
 from os import environ
 from pathlib import Path
 import requests_mock
@@ -8,6 +9,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
 from cpp_linter.common_fs import list_source_files
+from cpp_linter.loggers import logger
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 22
@@ -38,6 +40,7 @@ TEST_SHA = "8d68756375e0483c7ac2b4d6bbbece420dbbb495"
 )
 def test_post_feedback(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
     event_name: str,
     thread_comments: str,
@@ -132,6 +135,9 @@ def test_post_feedback(
         mock.patch(f"{comment_url}{comment_id}")
         mock.post(f"{base_url}commits/{TEST_SHA}/comments")
         mock.post(f"{base_url}issues/{TEST_PR}/comments")
+
+        # to get debug files saved to test workspace folders: enable logger verbosity
+        caplog.set_level(logging.DEBUG, logger=logger.name)
 
         gh_client.post_feedback(
             files,
