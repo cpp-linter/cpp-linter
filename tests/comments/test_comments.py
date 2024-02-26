@@ -105,15 +105,23 @@ def test_post_feedback(
                 f"{base_url}issues/{TEST_PR}",
                 text=(cache_path / f"pr_{TEST_PR}.json").read_text(encoding="utf-8"),
             )
+            comments_url = f"{base_url}issues/{TEST_PR}/comments"
             for i in [1, 2]:
                 mock.get(
-                    f"{base_url}issues/{TEST_PR}/comments?page={i}",
+                    f"{comments_url}?page={i}&per_page=100",
                     text=(cache_path / f"pr_comments_pg{i}.json").read_text(
                         encoding="utf-8"
                     ),
                     # to trigger a logged error, we'll modify the response when
                     # fetching page 2 of old comments and thread-comments is true
                     status_code=404 if i == 2 and thread_comments == "true" else 200,
+                    headers=(
+                        {}
+                        if i == 2
+                        else {
+                            "link": f'<{comments_url}?page=2&per_page=100>; rel="next"'
+                        }
+                    ),
                 )
         else:
             # load mock responses for push event
