@@ -98,7 +98,7 @@ class GithubApiClient(RestApiClient):
         data: Optional[str] = None,
         headers: Optional[Dict[str, Any]] = None,
     ) -> requests.Response:
-        if self._rate_limit_back_step > 5 or self._rate_limit_remaining == 0:
+        if self._rate_limit_back_step >= 5 or self._rate_limit_remaining == 0:
             self._rate_limit_exceeded({})
         response = self.session.request(
             method=method or ("GET" if data is None else "POST"),
