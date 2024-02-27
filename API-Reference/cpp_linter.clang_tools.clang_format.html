@@ -1,0 +1,1165 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../_static/favicon.ico">
+    
+    
+      
+        <title>clang_tools.clang_format - cpp-linter</title>
+      
+    
+    
+      
+        
+        
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+        <link rel="stylesheet" type="text/css" href="../_static/sphinx_immaterial_theme.1cd64e305be4c6cbd.min.css?v=47d7abb1" />
+        <link rel="stylesheet" type="text/css" href="../_static/extra_css.css?v=cd45be07" />
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="deep-purple">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="cpp-linter" class="md-header__button md-logo" aria-label="cpp-linter" data-md-component="logo">
+      <img src="../_static/logo.png" alt="logo">
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            cpp-linter
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              clang_tools.clang_format
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="light-blue" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"/></svg>
+            </label>
+          
+        
+          
+          
+          <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="light-blue" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"/></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7 0-.24-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91 1.61 0 2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08Z"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cpp-linter/cpp-linter" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cpp-linter
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../index.html" class="md-tabs__link">
+      <span class="md-ellipsis">C/C++ Linting Package</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../pr_review_caveats.html" class="md-tabs__link">
+      <span class="md-ellipsis">Pull Request Review Caveats</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../cli_args.html" class="md-tabs__link">
+      <span class="md-ellipsis">Command Line Interface Options</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  <li class="md-tabs__item">
+    <a href="cpp_linter.html" class="md-tabs__link md-tabs__link--active">
+      <span class="md-ellipsis">API modules</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../building_docs.html" class="md-tabs__link">
+      <span class="md-ellipsis">How to build the docs</span>
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="cpp-linter" class="md-nav__button md-logo" aria-label="cpp-linter" data-md-component="logo">
+      <img src="../_static/logo.png" alt="logo">
+    </a>
+    cpp-linter
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cpp-linter/cpp-linter" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cpp-linter
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        <span class="md-ellipsis">C/C++ Linting Package</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_review_caveats.html" class="md-nav__link">
+        <span class="md-ellipsis">Pull Request Review Caveats</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_args.html" class="md-nav__link">
+        <span class="md-ellipsis">Command Line Interface Options</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4">
+          <span class="md-ellipsis">API modules</span>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API modules" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          <span class="md-ellipsis">API modules</span>
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.html" class="md-nav__link">
+        <span class="md-ellipsis">__<wbr>init__<wbr></span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.clang_tools.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          <span class="md-ellipsis">clang_<wbr>tools.<wbr>clang_<wbr>format</span>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="#" class="md-nav__link md-nav__link--active">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>clang_<wbr>format</span>
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement (Python class) — An object representing a single replacement." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>Format<wbr>Replacement</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.FormatReplacement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement.cols" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement.cols (Python attribute) — The columns number of where the suggestion starts on the line" class="md-ellipsis">cols</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement.null_len" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement.null_len (Python attribute) — The number of bytes removed by suggestion" class="md-ellipsis">null_<wbr>len</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement.text" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement.text (Python attribute) — The bytearray of the suggestion" class="md-ellipsis">text</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>Format<wbr>Replacement<wbr>Line</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.FormatReplacementLine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.line" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacementLine.line (Python attribute) — The line number of where the suggestion starts" class="md-ellipsis">line</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.replacements" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacementLine.replacements (Python attribute) — A list of FormatReplacement object(s) representing suggestions." class="md-ellipsis">replacements</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice (Python class) — A single object to represent each suggestion." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>Format<wbr>Advice</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.FormatAdvice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.filename" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.filename (Python attribute) — The source file that the suggestion concerns." class="md-ellipsis">filename</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines (Python attribute) — A list of FormatReplacementLine representing replacement(s) on a single line." class="md-ellipsis">replaced_<wbr>lines</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.patched" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.patched (Python attribute) — A buffer of the applied fixes from clang-format" class="md-ellipsis">patched</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml" class="md-nav__link">
+    <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span><span title="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml (Python function) — Parse XML output of replacements from clang-format." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>parse_<wbr>format_<wbr>replacements_<wbr>xml</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.run_clang_format" class="md-nav__link">
+    <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span><span title="cpp_linter.clang_tools.clang_format.run_clang_format (Python function) — Run clang-format on a certain file" class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>run_<wbr>clang_<wbr>format</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.run_clang_format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.run_clang_format-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.clang_tools.clang_tidy.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>clang_<wbr>tidy</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.rest_api.html" class="md-nav__link">
+        <span class="md-ellipsis">rest_<wbr>api</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.rest_api.github_api.html" class="md-nav__link">
+        <span class="md-ellipsis">rest_<wbr>api.<wbr>github_<wbr>api</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.git.html" class="md-nav__link">
+        <span class="md-ellipsis">git</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.git.git_str.html" class="md-nav__link">
+        <span class="md-ellipsis">git.<wbr>git_<wbr>str</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.loggers.html" class="md-nav__link">
+        <span class="md-ellipsis">loggers</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.common_fs.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs</span>
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building_docs.html" class="md-nav__link">
+        <span class="md-ellipsis">How to build the docs</span>
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement (Python class) — An object representing a single replacement." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>Format<wbr>Replacement</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.FormatReplacement">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement.cols" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement.cols (Python attribute) — The columns number of where the suggestion starts on the line" class="md-ellipsis">cols</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement.null_len" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement.null_len (Python attribute) — The number of bytes removed by suggestion" class="md-ellipsis">null_<wbr>len</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacement.text" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacement.text (Python attribute) — The bytearray of the suggestion" class="md-ellipsis">text</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>Format<wbr>Replacement<wbr>Line</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.FormatReplacementLine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.line" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacementLine.line (Python attribute) — The line number of where the suggestion starts" class="md-ellipsis">line</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.replacements" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatReplacementLine.replacements (Python attribute) — A list of FormatReplacement object(s) representing suggestions." class="md-ellipsis">replacements</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice" class="md-nav__link">
+    <span aria-label="Python class" class="objinfo-icon objinfo-icon__data" title="Python class">C</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice (Python class) — A single object to represent each suggestion." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>Format<wbr>Advice</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.FormatAdvice">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.filename" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.filename (Python attribute) — The source file that the suggestion concerns." class="md-ellipsis">filename</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines (Python attribute) — A list of FormatReplacementLine representing replacement(s) on a single line." class="md-ellipsis">replaced_<wbr>lines</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.patched" class="md-nav__link">
+    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.patched (Python attribute) — A buffer of the applied fixes from clang-format" class="md-ellipsis">patched</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml" class="md-nav__link">
+    <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span><span title="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml (Python function) — Parse XML output of replacements from clang-format." class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>parse_<wbr>format_<wbr>replacements_<wbr>xml</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.run_clang_format" class="md-nav__link">
+    <span aria-label="Python function" class="objinfo-icon objinfo-icon__procedure" title="Python function">F</span><span title="cpp_linter.clang_tools.clang_format.run_clang_format (Python function) — Run clang-format on a certain file" class="md-ellipsis">cpp_<wbr>linter.<wbr>clang_<wbr>tools.<wbr>clang_<wbr>format.<wbr>run_<wbr>clang_<wbr>format</span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cpp_linter.clang_tools.clang_format.run_clang_format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.run_clang_format-parameters" class="md-nav__link">
+    <span class="md-ellipsis">Parameters</span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset" role="main">
+                  
+
+
+<h1 id="module-cpp_linter.clang_tools.clang_format"><span id="clang-tools-clang-format"></span><code class="docutils literal notranslate"><span class="pre">clang_tools.clang_format</span></code><a class="headerlink" href="#module-cpp_linter.clang_tools.clang_format" title="Link to this heading">¶</a></h1>
+<p>Parse output from clang-format’s XML suggestions.</p>
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cpp_linter.clang_tools.clang_format.FormatReplacement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cpp_linter.clang_tools.clang_format.</span></span><span class="sig-name descname"><span class="pre">FormatReplacement</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.cols" title="cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.cols (Python parameter) — The columns number of where the suggestion starts on the line"><span class="n"><span class="pre">cols</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.null_len" title="cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.null_len (Python parameter) — The number of bytes removed by suggestion"><span class="n"><span class="pre">null_len</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.text" title="cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.text (Python parameter) — The bytearray of the suggestion"><span class="n"><span class="pre">text</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#FormatReplacement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement" title="Link to this definition">¶</a></dt>
+<dd><p>An object representing a single replacement.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cpp_linter.clang_tools.clang_format.FormatReplacement-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.cols"><span class="n sig-name">cols</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.cols" title="Permalink to this definition">¶</a></dt><dd><p>The columns number of where the suggestion starts on the line</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.null_len"><span class="n sig-name">null_len</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.null_len" title="Permalink to this definition">¶</a></dt><dd><p>The number of bytes removed by suggestion</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.text"><span class="n sig-name">text</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.__init__.text" title="Permalink to this definition">¶</a></dt><dd><p>The <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><code class="xref any docutils literal notranslate"><span class="pre">bytearray</span></code></a> of the suggestion</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatReplacement.cols">
+<span class="sig-name descname"><span class="pre">cols</span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.cols" title="Link to this definition">¶</a></dt>
+<dd><p>The columns number of where the suggestion starts on the line</p>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatReplacement.null_len">
+<span class="sig-name descname"><span class="pre">null_len</span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.null_len" title="Link to this definition">¶</a></dt>
+<dd><p>The number of bytes removed by suggestion</p>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatReplacement.text">
+<span class="sig-name descname"><span class="pre">text</span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacement.text" title="Link to this definition">¶</a></dt>
+<dd><p>The <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><code class="xref any docutils literal notranslate"><span class="pre">bytearray</span></code></a> of the suggestion</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cpp_linter.clang_tools.clang_format.FormatReplacementLine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cpp_linter.clang_tools.clang_format.</span></span><span class="sig-name descname"><span class="pre">FormatReplacementLine</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.__init__.line_numb" title="cpp_linter.clang_tools.clang_format.FormatReplacementLine.__init__.line_numb (Python parameter) — The line number of about the replacements"><span class="n"><span class="pre">line_numb</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></span></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#FormatReplacementLine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" title="Link to this definition">¶</a></dt>
+<dd><p>An object that represents a replacement(s) for a single line.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cpp_linter.clang_tools.clang_format.FormatReplacementLine-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cpp_linter.clang_tools.clang_format.FormatReplacementLine.__init__.line_numb"><span class="n sig-name">line_numb</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.__init__.line_numb" title="Permalink to this definition">¶</a></dt><dd><p>The line number of about the replacements</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatReplacementLine.line">
+<span class="sig-name descname"><span class="pre">line</span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.line" title="Link to this definition">¶</a></dt>
+<dd><p>The line number of where the suggestion starts</p>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatReplacementLine.replacements">
+<span class="sig-name descname"><span class="pre">replacements</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacement" title="cpp_linter.clang_tools.clang_format.FormatReplacement (Python class) — An object representing a single replacement."><span class="pre">FormatReplacement</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine.replacements" title="Link to this definition">¶</a></dt>
+<dd><p>A list of <a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacement" title="cpp_linter.clang_tools.clang_format.FormatReplacement (Python class) — An object representing a single replacement."><code class="xref any py py-class docutils literal notranslate"><span class="pre">FormatReplacement</span></code></a> object(s) representing suggestions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cpp_linter.clang_tools.clang_format.FormatAdvice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cpp_linter.clang_tools.clang_format.</span></span><span class="sig-name descname"><span class="pre">FormatAdvice</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.__init__.filename" title="cpp_linter.clang_tools.clang_format.FormatAdvice.__init__.filename (Python parameter) — The source file's name for which the contents of the xml file exported by clang-tidy."><span class="n"><span class="pre">filename</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></em></span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#FormatAdvice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice" title="Link to this definition">¶</a></dt>
+<dd><p>A single object to represent each suggestion.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cpp_linter.clang_tools.clang_format.FormatAdvice-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cpp_linter.clang_tools.clang_format.FormatAdvice.__init__.filename"><span class="n sig-name">filename</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.__init__.filename" title="Permalink to this definition">¶</a></dt><dd><p>The source file’s name for which the contents of the xml
+file exported by clang-tidy.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.filename">
+<span class="sig-name descname"><span class="pre">filename</span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.filename" title="Link to this definition">¶</a></dt>
+<dd><p>The source file that the suggestion concerns.</p>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines">
+<span class="sig-name descname"><span class="pre">replaced_lines</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line."><span class="pre">FormatReplacementLine</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines" title="Link to this definition">¶</a></dt>
+<dd><p>A list of <a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line."><code class="xref any py py-class docutils literal notranslate"><span class="pre">FormatReplacementLine</span></code></a> representing replacement(s)
+on a single line.</p>
+</dd></dl>
+
+<dl class="py attribute objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.patched">
+<span class="sig-name descname"><span class="pre">patched</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.patched" title="Link to this definition">¶</a></dt>
+<dd><p>A buffer of the applied fixes from clang-format</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml">
+<span class="sig-prename descclassname"><span class="pre">cpp_linter.clang_tools.clang_format.</span></span><span class="sig-name descname"><span class="pre">parse_format_replacements_xml</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.xml_out" title="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.xml_out (Python parameter) — A string containing the XML output."><span class="n"><span class="pre">xml_out</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.file_obj" title="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.file_obj (Python parameter) — The source file's info for which the contents of the xml that was exported by clang-format."><span class="n"><span class="pre">file_obj</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference internal" href="cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj" title="cpp_linter.common_fs.FileObj (Python class) — A class to represent a single file being analyzed."><span class="pre">FileObj</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.lines_changed_only" title="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.lines_changed_only (Python parameter) — A flag that forces focus on only changes in the event's diff info."><span class="n"><span class="pre">lines_changed_only</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatAdvice" title="cpp_linter.clang_tools.clang_format.FormatAdvice (Python class) — A single object to represent each suggestion."><span class="pre">FormatAdvice</span></a></span></span></span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#parse_format_replacements_xml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml" title="Link to this definition">¶</a></dt>
+<dd><p>Parse XML output of replacements from clang-format.</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.xml_out"><span class="n sig-name">xml_out</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.xml_out" title="Permalink to this definition">¶</a></dt><dd><p>A string containing the XML output.</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.file_obj"><span class="n sig-name">file_obj</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference internal" href="cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj" title="cpp_linter.common_fs.FileObj (Python class) — A class to represent a single file being analyzed.">FileObj</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.file_obj" title="Permalink to this definition">¶</a></dt><dd><p>The source file’s info for which the contents of the xml
+that was exported by clang-format.</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.lines_changed_only"><span class="n sig-name">lines_changed_only</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.parse_format_replacements_xml.lines_changed_only" title="Permalink to this definition">¶</a></dt><dd><p>A flag that forces focus on only changes in the event’s
+diff info.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function objdesc">
+<dt class="sig sig-object highlight sig-wrap py" id="cpp_linter.clang_tools.clang_format.run_clang_format">
+<span class="sig-prename descclassname"><span class="pre">cpp_linter.clang_tools.clang_format.</span></span><span class="sig-name descname"><span class="pre">run_clang_format</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.run_clang_format.command" title="cpp_linter.clang_tools.clang_format.run_clang_format.command (Python parameter) — The clang-format command to use (usually a resolved path)."><span class="n"><span class="pre">command</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.run_clang_format.file_obj" title="cpp_linter.clang_tools.clang_format.run_clang_format.file_obj (Python parameter) — Information about the FileObj."><span class="n"><span class="pre">file_obj</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference internal" href="cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj" title="cpp_linter.common_fs.FileObj (Python class) — A class to represent a single file being analyzed."><span class="pre">FileObj</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.run_clang_format.style" title="cpp_linter.clang_tools.clang_format.run_clang_format.style (Python parameter) — The clang-format style rules to adhere. Set this to 'file' to use the relative-most .clang-format configuration file."><span class="n"><span class="pre">style</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.run_clang_format.lines_changed_only" title="cpp_linter.clang_tools.clang_format.run_clang_format.lines_changed_only (Python parameter) — A flag that forces focus on only changes in the event's diff info."><span class="n"><span class="pre">lines_changed_only</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></span></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.run_clang_format.format_review" title="cpp_linter.clang_tools.clang_format.run_clang_format.format_review (Python parameter) — A flag to enable/disable creating a diff suggestion for PR review comments."><span class="n"><span class="pre">format_review</span></span></a><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span></span></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatAdvice" title="cpp_linter.clang_tools.clang_format.FormatAdvice (Python class) — A single object to represent each suggestion."><span class="pre">FormatAdvice</span></a></span></span></span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#run_clang_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format" title="Link to this definition">¶</a></dt>
+<dd><p>Run clang-format on a certain file</p>
+<dl class="field-list simple">
+<dt class="field-odd" id="cpp_linter.clang_tools.clang_format.run_clang_format-parameters">Parameters<span class="colon">:</span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format-parameters" title="Permalink to this headline">¶</a></dt>
+<dd class="field-odd"><dl class="simple api-field highlight">
+<dt id="cpp_linter.clang_tools.clang_format.run_clang_format.command"><span class="n sig-name">command</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format.command" title="Permalink to this definition">¶</a></dt><dd><p>The clang-format command to use (usually a resolved path).</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.run_clang_format.file_obj"><span class="n sig-name">file_obj</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference internal" href="cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj" title="cpp_linter.common_fs.FileObj (Python class) — A class to represent a single file being analyzed.">FileObj</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format.file_obj" title="Permalink to this definition">¶</a></dt><dd><p>Information about the <a class="reference internal" href="cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj" title="cpp_linter.common_fs.FileObj (Python class) — A class to represent a single file being analyzed."><code class="xref any py py-class docutils literal notranslate"><span class="pre">FileObj</span></code></a>.</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.run_clang_format.style"><span class="n sig-name">style</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)">str</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format.style" title="Permalink to this definition">¶</a></dt><dd><p>The clang-format style rules to adhere. Set this to ‘file’ to
+use the relative-most .clang-format configuration file.</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.run_clang_format.lines_changed_only"><span class="n sig-name">lines_changed_only</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)">int</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format.lines_changed_only" title="Permalink to this definition">¶</a></dt><dd><p>A flag that forces focus on only changes in the event’s
+diff info.</p>
+</dd>
+<dt id="cpp_linter.clang_tools.clang_format.run_clang_format.format_review"><span class="n sig-name">format_review</span><span class="p">:</span><span class="w"> </span><span class="n"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)">bool</a></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.run_clang_format.format_review" title="Permalink to this definition">¶</a></dt><dd><p>A flag to enable/disable creating a diff suggestion for
+PR review comments.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+          <a href="#" class="md-top md-icon" data-md-component="top" hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12Z"/></svg>
+            Back to top
+          </a>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="cpp_linter.clang_tools.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: clang_tools" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              clang_tools
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="cpp_linter.clang_tools.clang_tidy.html" class="md-footer__link md-footer__link--next" aria-label="Next: clang_tools.clang_tidy" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              clang_tools.clang_tidy
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  
+  
+  <div class="md-footer-meta md-typeset">
+    
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-footer-copyright__highlight">
+        &#169; Copyright 2024, 2bndy5.
+        
+    </div>
+  
+    Created using
+    <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
+    7.2.6.
+     and
+    <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
+  
+</div>
+      
+    </div>
+    
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.top", "navigation.tabs", "navigation.tabs.sticky", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+      
+        <script src="../_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>
+    
+  </body>
+</html>
