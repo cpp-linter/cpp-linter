@@ -90,8 +90,12 @@ def prep_api_client(
     for file in cache_path.rglob("*.*"):
         adapter.register_uri(
             "GET",
-            f"/{repo}/raw/{commit}/" + urllib.parse.quote(file.as_posix(), safe=""),
-            text=file.read_text(encoding="utf-8"),
+            f"/repos/{repo}/contents/"
+            + urllib.parse.quote(
+                file.as_posix().replace(cache_path.as_posix() + "/", ""), safe=""
+            )
+            + f"?ref={commit}",
+            content=file.read_bytes(),
         )
 
     mock_protocol = "http+mock://"

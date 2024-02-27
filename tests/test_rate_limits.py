@@ -21,9 +21,7 @@ BASE_HEADERS = {
     ],
     ids=["primary", "secondary"],
 )
-def test_post_feedback(
-    monkeypatch: pytest.MonkeyPatch, response_headers: Dict[str, str]
-):
+def test_rate_limit(monkeypatch: pytest.MonkeyPatch, response_headers: Dict[str, str]):
     """A mock test for hitting Github REST API rate limits"""
     # patch env vars
     monkeypatch.setenv("GITHUB_TOKEN", "123456")

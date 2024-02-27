@@ -19,7 +19,6 @@ from typing import Dict, List, Any, cast, Optional, Tuple, Union, Sequence
 
 from pygit2 import Patch  # type: ignore
 import requests
-from requests.structures import CaseInsensitiveDict
 from ..common_fs import FileObj, CACHE_PATH
 from ..clang_tools.clang_format import FormatAdvice, formalize_style_name
 from ..clang_tools.clang_tidy import TidyAdvice
@@ -57,6 +56,8 @@ class GithubApiClient(RestApiClient):
         self._rate_limit_remaining = -1  # -1 means unknown
         # a counter for avoiding secondary rate limits
         self._rate_limit_back_step = 0
+        # the rate limit reset time
+        self._rate_limit_reset: Optional[time.struct_time] = None
 
     def set_exit_code(
         self,
@@ -64,30 +65,23 @@ class GithubApiClient(RestApiClient):
         format_checks_failed: Optional[int] = None,
         tidy_checks_failed: Optional[int] = None,
     ):
-        try:
+        if "GITHUB_OUTPUT" in environ:
             with open(environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as env_file:
                 env_file.write(f"checks-failed={checks_failed}\n")
                 env_file.write(
                     f"clang-format-checks-failed={format_checks_failed or 0}\n"
                 )
                 env_file.write(f"clang-tidy-checks-failed={tidy_checks_failed or 0}\n")
-        except (KeyError, FileNotFoundError):  # pragma: no cover
-            # not executed on a github CI runner.
-            pass  # ignore this error when executed locally
         return super().set_exit_code(
             checks_failed, format_checks_failed, tidy_checks_failed
         )
 
-    @staticmethod
-    def _rate_limit_exceeded(
-        response_headers: Union[CaseInsensitiveDict, Dict[str, str]],
-    ):
+    def _rate_limit_exceeded(self):
         logger.error("RATE LIMIT EXCEEDED!")
-        if "x-ratelimit-reset" in response_headers:
-            reset_epoch = time.gmtime(int(response_headers["x-ratelimit-reset"]))
+        if self._rate_limit_reset is not None:
             logger.error(
                 "Github REST API rate limit resets on %s",
-                time.strftime("%d %B %Y %H:%M +0000", reset_epoch),
+                time.strftime("%d %B %Y %H:%M +0000", self._rate_limit_reset),
             )
         sys.exit(1)
 
@@ -99,7 +93,7 @@ class GithubApiClient(RestApiClient):
         headers: Optional[Dict[str, Any]] = None,
     ) -> requests.Response:
         if self._rate_limit_back_step >= 5 or self._rate_limit_remaining == 0:
-            self._rate_limit_exceeded({})
+            self._rate_limit_exceeded()
         response = self.session.request(
             method=method or ("GET" if data is None else "POST"),
             url=url,
@@ -109,6 +103,10 @@ class GithubApiClient(RestApiClient):
         self._rate_limit_remaining = int(
             response.headers.get("x-ratelimit-remaining", "-1")
         )
+        if "x-ratelimit-reset" in response.headers:
+            self._rate_limit_reset = time.gmtime(
+                int(response.headers["x-ratelimit-reset"])
+            )
         log_response_msg(response)
         if response.status_code in [403, 429]:  # rate limit exceeded
             # secondary rate limit handling
@@ -126,7 +124,8 @@ class GithubApiClient(RestApiClient):
                 return self.api_request(url, method=method, data=data, headers=headers)
             # primary rate limit handling
             if self._rate_limit_remaining == 0:
-                self._rate_limit_exceeded(response.headers)
+                self._rate_limit_exceeded()
+        response.raise_for_status()
         self._rate_limit_back_step = 0
         return response
 
@@ -151,11 +150,11 @@ class GithubApiClient(RestApiClient):
                     )
                 files_link += f"commits/{self.sha}"
             logger.info("Fetching files list from url: %s", files_link)
-            response_buffer = self.api_request(
+            response = self.api_request(
                 url=files_link, headers=self.make_headers(use_diff=True)
             )
             files = parse_diff(
-                response_buffer.text,
+                response.text,
                 extensions,
                 ignored,
                 not_ignored,
@@ -183,13 +182,14 @@ class GithubApiClient(RestApiClient):
                 logger.warning(
                     "Could not find %s! Did you checkout the repo?", file_name
                 )
-                raw_url = f"https://github.com/{self.repo}/raw/{self.sha}/"
+                raw_url = f"{self.api_url}/repos/{self.repo}/contents/"
                 raw_url += urllib.parse.quote(file.name, safe="")
+                raw_url += f"?ref={self.sha}"
                 logger.info("Downloading file from url: %s", raw_url)
-                response_buffer = self.api_request(url=raw_url)
+                response = self.api_request(url=raw_url)
                 # retain the repo's original structure
                 Path.mkdir(file_name.parent, parents=True, exist_ok=True)
-                file_name.write_text(response_buffer.text, encoding="utf-8")
+                file_name.write_bytes(response.content)
 
     def make_headers(self, use_diff: bool = False) -> Dict[str, str]:
         headers = {
@@ -324,15 +324,7 @@ class GithubApiClient(RestApiClient):
                 req_meth = "POST"
             payload = json.dumps({"body": comment})
             logger.debug("payload body:\n%s", payload)
-            response_buffer = self.api_request(
-                url=comments_url, method=req_meth, data=payload
-            )
-            if response_buffer.status_code < 400:
-                logger.info(
-                    "Got %d response from %sing comment",
-                    response_buffer.status_code,
-                    req_meth,
-                )
+            self.api_request(url=comments_url, method=req_meth, data=payload)
 
     def remove_bot_comments(self, comments_url: str, delete: bool) -> Optional[str]:
         """Traverse the list of comments made by a specific user
@@ -349,10 +341,11 @@ class GithubApiClient(RestApiClient):
         page = 1
         next_page: Optional[str] = comments_url + f"?page={page}&per_page=100"
         while next_page:
-            response_buffer = self.api_request(url=next_page)
-            if response_buffer.status_code >= 400:
-                return comment_url  # error getting comments for the thread; stop here
-            comments = cast(List[Dict[str, Any]], response_buffer.json())
+            response = self.api_request(url=next_page)
+            next_page = has_more_pages(response)
+            page += 1
+
+            comments = cast(List[Dict[str, Any]], response.json())
             if logger.level >= logging.DEBUG:
                 json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
                 json_comments.write_text(
@@ -375,17 +368,9 @@ class GithubApiClient(RestApiClient):
 
                         # use saved comment_url if not None else current comment url
                         url = comment_url or comment["url"]
-                        response_buffer = self.api_request(url=url, method="DELETE")
-                        if response_buffer.status_code < 400:
-                            logger.info(
-                                "Got %d from DELETE %s",
-                                response_buffer.status_code,
-                                url.lstrip(self.api_url),
-                            )
+                        self.api_request(url=url, method="DELETE")
                     if not delete:
                         comment_url = cast(str, comment["url"])
-            next_page = has_more_pages(response_buffer.headers)
-            page += 1
         return comment_url
 
     def post_review(
@@ -398,16 +383,14 @@ class GithubApiClient(RestApiClient):
         no_lgtm: bool,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
-        response_buffer = self.api_request(url=url)
+        response = self.api_request(url=url)
         url += "/reviews"
-        is_draft = True
-        if response_buffer.status_code == 200:
-            pr_payload = response_buffer.json()
-            is_draft = cast(Dict[str, bool], pr_payload).get("draft", False)
-            is_open = cast(Dict[str, str], pr_payload).get("state", "open") == "open"
+        pr_info = response.json()
+        is_draft = cast(Dict[str, bool], pr_info).get("draft", False)
+        is_open = cast(Dict[str, str], pr_info).get("state", "open") == "open"
         if "GITHUB_TOKEN" not in environ:
             logger.error("A GITHUB_TOKEN env var is required to post review comments")
-            sys.exit(self.set_exit_code(1))
+            sys.exit(1)
         self._dismiss_stale_reviews(url)
         if is_draft or not is_open:  # is PR open and ready for review
             return  # don't post reviews
@@ -539,40 +522,36 @@ class GithubApiClient(RestApiClient):
         """Dismiss all reviews that were previously created by cpp-linter"""
         next_page: Optional[str] = url + "?page=1&per_page=100"
         while next_page:
-            response_buffer = self.api_request(url=next_page)
-            if response_buffer.status_code >= 400:
-                logger.error("Failed to poll existing reviews for dismissal")
-            else:
-                reviews: List[Dict[str, Any]] = response_buffer.json()
-                for review in reviews:
-                    if (
-                        "body" in review
-                        and cast(str, review["body"]).startswith(COMMENT_MARKER)
-                        and "state" in review
-                        and review["state"] not in ["PENDING", "DISMISSED"]
-                    ):
-                        assert "id" in review
-                        response_buffer = self.api_request(
-                            url=f"{url}/{review['id']}/dismissals",
-                            method="PUT",
-                            data=json.dumps(
-                                {"message": "outdated suggestion", "event": "DISMISS"}
-                            ),
-                        )
-            next_page = has_more_pages(response_buffer.headers)
+            response = self.api_request(url=next_page)
+            next_page = has_more_pages(response)
+
+            reviews: List[Dict[str, Any]] = response.json()
+            for review in reviews:
+                if (
+                    "body" in review
+                    and cast(str, review["body"]).startswith(COMMENT_MARKER)
+                    and "state" in review
+                    and review["state"] not in ["PENDING", "DISMISSED"]
+                ):
+                    assert "id" in review
+                    self.api_request(
+                        url=f"{url}/{review['id']}/dismissals",
+                        method="PUT",
+                        data=json.dumps(
+                            {"message": "outdated suggestion", "event": "DISMISS"}
+                        ),
+                    )
 
 
-def has_more_pages(headers: CaseInsensitiveDict) -> Optional[str]:
+def has_more_pages(response: requests.Response) -> Optional[str]:
     """A helper function to parse a HTTP request's response headers to determine if the
     previous REST API call is paginated.
 
-    :param headers: A HTTP response's headers.
+    :param response: A HTTP request's response.
 
     :returns: The URL of the next page if any, otherwise `None`.
     """
-    if "link" in headers:
-        links = cast(str, headers["link"]).split(", ")
-        for url, pos in [link.split("; ") for link in links]:
-            if pos.endswith('rel="next"'):
-                return url.lstrip("<").rstrip(">")
+    links = response.links
+    if "next" in links and "url" in links["next"]:
+        return links["next"]["url"]
     return None

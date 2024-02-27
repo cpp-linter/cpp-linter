@@ -43,12 +43,12 @@ def end_log_group() -> None:
     log_commander.fatal("::endgroup::")
 
 
-def log_response_msg(response_buffer: Response):
+def log_response_msg(response: Response):
     """Output the response buffer's message on a failed request."""
-    if response_buffer.status_code >= 400:
+    if response.status_code >= 400:
         logger.error(
             "response returned %d from %s with message: %s",
-            response_buffer.status_code,
-            response_buffer.url,
-            response_buffer.text,
+            response.status_code,
+            response.url,
+            response.text,
         )
