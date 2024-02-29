@@ -6,6 +6,7 @@
    self
    pr_review_caveats
    cli_args
+   permissions
 
 .. toctree::
    :hidden:

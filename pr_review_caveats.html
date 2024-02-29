@@ -62,6 +62,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#bot-permissions-required" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -223,6 +228,18 @@
 
 
   <li class="md-tabs__item">
+    <a href="permissions.html" class="md-tabs__link">
+      <span class="md-ellipsis">Token Permissions</span>
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
     <a href="API-Reference/cpp_linter.html" class="md-tabs__link">
       <span class="md-ellipsis">API modules</span>
     </a>
@@ -322,9 +339,60 @@
       
       <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          <span class="md-ellipsis">Pull Request Review Caveats</span>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="#" class="md-nav__link md-nav__link--active">
         <span class="md-ellipsis">Pull Request Review Caveats</span>
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bot-permissions-required" class="md-nav__link">
+    <span class="md-ellipsis">Bot Permissions required</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-disabled-for-certain-event-types" class="md-nav__link">
+    <span class="md-ellipsis">Auto-<wbr>disabled for certain event types</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#posts-a-new-review-on-each-run" class="md-nav__link">
+    <span class="md-ellipsis">Posts a new review on each run</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probable-non-exhaustive-reviews" class="md-nav__link">
+    <span class="md-ellipsis">Probable non-<wbr>exhaustive reviews</span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -353,21 +421,37 @@
   
   
   
+  
+    <li class="md-nav__item">
+      <a href="permissions.html" class="md-nav__link">
+        <span class="md-ellipsis">Token Permissions</span>
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
     
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
       
       
       
-        <label class="md-nav__link" for="__nav_4">
+        <label class="md-nav__link" for="__nav_5">
           <span class="md-ellipsis">API modules</span>
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" aria-label="API modules" data-md-level="1">
-        <label class="md-nav__title" for="__nav_4">
+        <label class="md-nav__title" for="__nav_5">
           <span class="md-nav__icon md-icon"></span>
           <span class="md-ellipsis">API modules</span>
         </label>
@@ -563,6 +647,42 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bot-permissions-required" class="md-nav__link">
+    <span class="md-ellipsis">Bot Permissions required</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-disabled-for-certain-event-types" class="md-nav__link">
+    <span class="md-ellipsis">Auto-<wbr>disabled for certain event types</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#posts-a-new-review-on-each-run" class="md-nav__link">
+    <span class="md-ellipsis">Posts a new review on each run</span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probable-non-exhaustive-reviews" class="md-nav__link">
+    <span class="md-ellipsis">Probable non-<wbr>exhaustive reviews</span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -580,10 +700,10 @@
 <p class="admonition-title">Hint</p>
 <p>This information is specific to GitHub Pull Requests (often abbreviated as “PR”).</p>
 </div>
-<p>While the Pull Request review feature has been thoroughly tested, there are still some caveats to
+<p>While the Pull Request review feature has been diligently tested, there are still some caveats to
 beware of when using Pull Request reviews.</p>
-<ol class="arabic">
-<li><p>The “GitHub Actions” bot may need to be allowed to approve Pull Requests.
+<h2 id="bot-permissions-required">Bot Permissions required<a class="headerlink" href="#bot-permissions-required" title="Link to this heading">¶</a></h2>
+<p>The “GitHub Actions” bot may need to be allowed to approve Pull Requests.
 By default, the bot cannot approve Pull Request changes, only request more changes.
 This will show as a warning in the workflow logs if the given token (set to the
 environment variable <code class="docutils literal notranslate"><span class="pre">GITHUB_TOKEN</span></code>) isn’t configured with the proper permissions.</p>
@@ -591,17 +711,18 @@ environment variable <code class="docutils literal notranslate"><span class="pre
 <p class="admonition-title">Seealso</p>
 <p>Refer to the GitHub documentation for <a class="reference external" href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#preventing-github-actions-from-creating-or-approving-pull-requests">repository settings</a> or <a class="reference external" href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#preventing-github-actions-from-creating-or-approving-pull-requests">organization settings</a>
 about adjusting the required permissions for GitHub Actions’s <code class="docutils literal notranslate"><span class="pre">secrets.GITHUB_TOKEN</span></code>.</p>
+<p>See also our <a class="reference internal" href="permissions.html"><span class="doc">required token permissions</span></a>.</p>
 </div>
-</li>
-<li><p>The feature is auto-disabled for</p>
+<h2 id="auto-disabled-for-certain-event-types">Auto-disabled for certain event types<a class="headerlink" href="#auto-disabled-for-certain-event-types" title="Link to this heading">¶</a></h2>
+<p>The feature is auto-disabled for</p>
 <ul class="simple">
 <li><p>closed Pull Requests</p></li>
 <li><p>Pull Requests marked as “draft”</p></li>
 <li><p>push events</p></li>
 </ul>
-</li>
-<li><p>Clang-tidy and clang-format suggestions are shown in 1 Pull Request review.</p>
-<ul>
+<h2 id="posts-a-new-review-on-each-run">Posts a new review on each run<a class="headerlink" href="#posts-a-new-review-on-each-run" title="Link to this heading">¶</a></h2>
+<p>Clang-tidy and clang-format suggestions are shown in 1 Pull Request review.</p>
+<ul class="simple">
 <li><p>Users are encouraged to choose either <a class="reference internal" href="cli_args.html#cmdoption-d"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tidy-review</span></code></a> or <a class="reference internal" href="cli_args.html#cmdoption-m"><code class="xref std std-option docutils literal notranslate"><span class="pre">--format-review</span></code></a>.
 Enabling both will likely show duplicate or similar suggestions.
 Remember, clang-tidy can be configured to use the same <code class="docutils literal notranslate"><span class="pre">style</span></code> that clang-format accepts.
@@ -611,7 +732,8 @@ does that anyway).</p></li>
 workflow.</p></li>
 <li><p>Outdated reviews are dismissed but not marked as resolved.
 Also, the outdated review’s summary comment is not automatically hidden.
-To reduce the Pull Request’s thread noise, users interaction is required.</p>
+To reduce the Pull Request’s thread noise, users interaction is required.</p></li>
+</ul>
 <div class="seealso admonition">
 <p class="admonition-title">Seealso</p>
 <p>Refer to GitHub’s documentation about <a class="reference external" href="https://docs.github.com/en/communities/moderating-comments-and-conversations/managing-disruptive-comments#hiding-a-comment">hiding a comment</a>.
@@ -626,10 +748,8 @@ in the diff.</p>
 If the variable is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, then the review only contains a summary comment
 with no suggestions posted in the diff.</p>
 </div>
-</li>
-</ul>
-</li>
-<li><p>If any suggestions did not fit within the Pull Request diff, then the review’s summary comment will
+<h2 id="probable-non-exhaustive-reviews">Probable non-exhaustive reviews<a class="headerlink" href="#probable-non-exhaustive-reviews" title="Link to this heading">¶</a></h2>
+<p>If any suggestions did not fit within the Pull Request diff, then the review’s summary comment will
 indicate how many suggestions were left out.
 The full patch of suggestions is always included as a collapsed code block in the review summary
 comment. This isn’t a problem we can fix.
@@ -649,8 +769,6 @@ Some diagnostics require user interaction/decision to properly address.</p></li>
 We have made it so clang-tidy takes advantage of any fixes provided by the compiler.
 Compilation errors may still prevent clang-tidy from reporting all concerns.</p></li>
 </ul>
-</li>
-</ol>
 
 
 
