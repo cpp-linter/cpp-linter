@@ -91,6 +91,7 @@ class GithubApiClient(RestApiClient):
         method: Optional[str] = None,
         data: Optional[str] = None,
         headers: Optional[Dict[str, Any]] = None,
+        strict: bool = True,
     ) -> requests.Response:
         if self._rate_limit_back_step >= 5 or self._rate_limit_remaining == 0:
             self._rate_limit_exceeded()
@@ -125,7 +126,8 @@ class GithubApiClient(RestApiClient):
             # primary rate limit handling
             if self._rate_limit_remaining == 0:
                 self._rate_limit_exceeded()
-        response.raise_for_status()
+        if strict:
+            response.raise_for_status()
         self._rate_limit_back_step = 0
         return response
 
@@ -368,7 +370,7 @@ class GithubApiClient(RestApiClient):
 
                         # use saved comment_url if not None else current comment url
                         url = comment_url or comment["url"]
-                        self.api_request(url=url, method="DELETE")
+                        self.api_request(url=url, method="DELETE", strict=False)
                     if not delete:
                         comment_url = cast(str, comment["url"])
         return comment_url
@@ -434,7 +436,7 @@ class GithubApiClient(RestApiClient):
             "event": event,
             "comments": payload_comments,
         }
-        self.api_request(url=url, data=json.dumps(payload))
+        self.api_request(url=url, data=json.dumps(payload), strict=False)
 
     @staticmethod
     def create_review_comments(
@@ -540,6 +542,7 @@ class GithubApiClient(RestApiClient):
                         data=json.dumps(
                             {"message": "outdated suggestion", "event": "DISMISS"}
                         ),
+                        strict=False,
                     )
 
 

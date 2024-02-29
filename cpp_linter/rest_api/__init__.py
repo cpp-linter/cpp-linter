@@ -25,6 +25,7 @@ class RestApiClient(ABC):
         method: Optional[str] = None,
         data: Optional[str] = None,
         headers: Optional[Dict[str, Any]] = None,
+        strict: bool = True,
     ) -> requests.Response:
         """A helper function to streamline handling of HTTP requests' responses.
 
@@ -34,6 +35,8 @@ class RestApiClient(ABC):
         :param data: The HTTP request payload data.
         :param headers: The HTTP request headers to use. This can be used to override
             the default headers used.
+        :param strict: If this is set `True`, then an `HTTPError` will be raised when
+            the HTTP request responds with a status code greater than or equal to 400.
 
         :returns:
             The HTTP request's response object.

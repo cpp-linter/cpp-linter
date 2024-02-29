@@ -47,8 +47,9 @@ def log_response_msg(response: Response):
     """Output the response buffer's message on a failed request."""
     if response.status_code >= 400:
         logger.error(
-            "response returned %d from %s with message: %s",
+            "response returned %d from %s %s with message: %s",
             response.status_code,
-            response.url,
+            response.request.method,
+            response.request.url,
             response.text,
         )
