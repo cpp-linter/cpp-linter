@@ -10,66 +10,83 @@ Pull Request Review Caveats
 
     This information is specific to GitHub Pull Requests (often abbreviated as "PR").
 
-While the Pull Request review feature has been thoroughly tested, there are still some caveats to
+While the Pull Request review feature has been diligently tested, there are still some caveats to
 beware of when using Pull Request reviews.
 
-1. The "GitHub Actions" bot may need to be allowed to approve Pull Requests.
-   By default, the bot cannot approve Pull Request changes, only request more changes.
-   This will show as a warning in the workflow logs if the given token (set to the
-   environment variable ``GITHUB_TOKEN``) isn't configured with the proper permissions.
+Bot Permissions required
+------------------------
 
-   .. seealso::
+The "GitHub Actions" bot may need to be allowed to approve Pull Requests.
+By default, the bot cannot approve Pull Request changes, only request more changes.
+This will show as a warning in the workflow logs if the given token (set to the
+environment variable ``GITHUB_TOKEN``) isn't configured with the proper permissions.
 
-       Refer to the GitHub documentation for `repository settings`_ or `organization settings`_
-       about adjusting the required permissions for GitHub Actions's ``secrets.GITHUB_TOKEN``.
-2. The feature is auto-disabled for
+.. seealso::
 
-   - closed Pull Requests
-   - Pull Requests marked as "draft"
-   - push events
-3. Clang-tidy and clang-format suggestions are shown in 1 Pull Request review.
+    Refer to the GitHub documentation for `repository settings`_ or `organization settings`_
+    about adjusting the required permissions for GitHub Actions's ``secrets.GITHUB_TOKEN``.
 
-   - Users are encouraged to choose either :std:option:`--tidy-review` or :std:option:`--format-review`.
-     Enabling both will likely show duplicate or similar suggestions.
-     Remember, clang-tidy can be configured to use the same ``style`` that clang-format accepts.
-     There is no current implementation to combine suggestions from both tools (clang-tidy kind of
-     does that anyway).
-   - Each generated review is specific to the commit that triggered the Continuous Integration
-     workflow.
-   - Outdated reviews are dismissed but not marked as resolved.
-     Also, the outdated review's summary comment is not automatically hidden.
-     To reduce the Pull Request's thread noise, users interaction is required.
+    See also our :std:doc:`required token permissions <permissions>`.
 
-     .. seealso::
+Auto-disabled for certain event types
+-------------------------------------
 
-        Refer to GitHub's documentation about `hiding a comment`_.
-        Hiding a Pull Request review's summary comment will not resolve the suggestions in the diff.
-        Please also refer to `resolve a conversion`_ to collapse outdated or duplicate suggestions
-        in the diff.
+The feature is auto-disabled for
 
-     GitHub REST API does not provide a way to hide comments or mark review suggestions as resolved.
+- closed Pull Requests
+- Pull Requests marked as "draft"
+- push events
 
-     .. tip::
+Posts a new review on each run
+------------------------------
 
-         We do support an environment variable named ``CPP_LINTER_PR_REVIEW_SUMMARY_ONLY``.
-         If the variable is set to ``true``, then the review only contains a summary comment
-         with no suggestions posted in the diff.
-4. If any suggestions did not fit within the Pull Request diff, then the review's summary comment will
-   indicate how many suggestions were left out.
-   The full patch of suggestions is always included as a collapsed code block in the review summary
-   comment. This isn't a problem we can fix.
-   GitHub won't allow review comments/suggestions to target lines that are not shown in the Pull
-   Request diff (the summation of file differences in a Pull Request).
+Clang-tidy and clang-format suggestions are shown in 1 Pull Request review.
 
-   - Users are encouraged to set :std:option:`--lines-changed-only` to ``true``.
-     This will *help* us keep the suggestions limited to lines that are shown within the Pull
-     Request diff.
-     However, there are still some cases where clang-format or clang-tidy will apply fixes to lines
-     that are not within the diff.
-     This can't be avoided because the ``--line-filter`` passed to the clang-tidy (and ``--lines``
-     passed to clang-format) only applies to analysis, not fixes.
-   - Not every diagnostic from clang-tidy can be automatically fixed.
-     Some diagnostics require user interaction/decision to properly address.
-   - Some fixes provided might depend on what compiler is used.
-     We have made it so clang-tidy takes advantage of any fixes provided by the compiler.
-     Compilation errors may still prevent clang-tidy from reporting all concerns.
+- Users are encouraged to choose either :std:option:`--tidy-review` or :std:option:`--format-review`.
+  Enabling both will likely show duplicate or similar suggestions.
+  Remember, clang-tidy can be configured to use the same ``style`` that clang-format accepts.
+  There is no current implementation to combine suggestions from both tools (clang-tidy kind of
+  does that anyway).
+- Each generated review is specific to the commit that triggered the Continuous Integration
+  workflow.
+- Outdated reviews are dismissed but not marked as resolved.
+  Also, the outdated review's summary comment is not automatically hidden.
+  To reduce the Pull Request's thread noise, users interaction is required.
+
+.. seealso::
+
+    Refer to GitHub's documentation about `hiding a comment`_.
+    Hiding a Pull Request review's summary comment will not resolve the suggestions in the diff.
+    Please also refer to `resolve a conversion`_ to collapse outdated or duplicate suggestions
+    in the diff.
+
+GitHub REST API does not provide a way to hide comments or mark review suggestions as resolved.
+
+.. tip::
+
+    We do support an environment variable named ``CPP_LINTER_PR_REVIEW_SUMMARY_ONLY``.
+    If the variable is set to ``true``, then the review only contains a summary comment
+    with no suggestions posted in the diff.
+
+Probable non-exhaustive reviews
+-------------------------------
+
+If any suggestions did not fit within the Pull Request diff, then the review's summary comment will
+indicate how many suggestions were left out.
+The full patch of suggestions is always included as a collapsed code block in the review summary
+comment. This isn't a problem we can fix.
+GitHub won't allow review comments/suggestions to target lines that are not shown in the Pull
+Request diff (the summation of file differences in a Pull Request).
+
+- Users are encouraged to set :std:option:`--lines-changed-only` to ``true``.
+  This will *help* us keep the suggestions limited to lines that are shown within the Pull
+  Request diff.
+  However, there are still some cases where clang-format or clang-tidy will apply fixes to lines
+  that are not within the diff.
+  This can't be avoided because the ``--line-filter`` passed to the clang-tidy (and ``--lines``
+  passed to clang-format) only applies to analysis, not fixes.
+- Not every diagnostic from clang-tidy can be automatically fixed.
+  Some diagnostics require user interaction/decision to properly address.
+- Some fixes provided might depend on what compiler is used.
+  We have made it so clang-tidy takes advantage of any fixes provided by the compiler.
+  Compilation errors may still prevent clang-tidy from reporting all concerns.
