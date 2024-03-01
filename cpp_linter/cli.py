@@ -89,13 +89,11 @@ a .clang-tidy file (if any).
 
 See also `clang-tidy docs <https://clang.llvm.org/extra/clang-tidy>`_ for more info.
 
-Defaults to ::
-
+Defaults to:
     %(default)s
-
 """,
 )
-arg = cli_arg_parser.add_argument(
+cli_arg_parser.add_argument(
     "-V",
     "--version",
     default="",
@@ -110,16 +108,14 @@ arg = cli_arg_parser.add_argument(
 
 Defaults to ``''``""",
 )
-assert arg.help is not None
-arg.help += f"``{repr(arg.default)}``."
-arg = cli_arg_parser.add_argument(
+cli_arg_parser.add_argument(
     "-e",
     "--extensions",
     default="c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx",
     type=lambda i: [ext.strip().lstrip(".") for ext in i.split(",")],
     help="""The file extensions to analyze.
-Defaults to ::
-
+This is a comma-separated string of extensions.
+Defaults to:
     %(default)s
 """,
 )
@@ -130,7 +126,6 @@ cli_arg_parser.add_argument(
     help="""The relative path to the repository root directory.
 This path is relative to the working directory from
 which cpp-linter was executed.
-
 Defaults to ``%(default)s``""",
 )
 cli_arg_parser.add_argument(

@@ -217,18 +217,19 @@ def setup(app: Sphinx):
     app.add_role("badge-default", CliBadgeDefault())
     app.add_role("badge-permission", CliBadgePermission())
 
-    args = cli_arg_parser._optionals._actions
     doc = "Command Line Interface Options\n==============================\n\n"
     doc += ".. note::\n\n    These options have a direct relationship with the\n    "
     doc += "`cpp-linter-action user inputs "
     doc += "<https://cpp-linter.github.io/cpp-linter-action/inputs-outputs#inputs>`_. "
     doc += "Although, some default values may differ.\n\n"
+
+    args = cli_arg_parser._optionals._actions
     for arg in args:
         aliases = arg.option_strings
         if not aliases or arg.default == "==SUPPRESS==":
             continue
         doc += "\n.. std:option:: " + ", ".join(aliases) + "\n"
-        help = arg.help[: arg.help.find("Defaults to ")]
+        help = arg.help[: arg.help.find("Defaults to")]
         for ver, names in REQUIRED_VERSIONS.items():
             if arg.dest in names:
                 req_ver = ver
