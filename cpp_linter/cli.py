@@ -56,7 +56,7 @@ cli_arg_parser.add_argument(
     "-s",
     "--style",
     default="llvm",
-    help="""The style rules to use (defaults to ``%(default)s``).
+    help="""The style rules to use.
 
 - Set this to ``file`` to have clang-format use the
   closest relative .clang-format file.
@@ -64,7 +64,8 @@ cli_arg_parser.add_argument(
   using clang-format entirely.
 
 See `clang-format docs <https://clang.llvm.org/docs/ClangFormat.html>`_ for more info.
-""",
+
+Defaults to ``%(default)s``""",
 )
 cli_arg_parser.add_argument(
     "-c",
@@ -86,13 +87,13 @@ a .clang-tidy file (if any).
   config file by specifying this option as a blank
   string (``''``).
 
-The defaults is::
+See also `clang-tidy docs <https://clang.llvm.org/extra/clang-tidy>`_ for more info.
 
+Defaults to:
     %(default)s
-
-See also `clang-tidy docs <https://clang.llvm.org/extra/clang-tidy>`_ for more info.""",
+""",
 )
-arg = cli_arg_parser.add_argument(
+cli_arg_parser.add_argument(
     "-V",
     "--version",
     default="",
@@ -105,22 +106,19 @@ arg = cli_arg_parser.add_argument(
   location). All paths specified here are converted
   to absolute.
 
-Default is """,
+Defaults to ``''``""",
 )
-assert arg.help is not None
-arg.help += f"``{repr(arg.default)}``."
-arg = cli_arg_parser.add_argument(
+cli_arg_parser.add_argument(
     "-e",
     "--extensions",
-    default=["c", "h", "C", "H", "cpp", "hpp", "cc", "hh", "c++", "h++", "cxx", "hxx"],
+    default="c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx",
     type=lambda i: [ext.strip().lstrip(".") for ext in i.split(",")],
     help="""The file extensions to analyze.
-This comma-separated string defaults to::
-
-    """,
+This is a comma-separated string of extensions.
+Defaults to:
+    %(default)s
+""",
 )
-assert arg.help is not None
-arg.help += ",".join(arg.default) + "\n"
 cli_arg_parser.add_argument(
     "-r",
     "--repo-root",
@@ -128,8 +126,7 @@ cli_arg_parser.add_argument(
     help="""The relative path to the repository root directory.
 This path is relative to the working directory from
 which cpp-linter was executed.
-
-The default value is ``%(default)s``""",
+Defaults to ``%(default)s``""",
 )
 cli_arg_parser.add_argument(
     "-i",
@@ -212,11 +209,19 @@ cli_arg_parser.add_argument(
     "--thread-comments",
     default="false",
     choices=["true", "false", "update"],
-    help="""Set this option to ``true`` or ``false`` to enable
-or disable the use of thread comments as feedback.
-Set this to ``update`` to update an existing comment
-if one exists; the value ``true`` will always delete
-an old comment and post a new one if necessary.
+    help="""This controls the behavior of posted thread
+comments as feedback.
+The following options are supported:
+
+- ``true``: enable the use of thread comments.
+  This will always delete an outdated thread
+  comment and post a new comment (triggering
+  a notification for every comment).
+- ``update``: update an existing thread comment
+  if one already exists. This option does not
+  trigger a new notification for every thread
+  comment update.
+- ``false``: disable the use of thread comments.
 
 .. note::
     To use thread comments, the ``GITHUB_TOKEN``
