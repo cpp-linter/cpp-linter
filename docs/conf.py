@@ -79,8 +79,8 @@ html_theme_options = {
     ],
     "features": [
         "navigation.top",
-        "navigation.tabs",
-        "navigation.tabs.sticky",
+        # "navigation.tabs",
+        # "navigation.tabs.sticky",
         "toc.sticky",
         "toc.follow",
         "search.share",
