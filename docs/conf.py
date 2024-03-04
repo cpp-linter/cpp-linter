@@ -85,6 +85,17 @@ html_theme_options = {
         "toc.follow",
         "search.share",
     ],
+    "social": [
+        {
+            "icon": "fontawesome/brands/github",
+            "link": "https://github.com/cpp-linter/cpp-linter",
+            "name": "Source on github.com",
+        },
+        {
+            "icon": "fontawesome/brands/python",
+            "link": "https://pypi.org/project/cpp-linter/",
+        },
+    ],
 }
 
 object_description_options = [
