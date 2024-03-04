@@ -240,6 +240,7 @@ def setup(app: Sphinx):
         if not aliases or arg.default == "==SUPPRESS==":
             continue
         doc += "\n.. std:option:: " + ", ".join(aliases) + "\n"
+        assert arg.help is not None
         help = arg.help[: arg.help.find("Defaults to")]
         for ver, names in REQUIRED_VERSIONS.items():
             if arg.dest in names:

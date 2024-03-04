@@ -27,6 +27,7 @@ repos:
       - id: mypy
         additional_dependencies:
           - types-requests
+          - types-docutils
           - rich
           - pytest
           - meson
