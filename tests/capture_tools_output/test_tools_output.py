@@ -90,8 +90,12 @@ def prep_api_client(
     for file in cache_path.rglob("*.*"):
         adapter.register_uri(
             "GET",
-            f"/{repo}/raw/{commit}/" + urllib.parse.quote(file.as_posix(), safe=""),
-            text=file.read_text(encoding="utf-8"),
+            f"/repos/{repo}/contents/"
+            + urllib.parse.quote(
+                file.as_posix().replace(cache_path.as_posix() + "/", ""), safe=""
+            )
+            + f"?ref={commit}",
+            content=file.read_bytes(),
         )
 
     mock_protocol = "http+mock://"
@@ -486,4 +490,4 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]
     if len(user_input) == 1 and " " in user_input[0]:
         user_input = user_input[0].split()
     for a in user_input:
-        assert f'--extra-arg={a}' in messages[0]
+        assert f"--extra-arg={a}" in messages[0]

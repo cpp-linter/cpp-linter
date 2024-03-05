@@ -118,10 +118,8 @@ def test_post_review(
         )
         reviews = (cache_path / "pr_reviews.json").read_text(encoding="utf-8")
         mock.get(
-            f"{base_url}/reviews",
+            f"{base_url}/reviews?page=1&per_page=100",
             text=reviews,
-            # to trigger a logged error, we'll modify the status code here
-            status_code=404 if tidy_review and not format_review else 200,
         )
         mock.get(
             f"{base_url}/comments",

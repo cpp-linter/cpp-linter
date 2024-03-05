@@ -11,6 +11,7 @@ from ..common_fs import FileObj
 NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
 FIXED_NOTE = re.compile(r"^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$")
 
+
 class TidyNotification:
     """Create a object that decodes info from the clang-tidy output's initial line that
     details a specific notification.
@@ -168,7 +169,7 @@ def run_clang_tidy(
         extra_args = extra_args[0].split()
     for extra_arg in extra_args:
         arg = extra_arg.strip('"')
-        cmds.append(f'--extra-arg={arg}')
+        cmds.append(f"--extra-arg={arg}")
     if tidy_review:
         # clang-tidy overwrites the file contents when applying fixes.
         # create a cache of original contents
