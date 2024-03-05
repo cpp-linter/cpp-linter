@@ -522,6 +522,7 @@
 <span class="n">NOTE_HEADER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$&quot;</span><span class="p">)</span>
 <span class="n">FIXED_NOTE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$&quot;</span><span class="p">)</span>
 
+
 <div class="viewcode-block" id="TidyNotification">
 <a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_tidy.html#cpp_linter.clang_tools.clang_tidy.TidyNotification">[docs]</a>
 <span class="k">class</span> <span class="nc">TidyNotification</span><span class="p">:</span>
@@ -684,7 +685,7 @@
         <span class="n">extra_args</span> <span class="o">=</span> <span class="n">extra_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">extra_arg</span> <span class="ow">in</span> <span class="n">extra_args</span><span class="p">:</span>
         <span class="n">arg</span> <span class="o">=</span> <span class="n">extra_arg</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
-        <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;--extra-arg=</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--extra-arg=</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
         <span class="c1"># clang-tidy overwrites the file contents when applying fixes.</span>
         <span class="c1"># create a cache of original contents</span>

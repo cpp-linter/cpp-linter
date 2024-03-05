@@ -512,7 +512,7 @@
 <span></span><code><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="n">FormatAdvice</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span>
@@ -531,6 +531,33 @@
 <span class="k">class</span> <span class="nc">RestApiClient</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+
+<div class="viewcode-block" id="RestApiClient.api_request">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient.api_request">[docs]</a>
+    <span class="k">def</span> <span class="nf">api_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">headers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A helper function to streamline handling of HTTP requests&#39; responses.</span>
+
+<span class="sd">        :param url: The  HTTP request URL.</span>
+<span class="sd">        :param method: The HTTP request method. The default value `None` means</span>
+<span class="sd">            &quot;GET&quot; if ``data`` is `None` else &quot;POST&quot;</span>
+<span class="sd">        :param data: The HTTP request payload data.</span>
+<span class="sd">        :param headers: The HTTP request headers to use. This can be used to override</span>
+<span class="sd">            the default headers used.</span>
+<span class="sd">        :param strict: If this is set `True`, then an `HTTPError` will be raised when</span>
+<span class="sd">            the HTTP request responds with a status code greater than or equal to 400.</span>
+
+<span class="sd">        :returns:</span>
+<span class="sd">            The HTTP request&#39;s response object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be defined in the derivative&quot;</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="RestApiClient.set_exit_code">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient.set_exit_code">[docs]</a>

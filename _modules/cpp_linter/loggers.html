@@ -562,21 +562,16 @@
 
 <div class="viewcode-block" id="log_response_msg">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.loggers.html#cpp_linter.loggers.log_response_msg">[docs]</a>
-<span class="k">def</span> <span class="nf">log_response_msg</span><span class="p">(</span><span class="n">response_buffer</span><span class="p">:</span> <span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Output the response buffer&#39;s message on a failed request.</span>
-
-<span class="sd">    :returns:</span>
-<span class="sd">        A bool describing if response&#39;s status code was less than 400.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">log_response_msg</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">Response</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Output the response buffer&#39;s message on a failed request.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-            <span class="s2">&quot;response returned </span><span class="si">%d</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> with message: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="n">response_buffer</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
-            <span class="n">response_buffer</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
-            <span class="n">response_buffer</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="kc">True</span></div>
+            <span class="s2">&quot;response returned </span><span class="si">%d</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> with message: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 </code></pre></div>
 
