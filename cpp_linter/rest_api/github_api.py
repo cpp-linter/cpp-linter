@@ -338,7 +338,7 @@ class GithubApiClient(RestApiClient):
 
         :returns: If updating a comment, this will return the comment URL.
         """
-        logger.info("comments_url: %s", comments_url)
+        logger.debug("comments_url: %s", comments_url)
         comment_url: Optional[str] = None
         page = 1
         next_page: Optional[str] = comments_url + f"?page={page}&per_page=100"
