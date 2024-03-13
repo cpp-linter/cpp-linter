@@ -324,7 +324,7 @@ class GithubApiClient(RestApiClient):
                 req_meth = "PATCH"
             else:
                 req_meth = "POST"
-            payload = json.dumps({"body": comment})
+            payload = json.dumps({"body": comment[:65536]})
             logger.debug("payload body:\n%s", payload)
             self.api_request(url=comments_url, method=req_meth, data=payload)
 
