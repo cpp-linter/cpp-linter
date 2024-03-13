@@ -4,7 +4,6 @@ on:
   # pull_request event is required for autolabeler
   pull_request:
     types: [opened, reopened, synchronize]
-  workflow_dispatch:
 
 jobs:
   draft-release:
