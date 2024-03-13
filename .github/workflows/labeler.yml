@@ -1,4 +1,4 @@
-name: Autolabeler
+name: PR Autolabeler
 
 on:
   # pull_request event is required for autolabeler
