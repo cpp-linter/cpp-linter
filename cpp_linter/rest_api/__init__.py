@@ -108,21 +108,22 @@ class RestApiClient(ABC):
         :param tidy_advice: A list of clang-tidy advice parallel to the list of
             ``files``.
 
-        :Returns: A `tuple` in which the items correspond to
-
-            - The markdown comment as a `str`
-            - The tally of ``format_checks_failed`` as an `int`
-            - The tally of ``tidy_checks_failed`` as an `int`
+        :Returns: The markdown comment as a `str`
         """
-        comment = f"{COMMENT_MARKER}# Cpp-Linter Report "
+        opener = f"{COMMENT_MARKER}# Cpp-Linter Report "
+        comment = ""
 
         def adjust_limit(limit: Optional[int], text: str) -> Optional[int]:
             if limit is not None:
-                return limit - len(text) - len(USER_OUTREACH)
+                return limit - len(text)
             return limit
 
+        for text in (opener, USER_OUTREACH):
+            len_limit = adjust_limit(limit=len_limit, text=text)
+
         if format_checks_failed or tidy_checks_failed:
-            comment += ":warning:\nSome files did not pass the configured checks!\n"
+            prefix = ":warning:\nSome files did not pass the configured checks!\n"
+            len_limit = adjust_limit(limit=len_limit, text=prefix)
             if format_checks_failed:
                 comment += RestApiClient._make_format_comment(
                     files=files,
@@ -138,9 +139,8 @@ class RestApiClient(ABC):
                     len_limit=adjust_limit(limit=len_limit, text=comment),
                 )
         else:
-            comment += ":heavy_check_mark:\nNo problems need attention."
-        comment += USER_OUTREACH
-        return comment
+            prefix = ":heavy_check_mark:\nNo problems need attention."
+        return opener + prefix + comment + USER_OUTREACH
 
     @staticmethod
     def _make_format_comment(
