@@ -17,6 +17,8 @@ import requests_mock
 from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.git import parse_diff, get_diff
 from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.clang_tools.clang_format import tally_format_advice, FormatAdvice
+from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice, TidyAdvice
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.cli import cli_arg_parser
@@ -56,6 +58,23 @@ def _translate_lines_changed_only_value(value: int) -> str:
     """generates an id for tests that use lines-changed-only settings."""
     ret_vals = ["all lines", "only added", "only diff"]
     return ret_vals[value]
+
+
+def make_comment(
+    files: List[FileObj],
+    format_advice: List[FormatAdvice],
+    tidy_advice: List[TidyAdvice],
+):
+    format_checks_failed = tally_format_advice(files=files, format_advice=format_advice)
+    tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
+    comment = GithubApiClient.make_comment(
+        files=files,
+        format_advice=format_advice,
+        tidy_advice=tidy_advice,
+        tidy_checks_failed=tidy_checks_failed,
+        format_checks_failed=format_checks_failed,
+    )
+    return comment, format_checks_failed, tidy_checks_failed
 
 
 def prep_api_client(
@@ -270,9 +289,7 @@ def test_format_annotations(
     log_commander.propagate = True
 
     # check thread comment
-    comment, format_checks_failed, _ = gh_client.make_comment(
-        files, format_advice, tidy_advice
-    )
+    comment, format_checks_failed, _ = make_comment(files, format_advice, tidy_advice)
     if format_checks_failed:
         assert f"{format_checks_failed} file(s) not formatted</strong>" in comment
 
@@ -351,7 +368,7 @@ def test_tidy_annotations(
     caplog.set_level(logging.DEBUG)
     log_commander.propagate = True
     gh_client.make_annotations(files, format_advice, tidy_advice, style="")
-    _, format_checks_failed, tidy_checks_failed = gh_client.make_comment(
+    _, format_checks_failed, tidy_checks_failed = make_comment(
         files, format_advice, tidy_advice
     )
     assert not format_checks_failed
@@ -401,7 +418,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         format_review=False,
         num_workers=None,
     )
-    comment, format_checks_failed, tidy_checks_failed = GithubApiClient.make_comment(
+    comment, format_checks_failed, tidy_checks_failed = make_comment(
         files, format_advice, tidy_advice
     )
     assert "No problems need attention." in comment
