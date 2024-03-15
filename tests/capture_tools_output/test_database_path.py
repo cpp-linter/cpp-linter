@@ -115,7 +115,8 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
                 found_project_file = True
     if not found_project_file:  # pragma: no cover
         pytest.fail("no project files raised concerns with clang-tidy")
-    format_checks_failed = tally_format_advice(files=files, format_advice=format_advice)
+
+    format_checks_failed = tally_format_advice(format_advice=format_advice)
     tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
     comment = GithubApiClient.make_comment(
         files=files,

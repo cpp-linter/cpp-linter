@@ -65,7 +65,7 @@ def make_comment(
     format_advice: List[FormatAdvice],
     tidy_advice: List[TidyAdvice],
 ):
-    format_checks_failed = tally_format_advice(files=files, format_advice=format_advice)
+    format_checks_failed = tally_format_advice(format_advice=format_advice)
     tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
     comment = GithubApiClient.make_comment(
         files=files,

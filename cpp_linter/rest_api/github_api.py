@@ -220,9 +220,7 @@ class GithubApiClient(RestApiClient):
         tidy_review: bool,
         format_review: bool,
     ):
-        format_checks_failed = tally_format_advice(
-            files=files, format_advice=format_advice
-        )
+        format_checks_failed = tally_format_advice(format_advice=format_advice)
         tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
         checks_failed = format_checks_failed + tidy_checks_failed
         comment: Optional[str] = None

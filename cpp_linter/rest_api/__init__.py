@@ -200,8 +200,6 @@ class RestApiClient(ABC):
                         or len(comment) + len(closer) + len(tidy_comment) < len_limit
                     ):
                         comment += tidy_comment
-                else:
-                    logger.debug("%s != %s", file_obj.name, note.filename)
         return comment + closer
 
     def post_feedback(
