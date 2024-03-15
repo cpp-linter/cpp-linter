@@ -107,6 +107,9 @@ class RestApiClient(ABC):
             ``files``.
         :param tidy_advice: A list of clang-tidy advice parallel to the list of
             ``files``.
+        :param format_checks_failed: The amount of clang-format checks that have failed.
+        :param tidy_checks_failed: The amount of clang-tidy checks that have failed.
+        :param len_limit: The length limit of the comment generated.
 
         :Returns: The markdown comment as a `str`
         """
