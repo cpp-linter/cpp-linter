@@ -254,7 +254,7 @@ class GithubApiClient(RestApiClient):
         if thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
-                sys.exit(self.set_exit_code(1))
+                sys.exit(1)
 
             if comment is None or len(comment) >= 65535:
                 comment = super().make_comment(
