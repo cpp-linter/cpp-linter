@@ -132,7 +132,7 @@ class RestApiClient(ABC):
                     files=files,
                     advice_fix=format_advice,
                     checks_failed=format_checks_failed,
-                    len_limit=adjust_limit(limit=len_limit, text=comment),
+                    len_limit=len_limit,
                 )
             if tidy_checks_failed:
                 comment += RestApiClient._make_tidy_comment(
