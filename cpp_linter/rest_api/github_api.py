@@ -245,6 +245,12 @@ class GithubApiClient(RestApiClient):
                 style=style,
             )
 
+        self.set_exit_code(
+            checks_failed=checks_failed,
+            format_checks_failed=format_checks_failed,
+            tidy_checks_failed=tidy_checks_failed,
+        )
+
         if thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
@@ -285,11 +291,6 @@ class GithubApiClient(RestApiClient):
                 format_review=format_review,
                 no_lgtm=no_lgtm,
             )
-        self.set_exit_code(
-            checks_failed=checks_failed,
-            format_checks_failed=format_checks_failed,
-            tidy_checks_failed=tidy_checks_failed,
-        )
 
     def make_annotations(
         self,
