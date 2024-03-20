@@ -104,6 +104,8 @@ def capture_clang_tools_output(
         PR review comments using clang-tidy.
     :param format_review: A flag to enable/disable creating a diff suggestion for
         PR review comments using clang-format.
+    :param num_workers: The number of workers to use for parallel processing. If
+        `None`, then the number of workers is set to the number of CPU cores.
     """
 
     def show_tool_version_output(cmd: str):  # show version output for executable used
