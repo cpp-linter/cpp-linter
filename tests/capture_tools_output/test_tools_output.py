@@ -276,13 +276,13 @@ def test_format_annotations(
 
     # check annotations
     gh_client.make_annotations(files, format_advice, tidy_advice, style)
-    logline: str
-    for logline in capsys.readouterr().err.splitlines():
-        if FORMAT_RECORD.search(logline) is not None:
-            line_list = logline[logline.find("style guidelines. (lines ") + 25 : -1]
-            lines = [int(logline.strip()) for logline in line_list.split(",")]
+    log_line: str
+    for log_line in capsys.readouterr().err.splitlines():
+        if FORMAT_RECORD.search(log_line) is not None:
+            line_list = log_line[log_line.find("style guidelines. (lines ") + 25 : -1]
+            lines = [int(log_line.strip()) for log_line in line_list.split(",")]
             file_obj = match_file_json(
-                RECORD_FILE.sub("\\1", logline).replace("\\", "/"), files
+                RECORD_FILE.sub("\\1", log_line).replace("\\", "/"), files
             )
             if file_obj is None:
                 continue  # pragma: no cover

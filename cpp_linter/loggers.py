@@ -57,8 +57,8 @@ def log_response_msg(response: Response):
         )
 
 
-def worker_logfile_init(tempdir: str, loglvl: int):
-    logfile = NamedTemporaryFile("w", dir=tempdir, delete=False)
+def worker_log_file_init(temp_dir: str, log_lvl: int):
+    log_file = NamedTemporaryFile("w", dir=temp_dir, delete=False)
 
     logger.handlers.clear()
     logger.propagate = False
@@ -66,22 +66,22 @@ def worker_logfile_init(tempdir: str, loglvl: int):
     handler: logging.Handler
     if FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ:
         console = get_console()
-        console.file = logfile
+        console.file = log_file
         handler = RichHandler(show_time=False, console=console)
         handler.setFormatter(logging.Formatter("%(name)s: %(message)s"))
     else:
-        handler = logging.StreamHandler(logfile)
+        handler = logging.StreamHandler(log_file)
         handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
     logger.addHandler(handler)
     # Windows does not copy log level to subprocess.
     # https://github.com/cpp-linter/cpp-linter/actions/runs/8355193931
-    logger.setLevel(loglvl)
+    logger.setLevel(log_lvl)
 
     ## uncomment the following if log_commander is needed in isolated threads
     # log_commander.handlers.clear()
     # log_commander.propagate = False
-    # console_handler = logging.StreamHandler(logfile)
+    # console_handler = logging.StreamHandler(log_file)
     # console_handler.setFormatter(logging.Formatter("%(message)s"))
     # log_commander.addHandler(console_handler)
 
-    return logfile.name
+    return log_file.name

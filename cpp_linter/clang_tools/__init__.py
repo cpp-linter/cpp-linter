@@ -10,7 +10,7 @@ from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
-from ..loggers import start_log_group, end_log_group, worker_logfile_init, logger
+from ..loggers import start_log_group, end_log_group, worker_log_file_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 
@@ -37,8 +37,8 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
 
 def _run_on_single_file(
     file: FileObj,
-    tempdir: str,
-    loglvl: int,
+    temp_dir: str,
+    log_lvl: int,
     tidy_cmd,
     checks,
     lines_changed_only,
@@ -50,7 +50,7 @@ def _run_on_single_file(
     style,
     format_review,
 ):
-    logfile = worker_logfile_init(tempdir, loglvl)
+    log_file = worker_log_file_init(temp_dir, log_lvl)
 
     tidy_note = None
     if tidy_cmd is not None:
@@ -71,7 +71,7 @@ def _run_on_single_file(
             format_cmd, file, style, lines_changed_only, format_review
         )
 
-    return logfile, tidy_note, format_advice
+    return log_file, tidy_note, format_advice
 
 
 def capture_clang_tools_output(
@@ -135,13 +135,13 @@ def capture_clang_tools_output(
     # temporary cache of parsed notifications for use in log commands
     tidy_notes = []
     format_advice = []
-    loglvl = logger.getEffectiveLevel()
-    with TemporaryDirectory() as tempdir, Pool(num_workers) as pool:
+    log_lvl = logger.getEffectiveLevel()
+    with TemporaryDirectory() as temp_dir, Pool(num_workers) as pool:
         results = pool.imap(
             partial(
                 _run_on_single_file,
-                tempdir=tempdir,
-                loglvl=loglvl,
+                temp_dir=temp_dir,
+                log_lvl=log_lvl,
                 tidy_cmd=tidy_cmd,
                 checks=checks,
                 lines_changed_only=lines_changed_only,
@@ -156,9 +156,9 @@ def capture_clang_tools_output(
             files,
         )
 
-        for file, (logfile, note, advice) in zip(files, results):
+        for file, (log_file, note, advice) in zip(files, results):
             start_log_group(f"Performing checkup on {file.name}")
-            sys.stdout.write(Path(logfile).read_text())
+            sys.stdout.write(Path(log_file).read_text())
             end_log_group()
 
             if note is not None:
