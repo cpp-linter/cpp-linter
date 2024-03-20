@@ -1,4 +1,5 @@
 """Various tests related to the ``lines_changed_only`` option."""
+
 import json
 import logging
 import os
@@ -21,6 +22,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.cli import cli_arg_parser
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
+CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*?)"', re.DOTALL)
 
 TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
     dict(
@@ -234,7 +236,7 @@ TIDY_RECORD_LINE = re.compile(r"^::\w+\sfile=[\/\w\-\\\.\s]+,line=(\d+),.*$")
 )
 @pytest.mark.parametrize("style", ["file", "llvm", "google"])
 def test_format_annotations(
-    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     lines_changed_only: int,
@@ -258,12 +260,12 @@ def test_format_annotations(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
 
-    caplog.set_level(logging.INFO, logger=log_commander.name)
-    log_commander.propagate = True
+    log_commander.setLevel(logging.INFO)
 
     # check thread comment
     comment, format_checks_failed, _ = gh_client.make_comment(
@@ -274,12 +276,13 @@ def test_format_annotations(
 
     # check annotations
     gh_client.make_annotations(files, format_advice, tidy_advice, style)
-    for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
-        if FORMAT_RECORD.search(message) is not None:
-            line_list = message[message.find("style guidelines. (lines ") + 25 : -1]
-            lines = [int(line.strip()) for line in line_list.split(",")]
+    logline: str
+    for logline in capsys.readouterr().err.splitlines():
+        if FORMAT_RECORD.search(logline) is not None:
+            line_list = logline[logline.find("style guidelines. (lines ") + 25 : -1]
+            lines = [int(logline.strip()) for logline in line_list.split(",")]
             file_obj = match_file_json(
-                RECORD_FILE.sub("\\1", message).replace("\\", "/"), files
+                RECORD_FILE.sub("\\1", logline).replace("\\", "/"), files
             )
             if file_obj is None:
                 continue  # pragma: no cover
@@ -295,8 +298,6 @@ def test_format_annotations(
                         break
                 else:  # pragma: no cover
                     raise RuntimeError(f"line {line} not in ranges {repr(ranges)}")
-        else:  # pragma: no cover
-            raise RuntimeWarning(f"unrecognized record: {message}")
 
 
 @pytest.mark.parametrize(
@@ -336,6 +337,7 @@ def test_tidy_annotations(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
     assert [note for concern in tidy_advice for note in concern.notes]
     assert not [note for note in format_advice]
@@ -389,6 +391,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
     comment, format_checks_failed, tidy_checks_failed = GithubApiClient.make_comment(
         files, format_advice, tidy_advice
@@ -462,12 +465,12 @@ def test_parse_diff(
     [["-std=c++17", "-Wall"], ["-std=c++17 -Wall"]],
     ids=["separate", "unified"],
 )
-def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]):
+def test_tidy_extra_args(capsys: pytest.CaptureFixture, user_input: List[str]):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
     cli_in = []
     for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
-    caplog.set_level(logging.INFO, logger=logger.name)
+    logger.setLevel(logging.INFO)
     args = cli_arg_parser.parse_args(cli_in)
     assert len(user_input) == len(args.extra_arg)
     _, _ = capture_clang_tools_output(
@@ -480,14 +483,14 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]
         extra_args=args.extra_arg,
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
-    messages = [
-        r.message
-        for r in caplog.records
-        if r.levelno == logging.INFO and r.message.startswith("Running")
-    ]
-    assert messages
+    stdout = capsys.readouterr().out
+    msg_match = CLANG_TIDY_COMMAND.search(stdout)
+    if msg_match is None:  # pragma: no cover
+        raise RuntimeError("failed to find args passed in clang-tidy in log records")
+    matched_args = msg_match.group(0).split()[1:]
     if len(user_input) == 1 and " " in user_input[0]:
         user_input = user_input[0].split()
     for a in user_input:
-        assert f"--extra-arg={a}" in messages[0]
+        assert f"--extra-arg={a}" in matched_args

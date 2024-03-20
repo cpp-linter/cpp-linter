@@ -1,4 +1,5 @@
 """Tests specific to specifying the compilation database path."""
+
 from typing import List
 from pathlib import Path, PurePath
 import logging
@@ -13,7 +14,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from mesonbuild.mesonmain import main as meson  # type: ignore
 
-CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
+CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*?)"', re.DOTALL)
 
 ABS_DB_PATH = str(Path("tests/demo").resolve())
 
@@ -31,7 +32,7 @@ ABS_DB_PATH = str(Path("tests/demo").resolve())
     ids=["implicit path", "relative path", "absolute path"],
 )
 def test_db_detection(
-    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
     database: str,
     expected_args: List[str],
@@ -39,7 +40,7 @@ def test_db_detection(
     """test clang-tidy using a implicit path to the compilation database."""
     monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
     CACHE_PATH.mkdir(exist_ok=True)
-    caplog.set_level(logging.DEBUG, logger=logger.name)
+    logger.setLevel(logging.DEBUG)
     demo_src = "demo/demo.cpp"
     files = [FileObj(demo_src)]
 
@@ -53,23 +54,19 @@ def test_db_detection(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
-    matched_args = []
-    for record in caplog.records:
-        assert "Error while trying to load a compilation database" not in record.message
-        msg_match = CLANG_TIDY_COMMAND.search(record.message)
-        if msg_match is not None:
-            matched_args = msg_match.group(0).split()[1:]
-            break
-    else:  # pragma: no cover
+    stdout = capsys.readouterr().out
+    assert "Error while trying to load a compilation database" not in stdout
+    msg_match = CLANG_TIDY_COMMAND.search(stdout)
+    if msg_match is None:  # pragma: no cover
         raise RuntimeError("failed to find args passed in clang-tidy in log records")
+    matched_args = msg_match.group(0).split()[1:]
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args
 
 
-def test_ninja_database(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
-):
+def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     """verify that the relative paths used in a database generated (and thus clang-tidy
     stdout) for the ninja build system are resolved accordingly."""
     tmp_path_demo = tmp_path / "demo"
@@ -88,7 +85,7 @@ def test_ninja_database(
     )
     meson()
 
-    caplog.set_level(logging.DEBUG, logger=logger.name)
+    logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]
     gh_client = GithubApiClient()
 
@@ -103,6 +100,7 @@ def test_ninja_database(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
     found_project_file = False
     for concern in tidy_advice:

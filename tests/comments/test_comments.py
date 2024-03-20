@@ -63,6 +63,7 @@ def test_post_feedback(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=2,
     )
     # add a non project file to tidy_advice to intentionally cover a log.debug()
     assert tidy_advice
