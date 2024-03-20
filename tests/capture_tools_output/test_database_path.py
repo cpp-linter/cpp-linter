@@ -55,7 +55,7 @@ def test_db_detection(
         extra_args=[],
         tidy_review=False,
         format_review=False,
-        num_workers=2,
+        num_workers=None,
     )
     stdout = capsys.readouterr().out
     assert "Error while trying to load a compilation database" not in stdout
@@ -102,7 +102,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
         extra_args=[],
         tidy_review=False,
         format_review=False,
-        num_workers=2,
+        num_workers=None,
     )
     found_project_file = False
     for concern in tidy_advice:

@@ -26,7 +26,7 @@ test_parameters = OrderedDict(
     changes=2,
     summary_only=False,
     no_lgtm=False,
-    num_workers=2,
+    num_workers=None,
 )
 
 

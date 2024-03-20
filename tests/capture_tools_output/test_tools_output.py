@@ -260,7 +260,7 @@ def test_format_annotations(
         extra_args=[],
         tidy_review=False,
         format_review=False,
-        num_workers=2,
+        num_workers=None,
     )
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
@@ -337,7 +337,7 @@ def test_tidy_annotations(
         extra_args=[],
         tidy_review=False,
         format_review=False,
-        num_workers=2,
+        num_workers=None,
     )
     assert [note for concern in tidy_advice for note in concern.notes]
     assert not [note for note in format_advice]
@@ -391,7 +391,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         extra_args=[],
         tidy_review=False,
         format_review=False,
-        num_workers=2,
+        num_workers=None,
     )
     comment, format_checks_failed, tidy_checks_failed = GithubApiClient.make_comment(
         files, format_advice, tidy_advice
@@ -488,7 +488,7 @@ def test_tidy_extra_args(
         extra_args=args.extra_arg,
         tidy_review=False,
         format_review=False,
-        num_workers=2,
+        num_workers=None,
     )
     stdout = capsys.readouterr().out
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
