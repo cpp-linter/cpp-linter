@@ -302,6 +302,15 @@ from clang-format.
 
 Defaults to ``%(default)s``.""",
 )
+cli_arg_parser.add_argument(
+    "-j",
+    "--jobs",
+    default=1,
+    type=int,
+    help="""Set the number of jobs to run simultaneously.
+
+Defaults to ``%(default)s``.""",
+)
 
 
 def parse_ignore_option(

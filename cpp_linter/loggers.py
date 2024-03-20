@@ -1,10 +1,11 @@
 import logging
+from tempfile import NamedTemporaryFile
 
 from requests import Response
 
 FOUND_RICH_LIB = False
 try:  # pragma: no cover
-    from rich.logging import RichHandler  # type: ignore
+    from rich.logging import RichHandler, get_console  # type: ignore
 
     FOUND_RICH_LIB = True
 
@@ -53,3 +54,29 @@ def log_response_msg(response: Response):
             response.request.url,
             response.text,
         )
+
+
+def worker_logfile(tempdir: str):
+    logfile = NamedTemporaryFile("w", dir=tempdir, delete=False)
+
+    logger.handlers.clear()
+    logger.propagate = False
+
+    handler: logging.Handler
+    if FOUND_RICH_LIB:
+        console = get_console()
+        console.file = logfile
+        handler = RichHandler(show_time=False, console=console)
+        handler.setFormatter(logging.Formatter("%(name)s: %(message)s"))
+    else:
+        handler = logging.StreamHandler(logfile)
+        handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+    logger.addHandler(handler)
+
+    log_commander.handlers.clear()
+    log_commander.propagate = False
+    console_handler = logging.StreamHandler(logfile)
+    console_handler.setFormatter(logging.Formatter("%(message)s"))
+    log_commander.addHandler(console_handler)
+
+    return logfile.name

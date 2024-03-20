@@ -1,12 +1,16 @@
+from functools import partial
 import json
+from multiprocessing import Pool
 from pathlib import Path, PurePath
 import subprocess
+import sys
+from tempfile import TemporaryDirectory
 from textwrap import indent
 from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
-from ..loggers import start_log_group, end_log_group, logger
+from ..loggers import start_log_group, end_log_group, worker_logfile, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 
@@ -31,6 +35,48 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
     return shutil.which(tool_name)
 
 
+def run_on_single_file(
+    file: FileObj,
+    tempdir: str,
+    tidy_cmd,
+    checks,
+    lines_changed_only,
+    database,
+    extra_args,
+    db_json,
+    tidy_review,
+    format_cmd,
+    style,
+    format_review,
+):
+    logfile = worker_logfile(tempdir)
+
+    start_log_group(f"Performing checkup on {file.name}")
+
+    tidy_note = None
+    if tidy_cmd is not None:
+        tidy_note = run_clang_tidy(
+            tidy_cmd,
+            file,
+            checks,
+            lines_changed_only,
+            database,
+            extra_args,
+            db_json,
+            tidy_review,
+        )
+
+    format_advice = None
+    if format_cmd is not None:
+        format_advice = run_clang_format(
+            format_cmd, file, style, lines_changed_only, format_review
+        )
+
+    end_log_group()
+
+    return logfile, tidy_note, format_advice
+
+
 def capture_clang_tools_output(
     files: List[FileObj],
     version: str,
@@ -41,6 +87,7 @@ def capture_clang_tools_output(
     extra_args: List[str],
     tidy_review: bool,
     format_review: bool,
+    num_workers: int,
 ) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
@@ -89,26 +136,30 @@ def capture_clang_tools_output(
     # temporary cache of parsed notifications for use in log commands
     tidy_notes = []
     format_advice = []
-    for file in files:
-        start_log_group(f"Performing checkup on {file.name}")
-        if tidy_cmd is not None:
-            tidy_notes.append(
-                run_clang_tidy(
-                    tidy_cmd,
-                    file,
-                    checks,
-                    lines_changed_only,
-                    database,
-                    extra_args,
-                    db_json,
-                    tidy_review,
-                )
-            )
-        if format_cmd is not None:
-            format_advice.append(
-                run_clang_format(
-                    format_cmd, file, style, lines_changed_only, format_review
-                )
-            )
-        end_log_group()
+    with TemporaryDirectory() as tempdir, Pool(num_workers) as pool:
+        results = pool.imap(
+            partial(
+                run_on_single_file,
+                tempdir=tempdir,
+                tidy_cmd=tidy_cmd,
+                checks=checks,
+                lines_changed_only=lines_changed_only,
+                database=database,
+                extra_args=extra_args,
+                db_json=db_json,
+                tidy_review=tidy_review,
+                format_cmd=format_cmd,
+                style=style,
+                format_review=format_review,
+            ),
+            files,
+        )
+
+        for logfile, note, advice in results:
+            sys.stdout.write(Path(logfile).read_text())
+            if note is not None:
+                tidy_notes.append(note)
+            if advice is not None:
+                format_advice.append(advice)
+
     return (format_advice, tidy_notes)

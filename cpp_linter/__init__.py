@@ -21,6 +21,10 @@ def main():
     if args.lines_changed_only:
         args.files_changed_only = True
 
+    if args.jobs <= 0:
+        logger.error("jobs must be a positive integer")
+        return 1
+
     rest_api_client = GithubApiClient()
     logger.info("processing %s event", rest_api_client.event_name)
     is_pr_event = rest_api_client.event_name == "pull_request"
@@ -87,6 +91,7 @@ def main():
         extra_args=args.extra_arg,
         tidy_review=is_pr_event and args.tidy_review,
         format_review=is_pr_event and args.format_review,
+        num_workers=args.jobs,
     )
 
     start_log_group("Posting comment(s)")
