@@ -84,7 +84,7 @@ def capture_clang_tools_output(
     extra_args: List[str],
     tidy_review: bool,
     format_review: bool,
-    num_workers: int,
+    num_workers: Optional[int],
 ) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.

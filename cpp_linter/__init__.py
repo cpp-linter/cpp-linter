@@ -21,9 +21,6 @@ def main():
     if args.lines_changed_only:
         args.files_changed_only = True
 
-    if args.jobs <= 0:
-        args.jobs = os.cpu_count() or 1
-
     rest_api_client = GithubApiClient()
     logger.info("processing %s event", rest_api_client.event_name)
     is_pr_event = rest_api_client.event_name == "pull_request"
