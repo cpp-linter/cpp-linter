@@ -51,8 +51,6 @@ def run_on_single_file(
 ):
     logfile = worker_logfile(tempdir)
 
-    start_log_group(f"Performing checkup on {file.name}")
-
     tidy_note = None
     if tidy_cmd is not None:
         tidy_note = run_clang_tidy(
@@ -71,8 +69,6 @@ def run_on_single_file(
         format_advice = run_clang_format(
             format_cmd, file, style, lines_changed_only, format_review
         )
-
-    end_log_group()
 
     return logfile, tidy_note, format_advice
 
@@ -155,8 +151,11 @@ def capture_clang_tools_output(
             files,
         )
 
-        for logfile, note, advice in results:
+        for file, (logfile, note, advice) in zip(files, results):
+            start_log_group(f"Performing checkup on {file.name}")
             sys.stdout.write(Path(logfile).read_text())
+            end_log_group()
+
             if note is not None:
                 tidy_notes.append(note)
             if advice is not None:
