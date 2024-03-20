@@ -77,10 +77,11 @@ def worker_logfile_init(tempdir: str, loglvl: int):
     # https://github.com/cpp-linter/cpp-linter/actions/runs/8355193931
     logger.setLevel(loglvl)
 
-    log_commander.handlers.clear()
-    log_commander.propagate = False
-    console_handler = logging.StreamHandler(logfile)
-    console_handler.setFormatter(logging.Formatter("%(message)s"))
-    log_commander.addHandler(console_handler)
+    ## uncomment the following if log_commander is needed in isolated threads
+    # log_commander.handlers.clear()
+    # log_commander.propagate = False
+    # console_handler = logging.StreamHandler(logfile)
+    # console_handler.setFormatter(logging.Formatter("%(message)s"))
+    # log_commander.addHandler(console_handler)
 
     return logfile.name
