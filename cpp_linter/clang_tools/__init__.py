@@ -10,7 +10,7 @@ from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
-from ..loggers import start_log_group, end_log_group, worker_logfile, logger
+from ..loggers import start_log_group, end_log_group, worker_logfile_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 
@@ -38,6 +38,7 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
 def run_on_single_file(
     file: FileObj,
     tempdir: str,
+    loglvl: int,
     tidy_cmd,
     checks,
     lines_changed_only,
@@ -49,7 +50,7 @@ def run_on_single_file(
     style,
     format_review,
 ):
-    logfile = worker_logfile(tempdir)
+    logfile = worker_logfile_init(tempdir, loglvl)
 
     tidy_note = None
     if tidy_cmd is not None:
@@ -132,11 +133,13 @@ def capture_clang_tools_output(
     # temporary cache of parsed notifications for use in log commands
     tidy_notes = []
     format_advice = []
+    loglvl = logger.getEffectiveLevel()
     with TemporaryDirectory() as tempdir, Pool(num_workers) as pool:
         results = pool.imap(
             partial(
                 run_on_single_file,
                 tempdir=tempdir,
+                loglvl=loglvl,
                 tidy_cmd=tidy_cmd,
                 checks=checks,
                 lines_changed_only=lines_changed_only,

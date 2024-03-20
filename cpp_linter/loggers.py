@@ -56,7 +56,7 @@ def log_response_msg(response: Response):
         )
 
 
-def worker_logfile(tempdir: str):
+def worker_logfile_init(tempdir: str, loglvl: int):
     logfile = NamedTemporaryFile("w", dir=tempdir, delete=False)
 
     logger.handlers.clear()
@@ -72,6 +72,9 @@ def worker_logfile(tempdir: str):
         handler = logging.StreamHandler(logfile)
         handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
     logger.addHandler(handler)
+    # Windows does not copy log level to subprocess.
+    # https://github.com/cpp-linter/cpp-linter/actions/runs/8355193931
+    logger.setLevel(loglvl)
 
     log_commander.handlers.clear()
     log_commander.propagate = False
