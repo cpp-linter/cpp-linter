@@ -1,6 +1,7 @@
 """This was reintroduced to deal with any bugs in pygit2 (or the libgit2 C library it
 binds to). The `parse_diff()` function here is only used when
 :py:meth:`pygit2.Diff.parse_diff()` function fails in `cpp_linter.git.parse_diff()`"""
+
 import re
 from typing import Optional, List, Tuple, cast
 from ..common_fs import FileObj, is_source_or_ignored, has_line_changes

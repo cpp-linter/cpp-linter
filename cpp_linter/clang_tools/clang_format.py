@@ -1,4 +1,5 @@
 """Parse output from clang-format's XML suggestions."""
+
 from pathlib import PurePath
 import subprocess
 from typing import List, cast, Optional

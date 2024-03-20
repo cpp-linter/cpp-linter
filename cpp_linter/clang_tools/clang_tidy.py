@@ -1,4 +1,5 @@
 """Parse output from clang-tidy's stdout"""
+
 import json
 import os
 from pathlib import Path, PurePath

@@ -1,4 +1,5 @@
 """Tests that complete coverage that aren't prone to failure."""
+
 import logging
 import os
 import json
