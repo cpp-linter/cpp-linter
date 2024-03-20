@@ -1,4 +1,5 @@
 import logging
+import os
 from tempfile import NamedTemporaryFile
 
 from requests import Response
@@ -63,7 +64,7 @@ def worker_logfile_init(tempdir: str, loglvl: int):
     logger.propagate = False
 
     handler: logging.Handler
-    if FOUND_RICH_LIB:
+    if FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ:
         console = get_console()
         console.file = logfile
         handler = RichHandler(show_time=False, console=console)

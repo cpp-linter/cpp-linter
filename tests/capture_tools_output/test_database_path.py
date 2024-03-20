@@ -14,7 +14,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from mesonbuild.mesonmain import main as meson  # type: ignore
 
-CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*?)"', re.DOTALL)
+CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 ABS_DB_PATH = str(Path("tests/demo").resolve())
 
@@ -39,6 +39,7 @@ def test_db_detection(
 ):
     """test clang-tidy using a implicit path to the compilation database."""
     monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
     CACHE_PATH.mkdir(exist_ok=True)
     logger.setLevel(logging.DEBUG)
     demo_src = "demo/demo.cpp"
@@ -84,6 +85,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
         sys, "argv", ["meson", "setup", "--backend=ninja", "build", "."]
     )
     meson()
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
 
     logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]

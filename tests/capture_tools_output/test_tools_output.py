@@ -22,7 +22,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.cli import cli_arg_parser
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
-CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*?)"', re.DOTALL)
+CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
     dict(
@@ -465,8 +465,13 @@ def test_parse_diff(
     [["-std=c++17", "-Wall"], ["-std=c++17 -Wall"]],
     ids=["separate", "unified"],
 )
-def test_tidy_extra_args(capsys: pytest.CaptureFixture, user_input: List[str]):
+def test_tidy_extra_args(
+    capsys: pytest.CaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    user_input: List[str],
+):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
     cli_in = []
     for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
