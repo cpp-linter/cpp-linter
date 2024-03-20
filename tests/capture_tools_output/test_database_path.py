@@ -60,7 +60,7 @@ def test_db_detection(
     assert "Error while trying to load a compilation database" not in stdout
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
     if msg_match is None:  # pragma: no cover
-        raise RuntimeError("failed to find args passed in clang-tidy in log records")
+        pytest.fail("failed to find args passed in clang-tidy in log records")
     matched_args = msg_match.group(0).split()[1:]
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args
@@ -109,7 +109,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
                 assert not Path(note.filename).is_absolute()
                 found_project_file = True
     if not found_project_file:  # pragma: no cover
-        raise RuntimeError("no project files raised concerns with clang-tidy")
+        pytest.fail("no project files raised concerns with clang-tidy")
     (comment, format_checks_failed, tidy_checks_failed) = gh_client.make_comment(
         files, format_advice, tidy_advice
     )
