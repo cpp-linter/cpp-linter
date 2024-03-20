@@ -35,7 +35,7 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
     return shutil.which(tool_name)
 
 
-def run_on_single_file(
+def _run_on_single_file(
     file: FileObj,
     tempdir: str,
     loglvl: int,
@@ -137,7 +137,7 @@ def capture_clang_tools_output(
     with TemporaryDirectory() as tempdir, Pool(num_workers) as pool:
         results = pool.imap(
             partial(
-                run_on_single_file,
+                _run_on_single_file,
                 tempdir=tempdir,
                 loglvl=loglvl,
                 tidy_cmd=tidy_cmd,
