@@ -308,6 +308,8 @@ cli_arg_parser.add_argument(
     default=1,
     type=int,
     help="""Set the number of jobs to run simultaneously.
+If set to <= 0, the number of jobs will be set to the
+number of all available CPU cores.
 
 Defaults to ``%(default)s``.""",
 )

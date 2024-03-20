@@ -22,8 +22,7 @@ def main():
         args.files_changed_only = True
 
     if args.jobs <= 0:
-        logger.error("jobs must be a positive integer")
-        return 1
+        args.jobs = os.cpu_count() or 1
 
     rest_api_client = GithubApiClient()
     logger.info("processing %s event", rest_api_client.event_name)
