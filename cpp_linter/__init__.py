@@ -1,6 +1,7 @@
 """Run clang-tidy and clang-format on a list of files.
 If executed from command-line, then `main()` is the entrypoint.
 """
+
 import json
 import logging
 import os

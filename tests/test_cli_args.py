@@ -1,4 +1,5 @@
 """Tests related parsing input from CLI arguments."""
+
 from typing import List, Union
 import pytest
 from cpp_linter.cli import cli_arg_parser
@@ -81,6 +82,7 @@ def test_defaults():
         ("jobs", "0", "jobs", None),
         ("jobs", "1", "jobs", 1),
         ("jobs", "4", "jobs", 4),
+        pytest.param("jobs", "x", "jobs", 0, marks=pytest.mark.xfail),
     ],
 )
 def test_arg_parser(

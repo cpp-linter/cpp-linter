@@ -64,7 +64,9 @@ def worker_log_file_init(temp_dir: str, log_lvl: int):
     logger.propagate = False
 
     handler: logging.Handler
-    if FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ:
+    if (
+        FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ
+    ):  # pragma: no cover
         console = get_console()
         console.file = log_file
         handler = RichHandler(show_time=False, console=console)
