@@ -308,7 +308,7 @@ Defaults to ``%(default)s``.""",
 def _parse_jobs(val: str) -> Optional[int]:
     try:
         jobs = int(val)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         raise argparse.ArgumentTypeError(f"invalid value: {val} (must be an integer)")
 
     if jobs <= 0:
