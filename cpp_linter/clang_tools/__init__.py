@@ -1,6 +1,5 @@
-from functools import partial
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
-from multiprocessing import Pool
 from pathlib import Path, PurePath
 import subprocess
 import sys
@@ -136,10 +135,11 @@ def capture_clang_tools_output(
     tidy_notes = []
     format_advice = []
     log_lvl = logger.getEffectiveLevel()
-    with TemporaryDirectory() as temp_dir, Pool(num_workers) as pool:
-        results = pool.imap(
-            partial(
+    with TemporaryDirectory() as temp_dir, ProcessPoolExecutor(num_workers) as executor:
+        futures = [
+            executor.submit(
                 _run_on_single_file,
+                file,
                 temp_dir=temp_dir,
                 log_lvl=log_lvl,
                 tidy_cmd=tidy_cmd,
@@ -152,11 +152,13 @@ def capture_clang_tools_output(
                 format_cmd=format_cmd,
                 style=style,
                 format_review=format_review,
-            ),
-            files,
-        )
+            )
+            for file in files
+        ]
 
-        for file, (log_file, note, advice) in zip(files, results):
+        for file, future in zip(files, as_completed(futures)):
+            log_file, note, advice = future.result()
+
             start_log_group(f"Performing checkup on {file.name}")
             sys.stdout.write(Path(log_file).read_text())
             end_log_group()
@@ -165,9 +167,5 @@ def capture_clang_tools_output(
                 tidy_notes.append(note)
             if advice is not None:
                 format_advice.append(advice)
-
-        # Required for coverage report
-        pool.close()
-        pool.join()
 
     return (format_advice, tidy_notes)
