@@ -236,7 +236,7 @@ TIDY_RECORD_LINE = re.compile(r"^::\w+\sfile=[\/\w\-\\\.\s]+,line=(\d+),.*$")
 )
 @pytest.mark.parametrize("style", ["file", "llvm", "google"])
 def test_format_annotations(
-    capsys: pytest.CaptureFixture,
+    caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     lines_changed_only: int,
@@ -265,7 +265,8 @@ def test_format_annotations(
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
 
-    log_commander.setLevel(logging.INFO)
+    caplog.set_level(logging.INFO, logger=log_commander.name)
+    log_commander.propagate = True
 
     # check thread comment
     comment, format_checks_failed, _ = gh_client.make_comment(
@@ -276,13 +277,16 @@ def test_format_annotations(
 
     # check annotations
     gh_client.make_annotations(files, format_advice, tidy_advice, style)
-    log_line: str
-    for log_line in capsys.readouterr().err.splitlines():
-        if FORMAT_RECORD.search(log_line) is not None:
-            line_list = log_line[log_line.find("style guidelines. (lines ") + 25 : -1]
-            lines = [int(log_line.strip()) for log_line in line_list.split(",")]
+    for message in [
+        r.message
+        for r in caplog.records
+        if r.levelno == logging.INFO and r.name == log_commander.name
+    ]:
+        if FORMAT_RECORD.search(message) is not None:
+            line_list = message[message.find("style guidelines. (lines ") + 25 : -1]
+            lines = [int(line.strip()) for line in line_list.split(",")]
             file_obj = match_file_json(
-                RECORD_FILE.sub("\\1", log_line).replace("\\", "/"), files
+                RECORD_FILE.sub("\\1", message).replace("\\", "/"), files
             )
             if file_obj is None:
                 continue  # pragma: no cover
@@ -298,6 +302,8 @@ def test_format_annotations(
                         break
                 else:  # pragma: no cover
                     raise RuntimeError(f"line {line} not in ranges {repr(ranges)}")
+        else:  # pragma: no cover
+            raise RuntimeWarning(f"unrecognized record: {message}")
 
 
 @pytest.mark.parametrize(
