@@ -70,7 +70,7 @@ def _run_on_single_file(
             format_cmd, file, style, lines_changed_only, format_review
         )
 
-    return log_file, tidy_note, format_advice
+    return file.name, log_file, tidy_note, format_advice
 
 
 def capture_clang_tools_output(
@@ -131,11 +131,8 @@ def capture_clang_tools_output(
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
-    # temporary cache of parsed notifications for use in log commands
-    tidy_notes = []
-    format_advice = []
-    log_lvl = logger.getEffectiveLevel()
     with TemporaryDirectory() as temp_dir, ProcessPoolExecutor(num_workers) as executor:
+        log_lvl = logger.getEffectiveLevel()
         futures = [
             executor.submit(
                 _run_on_single_file,
@@ -156,16 +153,20 @@ def capture_clang_tools_output(
             for file in files
         ]
 
-        for file, future in zip(files, as_completed(futures)):
-            log_file, note, advice = future.result()
+        # temporary cache of parsed notifications for use in log commands
+        format_advice_map: Dict[str, Optional[FormatAdvice]] = {}
+        tidy_notes_map: Dict[str, Optional[TidyAdvice]] = {}
+        for future in as_completed(futures):
+            file, log_file, note, advice = future.result()
 
-            start_log_group(f"Performing checkup on {file.name}")
+            start_log_group(f"Performing checkup on {file}")
             sys.stdout.write(Path(log_file).read_text())
             end_log_group()
 
-            if note is not None:
-                tidy_notes.append(note)
-            if advice is not None:
-                format_advice.append(advice)
+            format_advice_map[file] = advice
+            tidy_notes_map[file] = note
+
+    format_advice = list(filter(None, (format_advice_map[file.name] for file in files)))
+    tidy_notes = list(filter(None, (tidy_notes_map[file.name] for file in files)))
 
     return (format_advice, tidy_notes)
