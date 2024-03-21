@@ -512,6 +512,7 @@
 <span></span><code><span class="sd">&quot;&quot;&quot;Run clang-tidy and clang-format on a list of files.</span>
 <span class="sd">If executed from command-line, then `main()` is the entrypoint.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -600,6 +601,7 @@
         <span class="n">extra_args</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">,</span>
         <span class="n">tidy_review</span><span class="o">=</span><span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
         <span class="n">format_review</span><span class="o">=</span><span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">jobs</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Posting comment(s)&quot;</span><span class="p">)</span>

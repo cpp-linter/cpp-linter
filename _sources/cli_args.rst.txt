@@ -252,3 +252,12 @@ Command Line Interface Options
     Set to ``true`` to enable Pull Request reviews
     from clang-format.
     
+
+.. std:option:: -j, --jobs
+
+    :badge-version:`1.4.6` :badge-default:`'1'` 
+
+    Set the number of jobs to run simultaneously.
+    If set to <= 0, the number of jobs will be set to the
+    number of all available CPU cores.
+    

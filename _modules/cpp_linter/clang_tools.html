@@ -509,15 +509,18 @@
 
 
 <h1>Source code for cpp_linter.clang_tools</h1><div class="highlight"><pre>
-<span></span><code><span class="kn">import</span> <span class="nn">json</span>
+<span></span><code><span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">indent</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
-<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">end_log_group</span><span class="p">,</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">end_log_group</span><span class="p">,</span> <span class="n">worker_log_file_init</span><span class="p">,</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">.clang_tidy</span> <span class="kn">import</span> <span class="n">run_clang_tidy</span><span class="p">,</span> <span class="n">TidyAdvice</span>
 <span class="kn">from</span> <span class="nn">.clang_format</span> <span class="kn">import</span> <span class="n">run_clang_format</span><span class="p">,</span> <span class="n">FormatAdvice</span>
 
@@ -545,6 +548,45 @@
 
 
 
+<span class="k">def</span> <span class="nf">_run_on_single_file</span><span class="p">(</span>
+    <span class="n">file</span><span class="p">:</span> <span class="n">FileObj</span><span class="p">,</span>
+    <span class="n">temp_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">log_lvl</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">tidy_cmd</span><span class="p">,</span>
+    <span class="n">checks</span><span class="p">,</span>
+    <span class="n">lines_changed_only</span><span class="p">,</span>
+    <span class="n">database</span><span class="p">,</span>
+    <span class="n">extra_args</span><span class="p">,</span>
+    <span class="n">db_json</span><span class="p">,</span>
+    <span class="n">tidy_review</span><span class="p">,</span>
+    <span class="n">format_cmd</span><span class="p">,</span>
+    <span class="n">style</span><span class="p">,</span>
+    <span class="n">format_review</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">log_file</span> <span class="o">=</span> <span class="n">worker_log_file_init</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">log_lvl</span><span class="p">)</span>
+
+    <span class="n">tidy_note</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tidy_note</span> <span class="o">=</span> <span class="n">run_clang_tidy</span><span class="p">(</span>
+            <span class="n">tidy_cmd</span><span class="p">,</span>
+            <span class="n">file</span><span class="p">,</span>
+            <span class="n">checks</span><span class="p">,</span>
+            <span class="n">lines_changed_only</span><span class="p">,</span>
+            <span class="n">database</span><span class="p">,</span>
+            <span class="n">extra_args</span><span class="p">,</span>
+            <span class="n">db_json</span><span class="p">,</span>
+            <span class="n">tidy_review</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">format_advice</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">format_advice</span> <span class="o">=</span> <span class="n">run_clang_format</span><span class="p">(</span>
+            <span class="n">format_cmd</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">,</span> <span class="n">format_review</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">log_file</span><span class="p">,</span> <span class="n">tidy_note</span><span class="p">,</span> <span class="n">format_advice</span>
+
+
 <div class="viewcode-block" id="capture_clang_tools_output">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tools.html#cpp_linter.clang_tools.capture_clang_tools_output">[docs]</a>
 <span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span>
@@ -557,6 +599,7 @@
     <span class="n">extra_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute and capture all output from clang-tidy and clang-format. This aggregates</span>
 <span class="sd">    results in the :attr:`~cpp_linter.Globals.OUTPUT`.</span>
@@ -576,6 +619,8 @@
 <span class="sd">        PR review comments using clang-tidy.</span>
 <span class="sd">    :param format_review: A flag to enable/disable creating a diff suggestion for</span>
 <span class="sd">        PR review comments using clang-format.</span>
+<span class="sd">    :param num_workers: The number of workers to use for parallel processing. If</span>
+<span class="sd">        `None`, then the number of workers is set to the number of CPU cores.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">show_tool_version_output</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># show version output for executable used</span>
@@ -602,31 +647,44 @@
         <span class="k">if</span> <span class="n">db_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">db_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">db_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
 
-    <span class="c1"># temporary cache of parsed notifications for use in log commands</span>
-    <span class="n">tidy_notes</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">format_advice</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-        <span class="n">start_log_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performing checkup on </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tidy_notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">run_clang_tidy</span><span class="p">(</span>
-                    <span class="n">tidy_cmd</span><span class="p">,</span>
-                    <span class="n">file</span><span class="p">,</span>
-                    <span class="n">checks</span><span class="p">,</span>
-                    <span class="n">lines_changed_only</span><span class="p">,</span>
-                    <span class="n">database</span><span class="p">,</span>
-                    <span class="n">extra_args</span><span class="p">,</span>
-                    <span class="n">db_json</span><span class="p">,</span>
-                    <span class="n">tidy_review</span><span class="p">,</span>
-                <span class="p">)</span>
+    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">num_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">log_lvl</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span>
+        <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                <span class="n">_run_on_single_file</span><span class="p">,</span>
+                <span class="n">file</span><span class="p">,</span>
+                <span class="n">temp_dir</span><span class="o">=</span><span class="n">temp_dir</span><span class="p">,</span>
+                <span class="n">log_lvl</span><span class="o">=</span><span class="n">log_lvl</span><span class="p">,</span>
+                <span class="n">tidy_cmd</span><span class="o">=</span><span class="n">tidy_cmd</span><span class="p">,</span>
+                <span class="n">checks</span><span class="o">=</span><span class="n">checks</span><span class="p">,</span>
+                <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">lines_changed_only</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="n">database</span><span class="p">,</span>
+                <span class="n">extra_args</span><span class="o">=</span><span class="n">extra_args</span><span class="p">,</span>
+                <span class="n">db_json</span><span class="o">=</span><span class="n">db_json</span><span class="p">,</span>
+                <span class="n">tidy_review</span><span class="o">=</span><span class="n">tidy_review</span><span class="p">,</span>
+                <span class="n">format_cmd</span><span class="o">=</span><span class="n">format_cmd</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+                <span class="n">format_review</span><span class="o">=</span><span class="n">format_review</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">format_advice</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">run_clang_format</span><span class="p">(</span>
-                    <span class="n">format_cmd</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">,</span> <span class="n">format_review</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-        <span class="n">end_log_group</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span>
+        <span class="p">]</span>
+
+        <span class="c1"># temporary cache of parsed notifications for use in log commands</span>
+        <span class="n">format_advice_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">tidy_notes_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+            <span class="n">file</span><span class="p">,</span> <span class="n">log_file</span><span class="p">,</span> <span class="n">note</span><span class="p">,</span> <span class="n">advice</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+
+            <span class="n">start_log_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performing checkup on </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+            <span class="n">end_log_group</span><span class="p">()</span>
+
+            <span class="n">format_advice_map</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">=</span> <span class="n">advice</span>
+            <span class="n">tidy_notes_map</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">=</span> <span class="n">note</span>
+
+    <span class="n">format_advice</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">format_advice_map</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">)))</span>
+    <span class="n">tidy_notes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">tidy_notes_map</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">)))</span>
+
     <span class="k">return</span> <span class="p">(</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_notes</span><span class="p">)</span></div>
 
 </code></pre></div>

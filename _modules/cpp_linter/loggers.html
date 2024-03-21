@@ -510,12 +510,14 @@
 
 <h1>Source code for cpp_linter.loggers</h1><div class="highlight"><pre>
 <span></span><code><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
 
 <span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Response</span>
 
 <span class="n">FOUND_RICH_LIB</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="k">try</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-    <span class="kn">from</span> <span class="nn">rich.logging</span> <span class="kn">import</span> <span class="n">RichHandler</span>  <span class="c1"># type: ignore</span>
+    <span class="kn">from</span> <span class="nn">rich.logging</span> <span class="kn">import</span> <span class="n">RichHandler</span><span class="p">,</span> <span class="n">get_console</span>  <span class="c1"># type: ignore</span>
 
     <span class="n">FOUND_RICH_LIB</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -573,6 +575,38 @@
             <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
         <span class="p">)</span></div>
 
+
+
+<span class="k">def</span> <span class="nf">worker_log_file_init</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log_lvl</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="n">log_file</span> <span class="o">=</span> <span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="n">temp_dir</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">handler</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">FOUND_RICH_LIB</span> <span class="ow">and</span> <span class="s2">&quot;CPP_LINTER_PYTEST_NO_RICH&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span>
+    <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">get_console</span><span class="p">()</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">log_file</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">RichHandler</span><span class="p">(</span><span class="n">show_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">console</span><span class="o">=</span><span class="n">console</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(name)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">BASIC_FORMAT</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+    <span class="c1"># Windows does not copy log level to subprocess.</span>
+    <span class="c1"># https://github.com/cpp-linter/cpp-linter/actions/runs/8355193931</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_lvl</span><span class="p">)</span>
+
+    <span class="c1">## uncomment the following if log_commander is needed in isolated threads</span>
+    <span class="c1"># log_commander.handlers.clear()</span>
+    <span class="c1"># log_commander.propagate = False</span>
+    <span class="c1"># console_handler = logging.StreamHandler(log_file)</span>
+    <span class="c1"># console_handler.setFormatter(logging.Formatter(&quot;%(message)s&quot;))</span>
+    <span class="c1"># log_commander.addHandler(console_handler)</span>
+
+    <span class="k">return</span> <span class="n">log_file</span><span class="o">.</span><span class="n">name</span>
 </code></pre></div>
 
 
