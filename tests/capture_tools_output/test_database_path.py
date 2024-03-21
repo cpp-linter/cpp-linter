@@ -38,6 +38,7 @@ def test_db_detection(
     expected_args: List[str],
 ):
     """test clang-tidy using a implicit path to the compilation database."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
     CACHE_PATH.mkdir(exist_ok=True)
@@ -78,6 +79,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
         ignore=shutil.ignore_patterns("compile_flags.txt"),
     )
     (tmp_path_demo / "build").mkdir(parents=True)
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path_demo))
     monkeypatch.setattr(sys, "argv", ["meson", "init"])
     meson()

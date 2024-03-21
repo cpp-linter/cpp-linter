@@ -93,6 +93,7 @@ def test_post_review(
         monkeypatch.setenv("GITHUB_TOKEN", "123456")
     if summary_only:
         monkeypatch.setenv("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "true")
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
     (tmp_path / "src").mkdir()
     demo_dir = Path(__file__).parent.parent / "demo"

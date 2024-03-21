@@ -115,6 +115,7 @@ def prep_tmp_dir(
     copy_configs: bool = False,
 ):
     """Some extra setup for test's temp directory to ensure needed files exist."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
     gh_client = prep_api_client(
         monkeypatch,
@@ -382,6 +383,7 @@ def test_tidy_annotations(
 
 def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify the comment is affirmative when no attention is needed."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
 
     files: List[FileObj] = []  # no files to test means no concerns to note
