@@ -546,9 +546,9 @@
 <div class="viewcode-block" id="start_log_group">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.loggers.html#cpp_linter.loggers.start_log_group">[docs]</a>
 <span class="k">def</span> <span class="nf">start_log_group</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Begin a collapsable group of log statements.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Begin a collapsible group of log statements.</span>
 
-<span class="sd">    :param name: The name of the collapsable group</span>
+<span class="sd">    :param name: The name of the collapsible group</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">log_commander</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;::group::</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
 
@@ -557,7 +557,7 @@
 <div class="viewcode-block" id="end_log_group">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.loggers.html#cpp_linter.loggers.end_log_group">[docs]</a>
 <span class="k">def</span> <span class="nf">end_log_group</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;End a collapsable group of log statements.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;End a collapsible group of log statements.&quot;&quot;&quot;</span>
     <span class="n">log_commander</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;::endgroup::&quot;</span><span class="p">)</span></div>
 
 
