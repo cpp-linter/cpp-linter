@@ -166,4 +166,8 @@ def capture_clang_tools_output(
             if advice is not None:
                 format_advice.append(advice)
 
+        # Required for coverage report
+        pool.close()
+        pool.join()
+
     return (format_advice, tidy_notes)

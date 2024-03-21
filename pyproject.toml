@@ -70,6 +70,7 @@ dynamic_context = "test_function"
 # These options are useful if combining coverage data from multiple tested envs
 parallel = true
 relative_files = true
+concurrency = ["thread", "multiprocessing"]
 omit = [
     # don't include tests in coverage
     # "tests/*",
