@@ -78,6 +78,7 @@ def test_defaults():
         ("extra-arg", '"-std=c++17 -Wall"', "extra_arg", ['"-std=c++17 -Wall"']),
         ("tidy-review", "true", "tidy_review", True),
         ("format-review", "true", "format_review", True),
+        ("jobs", "0", "jobs", None),
         ("jobs", "1", "jobs", 1),
         ("jobs", "4", "jobs", 4),
     ],
@@ -86,7 +87,7 @@ def test_arg_parser(
     arg_name: str,
     arg_value: str,
     attr_name: str,
-    attr_value: Union[int, str, List[str], bool],
+    attr_value: Union[int, str, List[str], bool, None],
 ):
     """parameterized test of specific args compared to their parsed value"""
     args = cli_arg_parser.parse_args([f"--{arg_name}={arg_value}"])
