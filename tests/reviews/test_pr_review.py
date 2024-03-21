@@ -26,6 +26,7 @@ test_parameters = OrderedDict(
     changes=2,
     summary_only=False,
     no_lgtm=False,
+    num_workers=None,
 )
 
 
@@ -79,6 +80,7 @@ def test_post_review(
     changes: int,
     summary_only: bool,
     no_lgtm: bool,
+    num_workers: int,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -91,6 +93,7 @@ def test_post_review(
         monkeypatch.setenv("GITHUB_TOKEN", "123456")
     if summary_only:
         monkeypatch.setenv("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "true")
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
     (tmp_path / "src").mkdir()
     demo_dir = Path(__file__).parent.parent / "demo"
@@ -154,6 +157,7 @@ def test_post_review(
             extra_args=[],
             tidy_review=tidy_review,
             format_review=format_review,
+            num_workers=num_workers,
         )
         if not force_approved:
             assert [note for concern in tidy_advice for note in concern.notes]

@@ -1,4 +1,5 @@
 """Various tests related to the ``lines_changed_only`` option."""
+
 import json
 import logging
 import os
@@ -21,6 +22,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.cli import cli_arg_parser
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
+CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
     dict(
@@ -113,6 +115,7 @@ def prep_tmp_dir(
     copy_configs: bool = False,
 ):
     """Some extra setup for test's temp directory to ensure needed files exist."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
     gh_client = prep_api_client(
         monkeypatch,
@@ -258,6 +261,7 @@ def test_format_annotations(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=None,
     )
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
@@ -274,7 +278,11 @@ def test_format_annotations(
 
     # check annotations
     gh_client.make_annotations(files, format_advice, tidy_advice, style)
-    for message in [r.message for r in caplog.records if r.levelno == logging.INFO]:
+    for message in [
+        r.message
+        for r in caplog.records
+        if r.levelno == logging.INFO and r.name == log_commander.name
+    ]:
         if FORMAT_RECORD.search(message) is not None:
             line_list = message[message.find("style guidelines. (lines ") + 25 : -1]
             lines = [int(line.strip()) for line in line_list.split(",")]
@@ -336,6 +344,7 @@ def test_tidy_annotations(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=None,
     )
     assert [note for concern in tidy_advice for note in concern.notes]
     assert not [note for note in format_advice]
@@ -374,6 +383,7 @@ def test_tidy_annotations(
 
 def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify the comment is affirmative when no attention is needed."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
 
     files: List[FileObj] = []  # no files to test means no concerns to note
@@ -389,6 +399,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=None,
     )
     comment, format_checks_failed, tidy_checks_failed = GithubApiClient.make_comment(
         files, format_advice, tidy_advice
@@ -462,12 +473,17 @@ def test_parse_diff(
     [["-std=c++17", "-Wall"], ["-std=c++17 -Wall"]],
     ids=["separate", "unified"],
 )
-def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]):
+def test_tidy_extra_args(
+    capsys: pytest.CaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    user_input: List[str],
+):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
     cli_in = []
     for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
-    caplog.set_level(logging.INFO, logger=logger.name)
+    logger.setLevel(logging.INFO)
     args = cli_arg_parser.parse_args(cli_in)
     assert len(user_input) == len(args.extra_arg)
     _, _ = capture_clang_tools_output(
@@ -480,14 +496,14 @@ def test_tidy_extra_args(caplog: pytest.LogCaptureFixture, user_input: List[str]
         extra_args=args.extra_arg,
         tidy_review=False,
         format_review=False,
+        num_workers=None,
     )
-    messages = [
-        r.message
-        for r in caplog.records
-        if r.levelno == logging.INFO and r.message.startswith("Running")
-    ]
-    assert messages
+    stdout = capsys.readouterr().out
+    msg_match = CLANG_TIDY_COMMAND.search(stdout)
+    if msg_match is None:  # pragma: no cover
+        raise RuntimeError("failed to find args passed in clang-tidy in log records")
+    matched_args = msg_match.group(0).split()[1:]
     if len(user_input) == 1 and " " in user_input[0]:
         user_input = user_input[0].split()
     for a in user_input:
-        assert f"--extra-arg={a}" in messages[0]
+        assert f"--extra-arg={a}" in matched_args

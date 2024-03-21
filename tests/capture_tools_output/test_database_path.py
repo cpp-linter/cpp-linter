@@ -1,4 +1,5 @@
 """Tests specific to specifying the compilation database path."""
+
 from typing import List
 from pathlib import Path, PurePath
 import logging
@@ -31,15 +32,17 @@ ABS_DB_PATH = str(Path("tests/demo").resolve())
     ids=["implicit path", "relative path", "absolute path"],
 )
 def test_db_detection(
-    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
     database: str,
     expected_args: List[str],
 ):
     """test clang-tidy using a implicit path to the compilation database."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(PurePath(__file__).parent.parent.as_posix())
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
     CACHE_PATH.mkdir(exist_ok=True)
-    caplog.set_level(logging.DEBUG, logger=logger.name)
+    logger.setLevel(logging.DEBUG)
     demo_src = "demo/demo.cpp"
     files = [FileObj(demo_src)]
 
@@ -53,23 +56,19 @@ def test_db_detection(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=None,
     )
-    matched_args = []
-    for record in caplog.records:
-        assert "Error while trying to load a compilation database" not in record.message
-        msg_match = CLANG_TIDY_COMMAND.search(record.message)
-        if msg_match is not None:
-            matched_args = msg_match.group(0).split()[1:]
-            break
-    else:  # pragma: no cover
-        raise RuntimeError("failed to find args passed in clang-tidy in log records")
+    stdout = capsys.readouterr().out
+    assert "Error while trying to load a compilation database" not in stdout
+    msg_match = CLANG_TIDY_COMMAND.search(stdout)
+    if msg_match is None:  # pragma: no cover
+        pytest.fail("failed to find args passed in clang-tidy in log records")
+    matched_args = msg_match.group(0).split()[1:]
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args
 
 
-def test_ninja_database(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
-):
+def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     """verify that the relative paths used in a database generated (and thus clang-tidy
     stdout) for the ninja build system are resolved accordingly."""
     tmp_path_demo = tmp_path / "demo"
@@ -80,6 +79,7 @@ def test_ninja_database(
         ignore=shutil.ignore_patterns("compile_flags.txt"),
     )
     (tmp_path_demo / "build").mkdir(parents=True)
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path_demo))
     monkeypatch.setattr(sys, "argv", ["meson", "init"])
     meson()
@@ -87,8 +87,9 @@ def test_ninja_database(
         sys, "argv", ["meson", "setup", "--backend=ninja", "build", "."]
     )
     meson()
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
 
-    caplog.set_level(logging.DEBUG, logger=logger.name)
+    logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]
     gh_client = GithubApiClient()
 
@@ -103,6 +104,7 @@ def test_ninja_database(
         extra_args=[],
         tidy_review=False,
         format_review=False,
+        num_workers=None,
     )
     found_project_file = False
     for concern in tidy_advice:
@@ -111,7 +113,7 @@ def test_ninja_database(
                 assert not Path(note.filename).is_absolute()
                 found_project_file = True
     if not found_project_file:  # pragma: no cover
-        raise RuntimeError("no project files raised concerns with clang-tidy")
+        pytest.fail("no project files raised concerns with clang-tidy")
     (comment, format_checks_failed, tidy_checks_failed) = gh_client.make_comment(
         files, format_advice, tidy_advice
     )

@@ -1,6 +1,7 @@
 """Run clang-tidy and clang-format on a list of files.
 If executed from command-line, then `main()` is the entrypoint.
 """
+
 import json
 import logging
 import os
@@ -87,6 +88,7 @@ def main():
         extra_args=args.extra_arg,
         tidy_review=is_pr_event and args.tidy_review,
         format_review=is_pr_event and args.format_review,
+        num_workers=args.jobs,
     )
 
     start_log_group("Posting comment(s)")

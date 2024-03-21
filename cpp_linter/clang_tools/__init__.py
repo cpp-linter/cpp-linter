@@ -1,12 +1,15 @@
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 from pathlib import Path, PurePath
 import subprocess
+import sys
+from tempfile import TemporaryDirectory
 from textwrap import indent
 from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
-from ..loggers import start_log_group, end_log_group, logger
+from ..loggers import start_log_group, end_log_group, worker_log_file_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 
@@ -31,6 +34,45 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
     return shutil.which(tool_name)
 
 
+def _run_on_single_file(
+    file: FileObj,
+    temp_dir: str,
+    log_lvl: int,
+    tidy_cmd,
+    checks,
+    lines_changed_only,
+    database,
+    extra_args,
+    db_json,
+    tidy_review,
+    format_cmd,
+    style,
+    format_review,
+):
+    log_file = worker_log_file_init(temp_dir, log_lvl)
+
+    tidy_note = None
+    if tidy_cmd is not None:
+        tidy_note = run_clang_tidy(
+            tidy_cmd,
+            file,
+            checks,
+            lines_changed_only,
+            database,
+            extra_args,
+            db_json,
+            tidy_review,
+        )
+
+    format_advice = None
+    if format_cmd is not None:
+        format_advice = run_clang_format(
+            format_cmd, file, style, lines_changed_only, format_review
+        )
+
+    return file.name, log_file, tidy_note, format_advice
+
+
 def capture_clang_tools_output(
     files: List[FileObj],
     version: str,
@@ -41,6 +83,7 @@ def capture_clang_tools_output(
     extra_args: List[str],
     tidy_review: bool,
     format_review: bool,
+    num_workers: Optional[int],
 ) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
@@ -60,6 +103,8 @@ def capture_clang_tools_output(
         PR review comments using clang-tidy.
     :param format_review: A flag to enable/disable creating a diff suggestion for
         PR review comments using clang-format.
+    :param num_workers: The number of workers to use for parallel processing. If
+        `None`, then the number of workers is set to the number of CPU cores.
     """
 
     def show_tool_version_output(cmd: str):  # show version output for executable used
@@ -86,29 +131,42 @@ def capture_clang_tools_output(
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
-    # temporary cache of parsed notifications for use in log commands
-    tidy_notes = []
-    format_advice = []
-    for file in files:
-        start_log_group(f"Performing checkup on {file.name}")
-        if tidy_cmd is not None:
-            tidy_notes.append(
-                run_clang_tidy(
-                    tidy_cmd,
-                    file,
-                    checks,
-                    lines_changed_only,
-                    database,
-                    extra_args,
-                    db_json,
-                    tidy_review,
-                )
+    with TemporaryDirectory() as temp_dir, ProcessPoolExecutor(num_workers) as executor:
+        log_lvl = logger.getEffectiveLevel()
+        futures = [
+            executor.submit(
+                _run_on_single_file,
+                file,
+                temp_dir=temp_dir,
+                log_lvl=log_lvl,
+                tidy_cmd=tidy_cmd,
+                checks=checks,
+                lines_changed_only=lines_changed_only,
+                database=database,
+                extra_args=extra_args,
+                db_json=db_json,
+                tidy_review=tidy_review,
+                format_cmd=format_cmd,
+                style=style,
+                format_review=format_review,
             )
-        if format_cmd is not None:
-            format_advice.append(
-                run_clang_format(
-                    format_cmd, file, style, lines_changed_only, format_review
-                )
-            )
-        end_log_group()
+            for file in files
+        ]
+
+        # temporary cache of parsed notifications for use in log commands
+        format_advice_map: Dict[str, Optional[FormatAdvice]] = {}
+        tidy_notes_map: Dict[str, Optional[TidyAdvice]] = {}
+        for future in as_completed(futures):
+            file, log_file, note, advice = future.result()
+
+            start_log_group(f"Performing checkup on {file}")
+            sys.stdout.write(Path(log_file).read_text())
+            end_log_group()
+
+            format_advice_map[file] = advice
+            tidy_notes_map[file] = note
+
+    format_advice = list(filter(None, (format_advice_map[file.name] for file in files)))
+    tidy_notes = list(filter(None, (tidy_notes_map[file.name] for file in files)))
+
     return (format_advice, tidy_notes)

@@ -1,8 +1,9 @@
 """Setup the options for CLI arguments."""
+
 import argparse
 import configparser
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from .loggers import logger
 
@@ -299,6 +300,33 @@ cli_arg_parser.add_argument(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable Pull Request reviews
 from clang-format.
+
+Defaults to ``%(default)s``.""",
+)
+
+
+def _parse_jobs(val: str) -> Optional[int]:
+    try:
+        jobs = int(val)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"Invalid -j (--jobs) value: {val} (must be an integer)"
+        ) from exc
+
+    if jobs <= 0:
+        return None  # let multiprocessing.Pool decide the number of workers
+
+    return jobs
+
+
+cli_arg_parser.add_argument(
+    "-j",
+    "--jobs",
+    default=1,
+    type=_parse_jobs,
+    help="""Set the number of jobs to run simultaneously.
+If set to <= 0, the number of jobs will be set to the
+number of all available CPU cores.
 
 Defaults to ``%(default)s``.""",
 )
