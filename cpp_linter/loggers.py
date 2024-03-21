@@ -33,15 +33,15 @@ log_commander.propagate = False
 
 
 def start_log_group(name: str) -> None:
-    """Begin a collapsable group of log statements.
+    """Begin a collapsible group of log statements.
 
-    :param name: The name of the collapsable group
+    :param name: The name of the collapsible group
     """
     log_commander.fatal("::group::%s", name)
 
 
 def end_log_group() -> None:
-    """End a collapsable group of log statements."""
+    """End a collapsible group of log statements."""
     log_commander.fatal("::endgroup::")
 
 

@@ -95,6 +95,9 @@ exclude_lines = [
     'if __name__ == "__main__"',
     # ignore missing implementations in an abstract class
     "raise NotImplementedError",
-    # ignore the local secific debug statement related to not having rich installed
+    # ignore the local specific debug statement related to not having rich installed
     "if not FOUND_RICH_LIB",
 ]
+
+[tool.codespell]
+skip = "tests/capture_tools_output/**/cache/**,tests/capture_tools_output/**/*.diff"

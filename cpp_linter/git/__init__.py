@@ -1,5 +1,6 @@
 """This module uses ``git`` CLI to get commit info. It also holds some functions
 related to parsing diff output into a list of changed files."""
+
 import logging
 from pathlib import Path
 from typing import Tuple, List, Optional, cast, Union

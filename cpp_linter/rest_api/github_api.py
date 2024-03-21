@@ -8,6 +8,7 @@ designed around GitHub's REST API.
     - `github rest API reference for repos <https://docs.github.com/en/rest/repos>`_
     - `github rest API reference for issues <https://docs.github.com/en/rest/issues>`_
 """
+
 import json
 import logging
 from os import environ

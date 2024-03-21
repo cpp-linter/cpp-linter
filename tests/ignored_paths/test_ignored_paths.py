@@ -1,4 +1,5 @@
 """Tests that focus on the ``ignore`` option's parsing."""
+
 from pathlib import Path
 from typing import List
 import pytest
