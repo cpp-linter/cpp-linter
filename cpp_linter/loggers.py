@@ -1,6 +1,6 @@
 import logging
 import os
-from tempfile import NamedTemporaryFile
+import io
 
 from requests import Response
 
@@ -57,8 +57,8 @@ def log_response_msg(response: Response):
         )
 
 
-def worker_log_file_init(temp_dir: str, log_lvl: int):
-    log_file = NamedTemporaryFile("w", dir=temp_dir, delete=False)
+def worker_log_init(log_lvl: int):
+    log_stream = io.StringIO()
 
     logger.handlers.clear()
     logger.propagate = False
@@ -68,11 +68,11 @@ def worker_log_file_init(temp_dir: str, log_lvl: int):
         FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ
     ):  # pragma: no cover
         console = get_console()
-        console.file = log_file
+        console.file = log_stream
         handler = RichHandler(show_time=False, console=console)
         handler.setFormatter(logging.Formatter("%(name)s: %(message)s"))
     else:
-        handler = logging.StreamHandler(log_file)
+        handler = logging.StreamHandler(log_stream)
         handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
     logger.addHandler(handler)
     # Windows does not copy log level to subprocess.
@@ -82,8 +82,8 @@ def worker_log_file_init(temp_dir: str, log_lvl: int):
     ## uncomment the following if log_commander is needed in isolated threads
     # log_commander.handlers.clear()
     # log_commander.propagate = False
-    # console_handler = logging.StreamHandler(log_file)
+    # console_handler = logging.StreamHandler(log_stream)
     # console_handler.setFormatter(logging.Formatter("%(message)s"))
     # log_commander.addHandler(console_handler)
 
-    return log_file.name
+    return log_stream
