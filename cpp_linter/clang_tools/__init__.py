@@ -154,10 +154,10 @@ def capture_clang_tools_output(
         format_advice_map: Dict[str, Optional[FormatAdvice]] = {}
         tidy_notes_map: Dict[str, Optional[TidyAdvice]] = {}
         for future in as_completed(futures):
-            file, log, note, advice = future.result()
+            file, logs, note, advice = future.result()
 
             start_log_group(f"Performing checkup on {file}")
-            sys.stdout.write(log)
+            sys.stdout.write(logs)
             end_log_group()
 
             format_advice_map[file] = advice
