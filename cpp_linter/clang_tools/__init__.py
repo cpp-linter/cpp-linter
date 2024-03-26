@@ -3,13 +3,12 @@ import json
 from pathlib import Path, PurePath
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 from textwrap import indent
 from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
-from ..loggers import start_log_group, end_log_group, worker_log_file_init, logger
+from ..loggers import start_log_group, end_log_group, worker_log_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 
@@ -36,7 +35,6 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
 
 def _run_on_single_file(
     file: FileObj,
-    temp_dir: str,
     log_lvl: int,
     tidy_cmd,
     checks,
@@ -49,7 +47,7 @@ def _run_on_single_file(
     style,
     format_review,
 ):
-    log_file = worker_log_file_init(temp_dir, log_lvl)
+    log_stream = worker_log_init(log_lvl)
 
     tidy_note = None
     if tidy_cmd is not None:
@@ -70,7 +68,7 @@ def _run_on_single_file(
             format_cmd, file, style, lines_changed_only, format_review
         )
 
-    return file.name, log_file, tidy_note, format_advice
+    return file.name, log_stream.getvalue(), tidy_note, format_advice
 
 
 def capture_clang_tools_output(
@@ -131,13 +129,12 @@ def capture_clang_tools_output(
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
-    with TemporaryDirectory() as temp_dir, ProcessPoolExecutor(num_workers) as executor:
+    with ProcessPoolExecutor(num_workers) as executor:
         log_lvl = logger.getEffectiveLevel()
         futures = [
             executor.submit(
                 _run_on_single_file,
                 file,
-                temp_dir=temp_dir,
                 log_lvl=log_lvl,
                 tidy_cmd=tidy_cmd,
                 checks=checks,
@@ -157,10 +154,10 @@ def capture_clang_tools_output(
         format_advice_map: Dict[str, Optional[FormatAdvice]] = {}
         tidy_notes_map: Dict[str, Optional[TidyAdvice]] = {}
         for future in as_completed(futures):
-            file, log_file, note, advice = future.result()
+            file, logs, note, advice = future.result()
 
             start_log_group(f"Performing checkup on {file}")
-            sys.stdout.write(Path(log_file).read_text())
+            sys.stdout.write(logs)
             end_log_group()
 
             format_advice_map[file] = advice
