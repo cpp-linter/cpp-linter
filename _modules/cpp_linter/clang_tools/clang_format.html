@@ -599,6 +599,18 @@
 
 
 
+<div class="viewcode-block" id="tally_format_advice">
+<a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_format.html#cpp_linter.clang_tools.clang_format.tally_format_advice">[docs]</a>
+<span class="k">def</span> <span class="nf">tally_format_advice</span><span class="p">(</span><span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the sum of clang-format errors&quot;&quot;&quot;</span>
+    <span class="n">format_checks_failed</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">advice</span> <span class="ow">in</span> <span class="n">format_advice</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
+            <span class="n">format_checks_failed</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">format_checks_failed</span></div>
+
+
+
 <span class="k">def</span> <span class="nf">formalize_style_name</span><span class="p">(</span><span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">style</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;llvm&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">style</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;gnu&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">style</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>

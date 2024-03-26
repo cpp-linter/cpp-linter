@@ -512,7 +512,7 @@
 <span></span><code><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="n">FormatAdvice</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span>
@@ -622,7 +622,10 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
         <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">format_checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">tidy_checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make an MarkDown comment from the given advice. Also returns a count of</span>
 <span class="sd">        checks failed for each tool (clang-format and clang-tidy)</span>
 
@@ -631,25 +634,82 @@
 <span class="sd">            ``files``.</span>
 <span class="sd">        :param tidy_advice: A list of clang-tidy advice parallel to the list of</span>
 <span class="sd">            ``files``.</span>
+<span class="sd">        :param format_checks_failed: The amount of clang-format checks that have failed.</span>
+<span class="sd">        :param tidy_checks_failed: The amount of clang-tidy checks that have failed.</span>
+<span class="sd">        :param len_limit: The length limit of the comment generated.</span>
 
-<span class="sd">        :Returns: A `tuple` in which the items correspond to</span>
-
-<span class="sd">            - The markdown comment as a `str`</span>
-<span class="sd">            - The tally of ``format_checks_failed`` as an `int`</span>
-<span class="sd">            - The tally of ``tidy_checks_failed`` as an `int`</span>
+<span class="sd">        :Returns: The markdown comment as a `str`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">format_comment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">format_checks_failed</span><span class="p">,</span> <span class="n">tidy_checks_failed</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">advice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">format_advice</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
-                <span class="n">format_comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">format_checks_failed</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">opener</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">COMMENT_MARKER</span><span class="si">}</span><span class="s2"># Cpp-Linter Report &quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
-        <span class="n">tidy_comment</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">concern</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">adjust_limit</span><span class="p">(</span><span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">limit</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">limit</span>
+
+        <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="p">(</span><span class="n">opener</span><span class="p">,</span> <span class="n">USER_OUTREACH</span><span class="p">):</span>
+            <span class="n">len_limit</span> <span class="o">=</span> <span class="n">adjust_limit</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">format_checks_failed</span> <span class="ow">or</span> <span class="n">tidy_checks_failed</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;:warning:</span><span class="se">\n</span><span class="s2">Some files did not pass the configured checks!</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">len_limit</span> <span class="o">=</span> <span class="n">adjust_limit</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">format_checks_failed</span><span class="p">:</span>
+                <span class="n">comment</span> <span class="o">+=</span> <span class="n">RestApiClient</span><span class="o">.</span><span class="n">_make_format_comment</span><span class="p">(</span>
+                    <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
+                    <span class="n">advice_fix</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
+                    <span class="n">checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
+                    <span class="n">len_limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">tidy_checks_failed</span><span class="p">:</span>
+                <span class="n">comment</span> <span class="o">+=</span> <span class="n">RestApiClient</span><span class="o">.</span><span class="n">_make_tidy_comment</span><span class="p">(</span>
+                    <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
+                    <span class="n">advice_fix</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
+                    <span class="n">checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
+                    <span class="n">len_limit</span><span class="o">=</span><span class="n">adjust_limit</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">comment</span><span class="p">),</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;:heavy_check_mark:</span><span class="se">\n</span><span class="s2">No problems need attention.&quot;</span>
+        <span class="k">return</span> <span class="n">opener</span> <span class="o">+</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">comment</span> <span class="o">+</span> <span class="n">USER_OUTREACH</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_make_format_comment</span><span class="p">(</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
+        <span class="n">advice_fix</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
+        <span class="n">checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;make a comment describing clang-format errors&quot;&quot;&quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-format reports: &lt;strong&gt;&quot;</span>
+        <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checks_failed</span><span class="si">}</span><span class="s2"> file(s) not formatted&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">closer</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
+        <span class="n">checks_failed</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">advice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">advice_fix</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
+                <span class="n">format_comment</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">len_limit</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">closer</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">format_comment</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">len_limit</span>
+                <span class="p">):</span>
+                    <span class="n">comment</span> <span class="o">+=</span> <span class="n">format_comment</span>
+        <span class="k">return</span> <span class="n">comment</span> <span class="o">+</span> <span class="n">closer</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_make_tidy_comment</span><span class="p">(</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
+        <span class="n">advice_fix</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
+        <span class="n">checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;make a comment describing clang-tidy errors&quot;&quot;&quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-tidy reports: &lt;strong&gt;&quot;</span>
+        <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checks_failed</span><span class="si">}</span><span class="s2"> concern(s)&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">closer</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
+        <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">concern</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">advice_fix</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concern</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
-                    <span class="n">tidy_comment</span> <span class="o">+=</span> <span class="s2">&quot;- **</span><span class="si">{filename}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:</span><span class="si">{cols}</span><span class="s2">:** &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">tidy_comment</span> <span class="o">=</span> <span class="s2">&quot;- **</span><span class="si">{filename}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:</span><span class="si">{cols}</span><span class="s2">:** &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">filename</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                         <span class="n">line</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
                         <span class="n">cols</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
@@ -665,26 +725,13 @@
                         <span class="n">ext</span> <span class="o">=</span> <span class="n">PurePath</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
                         <span class="n">suggestion</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">note</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">)</span>
                         <span class="n">tidy_comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">   ```</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="se">\n</span><span class="s2">   </span><span class="si">{</span><span class="n">suggestion</span><span class="si">}</span><span class="se">\n</span><span class="s2">   ```</span><span class="se">\n</span><span class="s2">&quot;</span>
-                    <span class="n">tidy_checks_failed</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> != </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
 
-        <span class="n">comment</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">COMMENT_MARKER</span><span class="si">}</span><span class="s2"># Cpp-Linter Report &quot;</span>
-        <span class="k">if</span> <span class="n">format_comment</span> <span class="ow">or</span> <span class="n">tidy_comment</span><span class="p">:</span>
-            <span class="n">comment</span> <span class="o">+=</span> <span class="s2">&quot;:warning:</span><span class="se">\n</span><span class="s2">Some files did not pass the configured checks!</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="k">if</span> <span class="n">format_comment</span><span class="p">:</span>
-                <span class="n">comment</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-format reports: &lt;strong&gt;&quot;</span>
-                <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">format_checks_failed</span><span class="si">}</span><span class="s2"> file(s) not formatted&lt;/strong&gt;&quot;</span>
-                <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="si">{</span><span class="n">format_comment</span><span class="si">}</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
-            <span class="k">if</span> <span class="n">tidy_comment</span><span class="p">:</span>
-                <span class="n">comment</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-tidy reports: &lt;strong&gt;&quot;</span>
-                <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tidy_checks_failed</span><span class="si">}</span><span class="s2"> concern(s)&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-                <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tidy_comment</span><span class="si">}</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">comment</span> <span class="o">+=</span> <span class="s2">&quot;:heavy_check_mark:</span><span class="se">\n</span><span class="s2">No problems need attention.&quot;</span>
-        <span class="n">comment</span> <span class="o">+=</span> <span class="n">USER_OUTREACH</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">comment</span><span class="p">,</span> <span class="n">format_checks_failed</span><span class="p">,</span> <span class="n">tidy_checks_failed</span><span class="p">)</span></div>
-
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">len_limit</span> <span class="ow">is</span> <span class="kc">None</span>
+                        <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">closer</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">tidy_comment</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">len_limit</span>
+                    <span class="p">):</span>
+                        <span class="n">comment</span> <span class="o">+=</span> <span class="n">tidy_comment</span>
+        <span class="k">return</span> <span class="n">comment</span> <span class="o">+</span> <span class="n">closer</span>
 
 <div class="viewcode-block" id="RestApiClient.post_feedback">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient.post_feedback">[docs]</a>
