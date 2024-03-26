@@ -1,7 +1,7 @@
 from abc import ABC
 from pathlib import PurePath
 import requests
-from typing import Optional, Dict, List, Tuple, Any
+from typing import Optional, Dict, List, Any
 from ..common_fs import FileObj
 from ..clang_tools.clang_format import FormatAdvice
 from ..clang_tools.clang_tidy import TidyAdvice
@@ -95,7 +95,10 @@ class RestApiClient(ABC):
         files: List[FileObj],
         format_advice: List[FormatAdvice],
         tidy_advice: List[TidyAdvice],
-    ) -> Tuple[str, int, int]:
+        format_checks_failed: int,
+        tidy_checks_failed: int,
+        len_limit: Optional[int] = None,
+    ) -> str:
         """Make an MarkDown comment from the given advice. Also returns a count of
         checks failed for each tool (clang-format and clang-tidy)
 
@@ -104,25 +107,81 @@ class RestApiClient(ABC):
             ``files``.
         :param tidy_advice: A list of clang-tidy advice parallel to the list of
             ``files``.
+        :param format_checks_failed: The amount of clang-format checks that have failed.
+        :param tidy_checks_failed: The amount of clang-tidy checks that have failed.
+        :param len_limit: The length limit of the comment generated.
 
-        :Returns: A `tuple` in which the items correspond to
-
-            - The markdown comment as a `str`
-            - The tally of ``format_checks_failed`` as an `int`
-            - The tally of ``tidy_checks_failed`` as an `int`
+        :Returns: The markdown comment as a `str`
         """
-        format_comment = ""
-        format_checks_failed, tidy_checks_failed = (0, 0)
-        for file_obj, advice in zip(files, format_advice):
-            if advice.replaced_lines:
-                format_comment += f"- {file_obj.name}\n"
-                format_checks_failed += 1
+        opener = f"{COMMENT_MARKER}# Cpp-Linter Report "
+        comment = ""
 
-        tidy_comment = ""
-        for file_obj, concern in zip(files, tidy_advice):
+        def adjust_limit(limit: Optional[int], text: str) -> Optional[int]:
+            if limit is not None:
+                return limit - len(text)
+            return limit
+
+        for text in (opener, USER_OUTREACH):
+            len_limit = adjust_limit(limit=len_limit, text=text)
+
+        if format_checks_failed or tidy_checks_failed:
+            prefix = ":warning:\nSome files did not pass the configured checks!\n"
+            len_limit = adjust_limit(limit=len_limit, text=prefix)
+            if format_checks_failed:
+                comment += RestApiClient._make_format_comment(
+                    files=files,
+                    advice_fix=format_advice,
+                    checks_failed=format_checks_failed,
+                    len_limit=len_limit,
+                )
+            if tidy_checks_failed:
+                comment += RestApiClient._make_tidy_comment(
+                    files=files,
+                    advice_fix=tidy_advice,
+                    checks_failed=tidy_checks_failed,
+                    len_limit=adjust_limit(limit=len_limit, text=comment),
+                )
+        else:
+            prefix = ":heavy_check_mark:\nNo problems need attention."
+        return opener + prefix + comment + USER_OUTREACH
+
+    @staticmethod
+    def _make_format_comment(
+        files: List[FileObj],
+        advice_fix: List[FormatAdvice],
+        checks_failed: int,
+        len_limit: Optional[int] = None,
+    ) -> str:
+        """make a comment describing clang-format errors"""
+        comment = "\n<details><summary>clang-format reports: <strong>"
+        comment += f"{checks_failed} file(s) not formatted</strong></summary>\n\n"
+        closer = "\n</details>"
+        checks_failed = 0
+        for file_obj, advice in zip(files, advice_fix):
+            if advice.replaced_lines:
+                format_comment = f"- {file_obj.name}\n"
+                if (
+                    len_limit is None
+                    or len(comment) + len(closer) + len(format_comment) < len_limit
+                ):
+                    comment += format_comment
+        return comment + closer
+
+    @staticmethod
+    def _make_tidy_comment(
+        files: List[FileObj],
+        advice_fix: List[TidyAdvice],
+        checks_failed: int,
+        len_limit: Optional[int] = None,
+    ) -> str:
+        """make a comment describing clang-tidy errors"""
+        comment = "\n<details><summary>clang-tidy reports: <strong>"
+        comment += f"{checks_failed} concern(s)</strong></summary>\n\n"
+        closer = "\n</details>"
+        for file_obj, concern in zip(files, advice_fix):
             for note in concern.notes:
                 if file_obj.name == note.filename:
-                    tidy_comment += "- **{filename}:{line}:{cols}:** ".format(
+                    tidy_comment = "- **{filename}:{line}:{cols}:** ".format(
                         filename=file_obj.name,
                         line=note.line,
                         cols=note.cols,
@@ -138,25 +197,13 @@ class RestApiClient(ABC):
                         ext = PurePath(file_obj.name).suffix.lstrip(".")
                         suggestion = "\n   ".join(note.fixit_lines)
                         tidy_comment += f"\n   ```{ext}\n   {suggestion}\n   ```\n"
-                    tidy_checks_failed += 1
-                else:
-                    logger.debug("%s != %s", file_obj.name, note.filename)
 
-        comment = f"{COMMENT_MARKER}# Cpp-Linter Report "
-        if format_comment or tidy_comment:
-            comment += ":warning:\nSome files did not pass the configured checks!\n"
-            if format_comment:
-                comment += "\n<details><summary>clang-format reports: <strong>"
-                comment += f"{format_checks_failed} file(s) not formatted</strong>"
-                comment += f"</summary>\n\n{format_comment}\n</details>"
-            if tidy_comment:
-                comment += "\n<details><summary>clang-tidy reports: <strong>"
-                comment += f"{tidy_checks_failed} concern(s)</strong></summary>\n\n"
-                comment += f"{tidy_comment}\n</details>"
-        else:
-            comment += ":heavy_check_mark:\nNo problems need attention."
-        comment += USER_OUTREACH
-        return (comment, format_checks_failed, tidy_checks_failed)
+                    if (
+                        len_limit is None
+                        or len(comment) + len(closer) + len(tidy_comment) < len_limit
+                    ):
+                        comment += tidy_comment
+        return comment + closer
 
     def post_feedback(
         self,

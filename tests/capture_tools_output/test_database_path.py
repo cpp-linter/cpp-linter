@@ -12,6 +12,8 @@ from cpp_linter.loggers import logger
 from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.clang_tools.clang_format import tally_format_advice
+from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
 from mesonbuild.mesonmain import main as meson  # type: ignore
 
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
@@ -91,7 +93,6 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 
     logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]
-    gh_client = GithubApiClient()
 
     # run clang-tidy and verify paths of project files were matched with database paths
     (format_advice, tidy_advice) = capture_clang_tools_output(
@@ -114,9 +115,17 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
                 found_project_file = True
     if not found_project_file:  # pragma: no cover
         pytest.fail("no project files raised concerns with clang-tidy")
-    (comment, format_checks_failed, tidy_checks_failed) = gh_client.make_comment(
-        files, format_advice, tidy_advice
+
+    format_checks_failed = tally_format_advice(format_advice=format_advice)
+    tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
+    comment = GithubApiClient.make_comment(
+        files=files,
+        format_advice=format_advice,
+        tidy_advice=tidy_advice,
+        tidy_checks_failed=tidy_checks_failed,
+        format_checks_failed=format_checks_failed,
     )
+
     assert tidy_checks_failed
     assert not format_checks_failed
 

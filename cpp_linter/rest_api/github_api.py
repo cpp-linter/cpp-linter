@@ -21,8 +21,12 @@ from typing import Dict, List, Any, cast, Optional, Tuple, Union, Sequence
 from pygit2 import Patch  # type: ignore
 import requests
 from ..common_fs import FileObj, CACHE_PATH
-from ..clang_tools.clang_format import FormatAdvice, formalize_style_name
-from ..clang_tools.clang_tidy import TidyAdvice
+from ..clang_tools.clang_format import (
+    FormatAdvice,
+    formalize_style_name,
+    tally_format_advice,
+)
+from ..clang_tools.clang_tidy import TidyAdvice, tally_tidy_advice
 from ..loggers import start_log_group, logger, log_response_msg, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER
@@ -216,14 +220,51 @@ class GithubApiClient(RestApiClient):
         tidy_review: bool,
         format_review: bool,
     ):
-        (comment, format_checks_failed, tidy_checks_failed) = super().make_comment(
-            files, format_advice, tidy_advice
-        )
+        format_checks_failed = tally_format_advice(format_advice=format_advice)
+        tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
         checks_failed = format_checks_failed + tidy_checks_failed
+        comment: Optional[str] = None
+
+        if step_summary and "GITHUB_STEP_SUMMARY" in environ:
+            comment = super().make_comment(
+                files=files,
+                format_advice=format_advice,
+                tidy_advice=tidy_advice,
+                format_checks_failed=format_checks_failed,
+                tidy_checks_failed=tidy_checks_failed,
+                len_limit=None,
+            )
+            with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+                summary.write(f"\n{comment}\n")
+
+        if file_annotations:
+            self.make_annotations(
+                files=files,
+                format_advice=format_advice,
+                tidy_advice=tidy_advice,
+                style=style,
+            )
+
+        self.set_exit_code(
+            checks_failed=checks_failed,
+            format_checks_failed=format_checks_failed,
+            tidy_checks_failed=tidy_checks_failed,
+        )
+
         if thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
-                sys.exit(self.set_exit_code(1))
+                sys.exit(1)
+
+            if comment is None or len(comment) >= 65535:
+                comment = super().make_comment(
+                    files=files,
+                    format_advice=format_advice,
+                    tidy_advice=tidy_advice,
+                    format_checks_failed=format_checks_failed,
+                    tidy_checks_failed=tidy_checks_failed,
+                    len_limit=65535,
+                )
 
             update_only = thread_comments == "update"
             is_lgtm = not checks_failed
@@ -233,20 +274,23 @@ class GithubApiClient(RestApiClient):
             else:
                 comments_url += f"commits/{self.sha}"
             comments_url += "/comments"
-            self.update_comment(comment, comments_url, no_lgtm, update_only, is_lgtm)
+            self.update_comment(
+                comment=comment,
+                comments_url=comments_url,
+                no_lgtm=no_lgtm,
+                update_only=update_only,
+                is_lgtm=is_lgtm,
+            )
 
         if self.event_name == "pull_request" and (tidy_review or format_review):
             self.post_review(
-                files, tidy_advice, format_advice, tidy_review, format_review, no_lgtm
+                files=files,
+                tidy_advice=tidy_advice,
+                format_advice=format_advice,
+                tidy_review=tidy_review,
+                format_review=format_review,
+                no_lgtm=no_lgtm,
             )
-
-        if file_annotations:
-            self.make_annotations(files, format_advice, tidy_advice, style)
-
-        if step_summary and "GITHUB_STEP_SUMMARY" in environ:
-            with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-                summary.write(f"\n{comment}\n")
-        self.set_exit_code(checks_failed, format_checks_failed, tidy_checks_failed)
 
     def make_annotations(
         self,

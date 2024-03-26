@@ -79,6 +79,15 @@ class FormatAdvice:
         )
 
 
+def tally_format_advice(format_advice: List[FormatAdvice]) -> int:
+    """Returns the sum of clang-format errors"""
+    format_checks_failed = 0
+    for advice in format_advice:
+        if advice.replaced_lines:
+            format_checks_failed += 1
+    return format_checks_failed
+
+
 def formalize_style_name(style: str) -> str:
     if style.startswith("llvm") or style.startswith("gnu"):
         return style.upper()
