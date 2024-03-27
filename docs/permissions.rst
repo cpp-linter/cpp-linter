@@ -31,7 +31,7 @@ The :std:option:`--thread-comments` feature requires the following permissions:
 
     permissions:
       issues: write # (1)!
-      pull_requests: write # (2)!
+      pull-requests: write # (2)!
 
 .. code-annotations::
 
@@ -47,4 +47,4 @@ The :std:option:`--tidy-review` and :std:option:`--format-review` features requi
 .. code-block:: yaml
 
     permissions:
-      pull_requests: write
+      pull-requests: write

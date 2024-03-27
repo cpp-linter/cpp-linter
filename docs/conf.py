@@ -181,7 +181,7 @@ class CliBadge(SphinxRole):
 class CliBadgeVersion(CliBadge):
     badge_type = "version"
     href = "https://github.com/cpp-linter/cpp-linter/releases/v"
-    href_title = "Required Version"
+    href_title = "Minimum Version"
 
     def run(self):
         self.badge_icon = load_svg_into_builder_env(
@@ -211,12 +211,13 @@ REQUIRED_VERSIONS = {
     "1.6.1": ["thread_comments", "no_lgtm"],
     "1.6.0": ["step_summary"],
     "1.4.7": ["extra_arg"],
+    "1.8.1": ["jobs"],
 }
 
 PERMISSIONS = {
     "thread_comments": ["thread-comments", "issues: write"],
-    "tidy_review": ["pull-request-reviews", "pull_request: write"],
-    "format_review": ["pull-request-reviews", "pull_request: write"],
+    "tidy_review": ["pull-request-reviews", "pull-requests: write"],
+    "format_review": ["pull-request-reviews", "pull-requests: write"],
     "files_changed_only": ["file-changes", "contents: read"],
     "lines_changed_only": ["file-changes", "contents: read"],
 }
