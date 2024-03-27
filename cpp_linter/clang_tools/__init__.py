@@ -2,7 +2,6 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 from pathlib import Path, PurePath
 import subprocess
-import sys
 from textwrap import indent
 from typing import Optional, List, Dict, Tuple
 import shutil
@@ -157,7 +156,7 @@ def capture_clang_tools_output(
             file, logs, note, advice = future.result()
 
             start_log_group(f"Performing checkup on {file}")
-            sys.stdout.write(logs)
+            print(logs, flush=True)
             end_log_group()
 
             format_advice_map[file] = advice
