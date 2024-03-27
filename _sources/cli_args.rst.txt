@@ -239,7 +239,7 @@ Command Line Interface Options
 
 .. std:option:: -d, --tidy-review
 
-    :badge-version:`1.7.0` :badge-default:`'false'` :badge-permission:`pull-request-reviews pull_request: write`
+    :badge-version:`1.7.0` :badge-default:`'false'` :badge-permission:`pull-request-reviews pull-requests: write`
 
     Set to ``true`` to enable Pull Request reviews
     from clang-tidy.
@@ -247,7 +247,7 @@ Command Line Interface Options
 
 .. std:option:: -m, --format-review
 
-    :badge-version:`1.7.0` :badge-default:`'false'` :badge-permission:`pull-request-reviews pull_request: write`
+    :badge-version:`1.7.0` :badge-default:`'false'` :badge-permission:`pull-request-reviews pull-requests: write`
 
     Set to ``true`` to enable Pull Request reviews
     from clang-format.
@@ -255,9 +255,9 @@ Command Line Interface Options
 
 .. std:option:: -j, --jobs
 
-    :badge-version:`1.4.6` :badge-default:`'1'` 
+    :badge-version:`1.8.1` :badge-default:`'1'` 
 
     Set the number of jobs to run simultaneously.
-    If set to <= 0, the number of jobs will be set to the
-    number of all available CPU cores.
+    If set less than or equal to 0, the number of jobs will
+    be set to the number of all available CPU cores.
     

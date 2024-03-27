@@ -611,7 +611,7 @@ running cpp-linter (for both push and pull_request events).</p></li>
 <p>The <a class="reference internal" href="cli_args.html#cmdoption-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--thread-comments</span></code></a> feature requires the following permissions:</p>
 <div class="highlight-yaml notranslate"><div class="annotate highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">issues</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w"> </span><span class="c1"># (1)!</span>
-<span class="w">  </span><span class="nt">pull_requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w"> </span><span class="c1"># (2)!</span>
+<span class="w">  </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w"> </span><span class="c1"># (2)!</span>
 </code></pre></div>
 <ol class="arabic simple">
 <li><p>for <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push">push events</a></p></li>
@@ -621,7 +621,7 @@ running cpp-linter (for both push and pull_request events).</p></li>
 <h2 id="pull-request-reviews">Pull Request Reviews<a class="headerlink" href="#pull-request-reviews" title="Link to this heading">¶</a></h2>
 <p>The <a class="reference internal" href="cli_args.html#cmdoption-d"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tidy-review</span></code></a> and <a class="reference internal" href="cli_args.html#cmdoption-m"><code class="xref std std-option docutils literal notranslate"><span class="pre">--format-review</span></code></a> features require the following permissions:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">pull_requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+<span class="w">  </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
 </code></pre></div>
 </div>
 
