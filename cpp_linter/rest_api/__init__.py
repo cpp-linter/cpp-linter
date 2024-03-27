@@ -35,8 +35,9 @@ class RestApiClient(ABC):
         :param data: The HTTP request payload data.
         :param headers: The HTTP request headers to use. This can be used to override
             the default headers used.
-        :param strict: If this is set `True`, then an `HTTPError` will be raised when
-            the HTTP request responds with a status code greater than or equal to 400.
+        :param strict: If this is set `True`, then an :py:class:`~requests.HTTPError`
+            will be raised when the HTTP request responds with a status code greater
+            than or equal to 400.
 
         :returns:
             The HTTP request's response object.
