@@ -84,6 +84,7 @@ html_theme_options = {
         "toc.sticky",
         "toc.follow",
         "search.share",
+        "content.tabs.link",
     ],
     "social": [
         {
@@ -153,10 +154,10 @@ class CliBadge(SphinxRole):
             self.rawtext,
             f'<span class="mdx-badge">{head}<span class="mdx-badge__text">'
             + is_linked
-            + (self.text if self.badge_type == "version" else ""),
+            + (self.text if self.badge_type in ["version", "experimental"] else ""),
             format="html",
         )
-        if self.badge_type != "version":
+        if self.badge_type not in ["version", "experimental"]:
             old_highlight = self.inliner.document.settings.syntax_highlight
             self.inliner.document.settings.syntax_highlight = "yaml"
             code, sys_msgs = docutils.parsers.rst.roles.code_role(
@@ -206,6 +207,17 @@ class CliBadgePermission(CliBadge):
         return super().run()
 
 
+class CliBadgeExperimental(CliBadge):
+    badge_type = "experimental"
+
+    def run(self):
+        self.badge_icon = (
+            load_svg_into_builder_env(self.env.app.builder, "material/flask-outline")
+            + " mdx-badge--heart mdx-heart"
+        )
+        return super().run()
+
+
 REQUIRED_VERSIONS = {
     "1.7.0": ["tidy_review", "format_review"],
     "1.6.1": ["thread_comments", "no_lgtm"],
@@ -215,12 +227,14 @@ REQUIRED_VERSIONS = {
 }
 
 PERMISSIONS = {
-    "thread_comments": ["thread-comments", "issues: write"],
+    "thread_comments": ["thread-comments", "contents: write"],
     "tidy_review": ["pull-request-reviews", "pull-requests: write"],
     "format_review": ["pull-request-reviews", "pull-requests: write"],
     "files_changed_only": ["file-changes", "contents: read"],
     "lines_changed_only": ["file-changes", "contents: read"],
 }
+
+EXPERIMENTAL = ["tidy_review"]
 
 
 def setup(app: Sphinx):
@@ -228,6 +242,7 @@ def setup(app: Sphinx):
     app.add_role("badge-version", CliBadgeVersion())
     app.add_role("badge-default", CliBadgeDefault())
     app.add_role("badge-permission", CliBadgePermission())
+    app.add_role("badge-experimental", CliBadgeExperimental())
 
     doc = "Command Line Interface Options\n==============================\n\n"
     doc += ".. note::\n\n    These options have a direct relationship with the\n    "
@@ -251,6 +266,8 @@ def setup(app: Sphinx):
             req_ver = "1.4.6"
         doc += f"\n    :badge-version:`{req_ver}` "
         doc += f":badge-default:`'{arg.default or ''}'` "
+        if arg.dest in EXPERIMENTAL:
+            doc += ":badge-experimental:`experimental` "
         for name, permission in PERMISSIONS.items():
             if name == arg.dest:
                 link, spec = permission
