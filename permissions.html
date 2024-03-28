@@ -32,8 +32,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="_static/sphinx_immaterial_theme.d2332b99b55d2a436.min.css?v=29ca0f7d" />
-        <link rel="stylesheet" type="text/css" href="_static/extra_css.css?v=a8f08733" />
+        <link rel="stylesheet" type="text/css" href="_static/sphinx_immaterial_theme.b495398fcfe01f784.min.css?v=eaaeddfc" />
+        <link rel="stylesheet" type="text/css" href="_static/extra_css.css?v=ad05b187" />
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -316,14 +316,14 @@
       
         <li class="md-nav__item">
   <a href="#thread-comments" class="md-nav__link">
-    <span class="md-ellipsis">Thread Comments</span>
+    <span title="thread comments (reference label)" class="md-ellipsis">Thread Comments</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#pull-request-reviews" class="md-nav__link">
-    <span class="md-ellipsis">Pull Request Reviews</span>
+    <span title="pull request reviews (reference label)" class="md-ellipsis">Pull Request Reviews</span>
   </a>
   
 </li>
@@ -568,14 +568,14 @@
       
         <li class="md-nav__item">
   <a href="#thread-comments" class="md-nav__link">
-    <span class="md-ellipsis">Thread Comments</span>
+    <span title="thread comments (reference label)" class="md-ellipsis">Thread Comments</span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#pull-request-reviews" class="md-nav__link">
-    <span class="md-ellipsis">Pull Request Reviews</span>
+    <span title="pull request reviews (reference label)" class="md-ellipsis">Pull Request Reviews</span>
   </a>
   
 </li>
@@ -599,26 +599,72 @@
 <h2 id="file-changes">File Changes<a class="headerlink" href="#file-changes" title="Link to this heading">¶</a></h2>
 <p>When using <a class="reference internal" href="cli_args.html#cmdoption-f"><code class="xref std std-option docutils literal notranslate"><span class="pre">--files-changed-only</span></code></a> or <a class="reference internal" href="cli_args.html#cmdoption-l"><code class="xref std std-option docutils literal notranslate"><span class="pre">--lines-changed-only</span></code></a> to get the list
 of file changes for a CI event, the following permissions are needed:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2">
+<input checked type="radio" id="__tabbed_1_1" name="__tabbed_1"><input type="radio" id="__tabbed_1_2" name="__tabbed_1"><div class="tabbed-labels docutils container">
+<label class="tabbed-label" for="__tabbed_1_1">
+<code class="code highlight yaml docutils literal highlight-yaml"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span></code></label><label class="tabbed-label" for="__tabbed_1_2">
+<code class="code highlight yaml docutils literal highlight-yaml"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pull_request</span></code></label></div>
+<div class="tabbed-content docutils container">
+<div class="tabbed-block docutils container">
+<p>For <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push">push events</a></p>
 <div class="highlight-yaml notranslate"><div class="annotate highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span><span class="w"> </span><span class="c1"># (1)!</span>
 </code></pre></div>
 <ol class="arabic simple">
 <li><p>This permission is also needed to download files if the repository is not checked out before
-running cpp-linter (for both push and pull_request events).</p></li>
+running cpp-linter.</p></li>
 </ol>
 </div>
-<h2 id="thread-comments">Thread Comments<a class="headerlink" href="#thread-comments" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference internal" href="cli_args.html#cmdoption-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--thread-comments</span></code></a> feature requires the following permissions:</p>
+</div>
+<div class="tabbed-block docutils container">
+<p>For <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request">pull_request events</a></p>
 <div class="highlight-yaml notranslate"><div class="annotate highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">issues</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w"> </span><span class="c1"># (1)!</span>
-<span class="w">  </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w"> </span><span class="c1"># (2)!</span>
+<span class="w">  </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span><span class="w"> </span><span class="c1"># (1)!</span>
+<span class="w">  </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span><span class="w"> </span><span class="c1"># (2)!</span>
 </code></pre></div>
 <ol class="arabic simple">
-<li><p>for <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push">push events</a></p></li>
-<li><p>for <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request">pull_request events</a></p></li>
+<li><p>This permission is also needed to download files if the repository is not checked out before
+running cpp-linter.</p></li>
+<li><p>Specifying <code class="code highlight yaml docutils literal highlight-yaml"><span class="l l-Scalar l-Scalar-Plain">write</span></code> is also sufficient as that is required for</p>
+<ul class="simple">
+<li><p>posting <a class="reference internal" href="#thread-comments">thread comments</a> on pull requests</p></li>
+<li><p>posting <a class="reference internal" href="#pull-request-reviews">pull request reviews</a></p></li>
+</ul>
+</li>
 </ol>
 </div>
-<h2 id="pull-request-reviews">Pull Request Reviews<a class="headerlink" href="#pull-request-reviews" title="Link to this heading">¶</a></h2>
+</div>
+</div>
+</div><h2 id="thread-comments"><span id="id1"></span>Thread Comments<a class="headerlink" href="#thread-comments" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="cli_args.html#cmdoption-t"><code class="xref std std-option docutils literal notranslate"><span class="pre">--thread-comments</span></code></a> feature requires the following permissions:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2">
+<input checked type="radio" id="__tabbed_2_1" name="__tabbed_2"><input type="radio" id="__tabbed_2_2" name="__tabbed_2"><div class="tabbed-labels docutils container">
+<label class="tabbed-label" for="__tabbed_2_1">
+<code class="code highlight yaml docutils literal highlight-yaml"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">push</span></code></label><label class="tabbed-label" for="__tabbed_2_2">
+<code class="code highlight yaml docutils literal highlight-yaml"><span class="nt">on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pull_request</span></code></label></div>
+<div class="tabbed-content docutils container">
+<div class="tabbed-block docutils container">
+<p>For <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push">push events</a></p>
+<div class="highlight-yaml notranslate"><div class="annotate highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">metadata</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">read</span><span class="w"> </span><span class="c1"># (1)!</span>
+<span class="w">  </span><span class="nt">contents</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span><span class="w"> </span><span class="c1"># (2)!</span>
+</code></pre></div>
+<ol class="arabic simple">
+<li><p>needed to fetch existing comments</p></li>
+<li><p>needed to post or update a commit comment. This also allows us to
+delete an outdated comment if needed.</p></li>
+</ol>
+</div>
+</div>
+<div class="tabbed-block docutils container">
+<p>For <a class="reference external" href="https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request">pull_request events</a></p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+</div><h2 id="pull-request-reviews"><span id="id2"></span>Pull Request Reviews<a class="headerlink" href="#pull-request-reviews" title="Link to this heading">¶</a></h2>
 <p>The <a class="reference internal" href="cli_args.html#cmdoption-d"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tidy-review</span></code></a> and <a class="reference internal" href="cli_args.html#cmdoption-m"><code class="xref std std-option docutils literal notranslate"><span class="pre">--format-review</span></code></a> features require the following permissions:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><code><span class="nt">permissions</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">pull-requests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write</span>
@@ -635,6 +681,8 @@ running cpp-linter (for both push and pull_request events).</p></li>
             </div>
           
           
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
         </div>
         
           <a href="#" class="md-top md-icon" data-md-component="top" hidden>
@@ -731,7 +779,7 @@ running cpp-linter (for both push and pull_request events).</p></li>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.top", "toc.sticky", "toc.follow", "search.share"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.top", "toc.sticky", "toc.follow", "search.share", "content.tabs.link"], "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
       
         <script src="_static/sphinx_immaterial_theme.f9d9eeeb247ace16c.min.js?v=8ec58cb5"></script>

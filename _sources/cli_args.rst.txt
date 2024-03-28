@@ -180,7 +180,7 @@ Command Line Interface Options
 
 .. std:option:: -t, --thread-comments
 
-    :badge-version:`1.6.1` :badge-default:`'false'` :badge-permission:`thread-comments issues: write`
+    :badge-version:`1.6.1` :badge-default:`'false'` :badge-permission:`thread-comments contents: write`
 
     This controls the behavior of posted thread
     comments as feedback.
@@ -239,7 +239,7 @@ Command Line Interface Options
 
 .. std:option:: -d, --tidy-review
 
-    :badge-version:`1.7.0` :badge-default:`'false'` :badge-permission:`pull-request-reviews pull-requests: write`
+    :badge-version:`1.7.0` :badge-default:`'false'` :badge-experimental:`experimental` :badge-permission:`pull-request-reviews pull-requests: write`
 
     Set to ``true`` to enable Pull Request reviews
     from clang-tidy.
