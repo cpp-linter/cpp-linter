@@ -25,7 +25,7 @@ thead {
   }
 }
 
-.md-typeset .mdx-heart {
+.md-typeset .mdx-heart::before {
   animation: heart 1s infinite
 }
 
@@ -33,12 +33,8 @@ thead {
   font-size: .85em
 }
 
-.md-typeset .mdx-badge--heart {
-  color: #ff4281;
-}
-
-.md-typeset .mdx-badge--heart.twemoji {
-  animation: heart 1s infinite
+.md-typeset .mdx-badge--heart::before {
+  background-color: #ff4281;
 }
 
 .md-typeset .mdx-badge--right {
