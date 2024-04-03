@@ -9,3 +9,81 @@ thead {
 .md-nav--primary .md-nav__title[for="__drawer"] {
   background-color: #4051b5;
 }
+
+@keyframes heart {
+
+  0%,
+  40%,
+  80%,
+  to {
+      transform: scale(1)
+  }
+
+  20%,
+  60% {
+      transform: scale(1.15)
+  }
+}
+
+.md-typeset .mdx-heart::before {
+  animation: heart 1s infinite
+}
+
+.md-typeset .mdx-badge {
+  font-size: .85em
+}
+
+.md-typeset .mdx-badge--heart::before {
+  background-color: #ff4281;
+}
+
+.md-typeset .mdx-badge--right {
+  float: right;
+  margin-left: .35em
+}
+
+[dir=ltr] .md-typeset .mdx-badge__icon {
+  border-top-left-radius: .1rem
+}
+
+[dir=rtl] .md-typeset .mdx-badge__icon {
+  border-top-right-radius: .1rem
+}
+
+[dir=ltr] .md-typeset .mdx-badge__icon {
+  border-bottom-left-radius: .1rem
+}
+
+[dir=rtl] .md-typeset .mdx-badge__icon {
+  border-bottom-right-radius: .1rem
+}
+
+.md-typeset .mdx-badge__icon {
+  background: var(--md-accent-fg-color--transparent);
+  padding: .2rem
+}
+
+.md-typeset .mdx-badge__icon:last-child {
+  border-radius: .1rem
+}
+
+[dir=ltr] .md-typeset .mdx-badge__text {
+  border-top-right-radius: .1rem
+}
+
+[dir=rtl] .md-typeset .mdx-badge__text {
+  border-top-left-radius: .1rem
+}
+
+[dir=ltr] .md-typeset .mdx-badge__text {
+  border-bottom-right-radius: .1rem
+}
+
+[dir=rtl] .md-typeset .mdx-badge__text {
+  border-bottom-left-radius: .1rem
+}
+
+.md-typeset .mdx-badge__text {
+  box-shadow: 0 0 0 1px inset var(--md-accent-fg-color--transparent);
+  padding: .2rem .3rem
+}

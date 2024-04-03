@@ -1,4 +1,4 @@
-``__init__`` module
+``__init__``
 ===================
 
 .. automodule:: cpp_linter

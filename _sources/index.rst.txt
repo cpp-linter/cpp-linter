@@ -4,27 +4,26 @@
    :hidden:
 
    self
-   building_docs
-
-.. toctree::
-   :hidden:
-
+   pr_review_caveats
    cli_args
+   permissions
 
 .. toctree::
    :hidden:
-   :caption: API Reference
+   :caption: API modules
 
    API-Reference/cpp_linter
-   API-Reference/cpp_linter.run
-   API-Reference/cpp_linter.clang_tidy
-   API-Reference/cpp_linter.clang_tidy_yml
-   API-Reference/cpp_linter.clang_format_xml
-   API-Reference/cpp_linter.thread_comments
+   API-Reference/cpp_linter.clang_tools
+   API-Reference/cpp_linter.clang_tools.clang_format
+   API-Reference/cpp_linter.clang_tools.clang_tidy
+   API-Reference/cpp_linter.rest_api
+   API-Reference/cpp_linter.rest_api.github_api
    API-Reference/cpp_linter.git
+   API-Reference/cpp_linter.git.git_str
+   API-Reference/cpp_linter.loggers
+   API-Reference/cpp_linter.common_fs
 
-Indices and tables
-==================
+.. toctree::
+   :hidden:
 
-* :ref:`genindex`
-* :ref:`modindex`
+   building_docs

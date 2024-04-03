@@ -13,7 +13,7 @@
     
     
       
-        <title>cpp_linter.git - cpp-linter</title>
+        <title>cpp_linter.loggers - cpp-linter</title>
       
     
     
@@ -88,7 +88,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cpp_linter.git
+              cpp_linter.loggers
             
           </span>
         </div>
@@ -508,168 +508,105 @@
                   
 
 
-<h1>Source code for cpp_linter.git</h1><div class="highlight"><pre>
-<span></span><code><span class="sd">&quot;&quot;&quot;This module uses ``git`` CLI to get commit info. It also holds some functions</span>
-<span class="sd">related to parsing diff output into a list of changed files.&quot;&quot;&quot;</span>
+<h1>Source code for cpp_linter.loggers</h1><div class="highlight"><pre>
+<span></span><code><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">io</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Response</span>
 
-<span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># type: ignore</span>
-    <span class="n">Repository</span><span class="p">,</span>
-    <span class="n">Object</span> <span class="k">as</span> <span class="n">GitObject</span><span class="p">,</span>
-    <span class="n">Diff</span><span class="p">,</span>
-    <span class="n">DiffHunk</span><span class="p">,</span>
-    <span class="n">Commit</span><span class="p">,</span>
-    <span class="n">GIT_DELTA_ADDED</span><span class="p">,</span>
-    <span class="n">GIT_DELTA_MODIFIED</span><span class="p">,</span>
-    <span class="n">GIT_DELTA_RENAMED</span><span class="p">,</span>
-    <span class="n">GIT_STATUS_INDEX_NEW</span><span class="p">,</span>
-    <span class="n">GIT_STATUS_INDEX_MODIFIED</span><span class="p">,</span>
-    <span class="n">GIT_STATUS_INDEX_RENAMED</span><span class="p">,</span>
-    <span class="n">GitError</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">CACHE_PATH</span>
-<span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">is_source_or_ignored</span><span class="p">,</span> <span class="n">has_line_changes</span>
-<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">.git_str</span> <span class="kn">import</span> <span class="n">parse_diff</span> <span class="k">as</span> <span class="n">legacy_parse_diff</span>
+<span class="n">FOUND_RICH_LIB</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">try</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="kn">from</span> <span class="nn">rich.logging</span> <span class="kn">import</span> <span class="n">RichHandler</span><span class="p">,</span> <span class="n">get_console</span>  <span class="c1"># type: ignore</span>
+
+    <span class="n">FOUND_RICH_LIB</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(name)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">RichHandler</span><span class="p">(</span><span class="n">show_time</span><span class="o">=</span><span class="kc">False</span><span class="p">)],</span>
+    <span class="p">)</span>
+
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+
+<span class="c1">#: The :py:class:`logging.Logger` object used for outputting data.</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;CPP Linter&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">FOUND_RICH_LIB</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;rich module not found&quot;</span><span class="p">)</span>
+
+<span class="c1"># setup a separate logger for using github log commands</span>
+<span class="n">log_commander</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;LOG COMMANDER&quot;</span><span class="p">)</span>  <span class="c1"># create a child of our logger obj</span>
+<span class="n">log_commander</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>  <span class="c1"># be sure that log commands are output</span>
+<span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>  <span class="c1"># Create special stdout stream handler</span>
+<span class="n">console_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">))</span>  <span class="c1"># no formatted log cmds</span>
+<span class="n">log_commander</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>  <span class="c1"># Use special handler for log_commander</span>
+<span class="n">log_commander</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
 
 
-<div class="viewcode-block" id="get_sha">
-<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.get_sha">[docs]</a>
-<span class="k">def</span> <span class="nf">get_sha</span><span class="p">(</span><span class="n">repo</span><span class="p">:</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">parent</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GitObject</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Uses ``git`` to fetch the full SHA hash of the current commit.</span>
+<div class="viewcode-block" id="start_log_group">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.loggers.html#cpp_linter.loggers.start_log_group">[docs]</a>
+<span class="k">def</span> <span class="nf">start_log_group</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Begin a collapsible group of log statements.</span>
 
-<span class="sd">    .. note::</span>
-<span class="sd">        This function is only used in local development environments, not in a</span>
-<span class="sd">        Continuous Integration workflow.</span>
-
-<span class="sd">    :param repo: The object representing the git repository.</span>
-<span class="sd">    :param parent: This parameter&#39;s default value will fetch the SHA of the last commit.</span>
-<span class="sd">        Set this parameter to the number of parent commits from the current tree&#39;s HEAD</span>
-<span class="sd">        to get the desired commit&#39;s SHA hash instead.</span>
-<span class="sd">    :returns: A `str` representing the commit&#39;s SHA hash.</span>
+<span class="sd">    :param name: The name of the collapsible group</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">repo</span><span class="o">.</span><span class="n">revparse_single</span><span class="p">(</span><span class="s2">&quot;HEAD&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;~</span><span class="si">{</span><span class="n">parent</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span></div>
+    <span class="n">log_commander</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;::group::</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
 
 
 
-<span class="n">STAGED_STATUS</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">GIT_STATUS_INDEX_NEW</span><span class="p">,</span>
-    <span class="n">GIT_STATUS_INDEX_MODIFIED</span><span class="p">,</span>
-    <span class="n">GIT_STATUS_INDEX_RENAMED</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="viewcode-block" id="end_log_group">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.loggers.html#cpp_linter.loggers.end_log_group">[docs]</a>
+<span class="k">def</span> <span class="nf">end_log_group</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;End a collapsible group of log statements.&quot;&quot;&quot;</span>
+    <span class="n">log_commander</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;::endgroup::&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_diff">
-<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.get_diff">[docs]</a>
-<span class="k">def</span> <span class="nf">get_diff</span><span class="p">(</span><span class="n">parents</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Diff</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the diff info about a specified commit.</span>
 
-<span class="sd">    :param parents: The number of parent commits related to the current commit.</span>
-<span class="sd">    :returns: A `str` of the fetched diff.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
-    <span class="n">head</span> <span class="o">=</span> <span class="n">get_sha</span><span class="p">(</span><span class="n">repo</span><span class="p">)</span>
+<div class="viewcode-block" id="log_response_msg">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.loggers.html#cpp_linter.loggers.log_response_msg">[docs]</a>
+<span class="k">def</span> <span class="nf">log_response_msg</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">Response</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Output the response buffer&#39;s message on a failed request.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s2">&quot;response returned </span><span class="si">%d</span><span class="s2"> from </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> with message: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
-    <span class="n">has_staged_files</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">repo</span><span class="o">.</span><span class="n">status</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">STAGED_STATUS</span><span class="p">:</span>
-            <span class="n">has_staged_files</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">break</span>
 
-    <span class="k">if</span> <span class="n">has_staged_files</span><span class="p">:</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">index</span>
-        <span class="n">diff_obj</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">diff_to_tree</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">Commit</span><span class="p">,</span> <span class="n">head</span><span class="p">)</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
-        <span class="n">diff_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;HEAD...</span><span class="si">{</span><span class="n">head</span><span class="o">.</span><span class="n">short_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="k">def</span> <span class="nf">worker_log_init</span><span class="p">(</span><span class="n">log_lvl</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="n">log_stream</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">handler</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">FOUND_RICH_LIB</span> <span class="ow">and</span> <span class="s2">&quot;CPP_LINTER_PYTEST_NO_RICH&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span>
+    <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">get_console</span><span class="p">()</span>
+        <span class="n">console</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">log_stream</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">RichHandler</span><span class="p">(</span><span class="n">show_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">console</span><span class="o">=</span><span class="n">console</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(name)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="n">get_sha</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>  <span class="c1"># only concerned with latest commit&#39;s diff</span>
-        <span class="n">diff_obj</span> <span class="o">=</span> <span class="n">repo</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">head</span><span class="p">)</span>
-        <span class="n">diff_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">head</span><span class="o">.</span><span class="n">short_id</span><span class="si">}</span><span class="s2">...</span><span class="si">{</span><span class="n">base</span><span class="o">.</span><span class="n">short_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">log_stream</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">BASIC_FORMAT</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+    <span class="c1"># Windows does not copy log level to subprocess.</span>
+    <span class="c1"># https://github.com/cpp-linter/cpp-linter/actions/runs/8355193931</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_lvl</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;getting diff between </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">diff_name</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-        <span class="n">Path</span><span class="p">(</span><span class="n">CACHE_PATH</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">diff_name</span><span class="si">}</span><span class="s2">.diff&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span>
-            <span class="n">diff_obj</span><span class="o">.</span><span class="n">patch</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="n">diff_obj</span></div>
+    <span class="c1">## uncomment the following if log_commander is needed in isolated threads</span>
+    <span class="c1"># log_commander.handlers.clear()</span>
+    <span class="c1"># log_commander.propagate = False</span>
+    <span class="c1"># console_handler = logging.StreamHandler(log_stream)</span>
+    <span class="c1"># console_handler.setFormatter(logging.Formatter(&quot;%(message)s&quot;))</span>
+    <span class="c1"># log_commander.addHandler(console_handler)</span>
 
-
-
-<span class="n">ADDITIVE_STATUS</span> <span class="o">=</span> <span class="p">(</span><span class="n">GIT_DELTA_RENAMED</span><span class="p">,</span> <span class="n">GIT_DELTA_MODIFIED</span><span class="p">,</span> <span class="n">GIT_DELTA_ADDED</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="parse_diff">
-<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_diff">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_diff</span><span class="p">(</span>
-    <span class="n">diff_obj</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Diff</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-    <span class="n">extensions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a given diff into file objects.</span>
-
-<span class="sd">    :param diff_obj: The complete git diff object for an event.</span>
-<span class="sd">    :param extensions: A list of file extensions to focus on only.</span>
-<span class="sd">    :param ignored: A list of paths or files to ignore.</span>
-<span class="sd">    :param not_ignored: A list of paths or files to explicitly not ignore.</span>
-<span class="sd">    :param lines_changed_only: A value that dictates what file changes to focus on.</span>
-<span class="sd">    :returns: A `list` of `dict` containing information about the files changed.</span>
-
-<span class="sd">        .. note:: Deleted files are omitted because we only want to analyze updates.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">file_objects</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diff_obj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">diff_obj</span> <span class="o">=</span> <span class="n">Diff</span><span class="o">.</span><span class="n">parse_diff</span><span class="p">(</span><span class="n">diff_obj</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">GitError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pygit2.Diff.parse_diff() threw </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">legacy_parse_diff</span><span class="p">(</span>
-                <span class="n">diff_obj</span><span class="p">,</span> <span class="n">extensions</span><span class="p">,</span> <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span><span class="p">,</span> <span class="n">lines_changed_only</span>
-            <span class="p">)</span>
-    <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">diff_obj</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ADDITIVE_STATUS</span><span class="p">:</span>
-            <span class="k">continue</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_source_or_ignored</span><span class="p">(</span>
-            <span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="o">.</span><span class="n">new_file</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">extensions</span><span class="p">,</span> <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span>
-        <span class="p">):</span>
-            <span class="k">continue</span>
-        <span class="n">diff_chunks</span><span class="p">,</span> <span class="n">additions</span> <span class="o">=</span> <span class="n">parse_patch</span><span class="p">(</span><span class="n">patch</span><span class="o">.</span><span class="n">hunks</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">has_line_changes</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">,</span> <span class="n">diff_chunks</span><span class="p">,</span> <span class="n">additions</span><span class="p">):</span>
-            <span class="n">file_objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">FileObj</span><span class="p">(</span><span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="o">.</span><span class="n">new_file</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">additions</span><span class="p">,</span> <span class="n">diff_chunks</span><span class="p">)</span>
-            <span class="p">)</span>
-    <span class="k">return</span> <span class="n">file_objects</span></div>
-
-
-
-<div class="viewcode-block" id="parse_patch">
-<a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_patch">[docs]</a>
-<span class="k">def</span> <span class="nf">parse_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DiffHunk</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a diff&#39;s patch accordingly.</span>
-
-<span class="sd">    :param patch: The patch of hunks for 1 file.</span>
-<span class="sd">    :returns:</span>
-<span class="sd">        A `tuple` of lists where</span>
-
-<span class="sd">        - Index 0 is the ranges of lines in the diff. Each item in this `list` is a</span>
-<span class="sd">          2 element `list` describing the starting and ending line numbers.</span>
-<span class="sd">        - Index 1 is a `list` of the line numbers that contain additions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ranges</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="c1"># additions is a list line numbers in the diff containing additions</span>
-    <span class="n">additions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">for</span> <span class="n">hunk</span> <span class="ow">in</span> <span class="n">patch</span><span class="p">:</span>
-        <span class="n">start_line</span><span class="p">,</span> <span class="n">hunk_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">hunk</span><span class="o">.</span><span class="n">new_start</span><span class="p">,</span> <span class="n">hunk</span><span class="o">.</span><span class="n">new_lines</span><span class="p">)</span>
-        <span class="n">ranges</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start_line</span><span class="p">,</span> <span class="n">hunk_length</span> <span class="o">+</span> <span class="n">start_line</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">hunk</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">origin</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
-                <span class="n">additions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">new_lineno</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">ranges</span><span class="p">,</span> <span class="n">additions</span><span class="p">)</span></div>
-
+    <span class="k">return</span> <span class="n">log_stream</span>
 </code></pre></div>
 
 
