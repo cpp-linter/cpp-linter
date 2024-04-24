@@ -91,7 +91,7 @@ def prep_api_client(
 
     # prevent CI tests in PRs from altering the URL used in the mock tests
     monkeypatch.setenv("CI", "true")  # make fake requests using session adaptor
-    gh_client.event_payload.clear()
+    gh_client.pull_request = -1
     gh_client.event_name = "push"
 
     adapter = requests_mock.Adapter(case_sensitive=True)

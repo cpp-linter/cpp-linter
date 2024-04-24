@@ -15,26 +15,38 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-import time
 from typing import Dict, List, Any, cast, Optional, Tuple, Union, Sequence
 
 from pygit2 import Patch  # type: ignore
-import requests
-from ..common_fs import FileObj, CACHE_PATH
 from ..clang_tools.clang_format import (
     FormatAdvice,
     formalize_style_name,
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import TidyAdvice, tally_tidy_advice
-from ..loggers import start_log_group, logger, log_response_msg, log_commander
+from ..common_fs import FileObj, CACHE_PATH
+from ..loggers import start_log_group, logger, log_commander
 from ..git import parse_diff, get_diff
-from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER
+from . import (
+    RestApiClient,
+    USER_OUTREACH,
+    COMMENT_MARKER,
+    RateLimitHeaders,
+    has_more_pages,
+)
+
+RATE_LIMIT_HEADERS = RateLimitHeaders(
+    reset="x-ratelimit-reset",
+    remaining="x-ratelimit-remaining",
+    retry="retry-after",
+)
 
 
 class GithubApiClient(RestApiClient):
+    """A class that describes the API used to interact with Github's REST API."""
+
     def __init__(self) -> None:
-        super().__init__()
+        super().__init__(rate_limit_headers=RATE_LIMIT_HEADERS)
         # create default headers to be used for all HTTP requests
         self.session.headers.update(self.make_headers())
 
@@ -49,20 +61,14 @@ class GithubApiClient(RestApiClient):
         #: A flag that describes if debug logs are enabled.
         self.debug_enabled = environ.get("ACTIONS_STEP_DEBUG", "") == "true"
 
-        #: The event payload delivered as the web hook for the workflow run.
-        self.event_payload: Dict[str, Any] = {}
+        #: The pull request number for the event (if applicable).
+        self.pull_request = -1
         event_path = environ.get("GITHUB_EVENT_PATH", "")
         if event_path:
-            self.event_payload = json.loads(
+            event_payload: Dict[str, Any] = json.loads(
                 Path(event_path).read_text(encoding="utf-8")
             )
-
-        # The remain API requests allowed under the given token (if any).
-        self._rate_limit_remaining = -1  # -1 means unknown
-        # a counter for avoiding secondary rate limits
-        self._rate_limit_back_step = 0
-        # the rate limit reset time
-        self._rate_limit_reset: Optional[time.struct_time] = None
+            self.pull_request = cast(int, event_payload.get("number", -1))
 
     def set_exit_code(
         self,
@@ -81,61 +87,6 @@ class GithubApiClient(RestApiClient):
             checks_failed, format_checks_failed, tidy_checks_failed
         )
 
-    def _rate_limit_exceeded(self):
-        logger.error("RATE LIMIT EXCEEDED!")
-        if self._rate_limit_reset is not None:
-            logger.error(
-                "Github REST API rate limit resets on %s",
-                time.strftime("%d %B %Y %H:%M +0000", self._rate_limit_reset),
-            )
-        sys.exit(1)
-
-    def api_request(
-        self,
-        url: str,
-        method: Optional[str] = None,
-        data: Optional[str] = None,
-        headers: Optional[Dict[str, Any]] = None,
-        strict: bool = True,
-    ) -> requests.Response:
-        if self._rate_limit_back_step >= 5 or self._rate_limit_remaining == 0:
-            self._rate_limit_exceeded()
-        response = self.session.request(
-            method=method or ("GET" if data is None else "POST"),
-            url=url,
-            headers=headers,
-            data=data,
-        )
-        self._rate_limit_remaining = int(
-            response.headers.get("x-ratelimit-remaining", "-1")
-        )
-        if "x-ratelimit-reset" in response.headers:
-            self._rate_limit_reset = time.gmtime(
-                int(response.headers["x-ratelimit-reset"])
-            )
-        log_response_msg(response)
-        if response.status_code in [403, 429]:  # rate limit exceeded
-            # secondary rate limit handling
-            if "retry-after" in response.headers:
-                wait_time = (
-                    float(cast(str, response.headers.get("retry-after")))
-                    * self._rate_limit_back_step
-                )
-                logger.warning(
-                    "SECONDARY RATE LIMIT HIT! Backing off for %f seconds",
-                    wait_time,
-                )
-                time.sleep(wait_time)
-                self._rate_limit_back_step += 1
-                return self.api_request(url, method=method, data=data, headers=headers)
-            # primary rate limit handling
-            if self._rate_limit_remaining == 0:
-                self._rate_limit_exceeded()
-        if strict:
-            response.raise_for_status()
-        self._rate_limit_back_step = 0
-        return response
-
     def get_list_of_changed_files(
         self,
         extensions: List[str],
@@ -147,7 +98,7 @@ class GithubApiClient(RestApiClient):
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
-                files_link += f"pulls/{self.event_payload['number']}"
+                files_link += f"pulls/{self.pull_request}"
             else:
                 if self.event_name != "push":
                     logger.warning(
@@ -270,7 +221,7 @@ class GithubApiClient(RestApiClient):
             is_lgtm = not checks_failed
             comments_url = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
-                comments_url += f'issues/{self.event_payload["number"]}'
+                comments_url += f"issues/{self.pull_request}"
             else:
                 comments_url += f"commits/{self.sha}"
             comments_url += "/comments"
@@ -429,7 +380,7 @@ class GithubApiClient(RestApiClient):
         format_review: bool,
         no_lgtm: bool,
     ):
-        url = f"{self.api_url}/repos/{self.repo}/pulls/{self.event_payload['number']}"
+        url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}"
         response = self.api_request(url=url)
         url += "/reviews"
         pr_info = response.json()
@@ -589,17 +540,3 @@ class GithubApiClient(RestApiClient):
                         ),
                         strict=False,
                     )
-
-
-def has_more_pages(response: requests.Response) -> Optional[str]:
-    """A helper function to parse a HTTP request's response headers to determine if the
-    previous REST API call is paginated.
-
-    :param response: A HTTP request's response.
-
-    :returns: The URL of the next page if any, otherwise `None`.
-    """
-    links = response.links
-    if "next" in links and "url" in links["next"]:
-        return links["next"]["url"]
-    return None

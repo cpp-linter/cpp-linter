@@ -128,7 +128,7 @@ def test_get_changed_files(
     for name, value in pseudo.items():
         setattr(gh_client, name, value)
     if "event_name" in pseudo and pseudo["event_name"] == "pull_request":
-        gh_client.event_payload = dict(number=19)
+        gh_client.pull_request = 19
     if not fake_runner:
         # getting a diff in CI (on a shallow checkout) fails
         # monkey patch the .git.get_diff() to return nothing
