@@ -18,14 +18,16 @@ import sys
 from typing import Dict, List, Any, cast, Optional, Tuple, Union, Sequence
 
 from pygit2 import Patch  # type: ignore
+from ..common_fs import FileObj, CACHE_PATH
+from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
     FormatAdvice,
     formalize_style_name,
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import TidyAdvice, tally_tidy_advice
-from ..common_fs import FileObj, CACHE_PATH
-from ..loggers import start_log_group, logger, log_commander
+from ..cli import Args
+from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
 
@@ -83,12 +85,9 @@ class GithubApiClient(RestApiClient):
 
     def get_list_of_changed_files(
         self,
-        extensions: List[str],
-        ignored: List[str],
-        not_ignored: List[str],
+        file_filter: FileFilter,
         lines_changed_only: int,
     ) -> List[FileObj]:
-        start_log_group("Get list of specified source files")
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
@@ -105,17 +104,9 @@ class GithubApiClient(RestApiClient):
             response = self.api_request(
                 url=files_link, headers=self.make_headers(use_diff=True)
             )
-            files = parse_diff(
-                response.text,
-                extensions,
-                ignored,
-                not_ignored,
-                lines_changed_only,
-            )
+            files = parse_diff(response.text, file_filter, lines_changed_only)
         else:
-            files = parse_diff(
-                get_diff(), extensions, ignored, not_ignored, lines_changed_only
-            )
+            files = parse_diff(get_diff(), file_filter, lines_changed_only)
         return files
 
     def verify_files_are_present(self, files: List[FileObj]) -> None:

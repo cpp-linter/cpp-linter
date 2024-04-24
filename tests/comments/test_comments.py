@@ -8,7 +8,7 @@ import pytest
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
-from cpp_linter.common_fs import list_source_files
+from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.loggers import logger
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
@@ -47,11 +47,12 @@ def test_post_feedback(
     no_lgtm: bool,
 ):
     """A mock test of posting comments and step summary"""
-    files = list_source_files(
+    file_filter = FileFilter(
         extensions=["cpp", "hpp"],
-        ignored=["tests/capture_tools_output"],
+        ignore_value="tests/capture_tools_output",
         not_ignored=[],
     )
+    files = file_filter.list_source_files()
     assert files
     format_advice, tidy_advice = capture_clang_tools_output(
         files,

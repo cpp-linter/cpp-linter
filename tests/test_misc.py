@@ -10,11 +10,8 @@ from typing import List, cast
 import pytest
 import requests_mock
 
-from cpp_linter.common_fs import (
-    get_line_cnt_from_cols,
-    FileObj,
-    list_source_files,
-)
+from cpp_linter.common_fs import get_line_cnt_from_cols, FileObj
+from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.clang_tools import assemble_version_exec
 from cpp_linter.loggers import (
     logger,
@@ -78,7 +75,8 @@ def test_list_src_files(
     """List the source files in the root folder of this repo."""
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    files = list_source_files(extensions=extensions, ignored=[], not_ignored=[])
+    file_filter = FileFilter(extensions=extensions, ignore_value="", not_ignored=[])
+    files = file_filter.list_source_files()
     assert files
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions
@@ -144,7 +142,9 @@ def test_get_changed_files(
             text="",
         )
 
-        files = gh_client.get_list_of_changed_files([], [], [], 0)
+        files = gh_client.get_list_of_changed_files(
+            FileFilter(extensions=[], ignore_value="", not_ignored=[]), 0
+        )
         assert not files
 
 

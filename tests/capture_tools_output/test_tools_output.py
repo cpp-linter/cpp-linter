@@ -22,6 +22,8 @@ from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice, TidyAdvice
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.cli import cli_arg_parser
+from cpp_linter.common_fs.file_filter import FileFilter
+
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
@@ -155,9 +157,9 @@ def prep_tmp_dir(
     monkeypatch.chdir(str(repo_cache))
     CACHE_PATH.mkdir(exist_ok=True)
     files = gh_client.get_list_of_changed_files(
-        extensions=["c", "h", "hpp", "cpp"],
-        ignored=[".github"],
-        not_ignored=[],
+        FileFilter(
+            extensions=["c", "h", "hpp", "cpp"], ignore_value=".github", not_ignored=[]
+        ),
         lines_changed_only=lines_changed_only,
     )
     gh_client.verify_files_are_present(files)
@@ -208,9 +210,7 @@ def test_lines_changed_only(
     CACHE_PATH.mkdir(exist_ok=True)
     gh_client = prep_api_client(monkeypatch, repo, commit)
     files = gh_client.get_list_of_changed_files(
-        extensions=extensions,
-        ignored=[".github"],
-        not_ignored=[],
+        FileFilter(extensions=extensions, ignore_value=".github", not_ignored=[]),
         lines_changed_only=lines_changed_only,
     )
     if files:
@@ -474,9 +474,7 @@ def test_parse_diff(
     Path(CACHE_PATH).mkdir()
     files = parse_diff(
         get_diff(),
-        extensions=["cpp", "hpp"],
-        ignored=[],
-        not_ignored=[],
+        FileFilter(extensions=["cpp", "hpp"], ignore_value="", not_ignored=[]),
         lines_changed_only=0,
     )
     if sha == TEST_REPO_COMMIT_PAIRS[4]["commit"] or patch:

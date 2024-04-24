@@ -3,22 +3,30 @@
 from pathlib import Path
 from typing import List
 import pytest
-from cpp_linter.cli import parse_ignore_option
-from cpp_linter.common_fs import is_file_in_list
+from cpp_linter.common_fs.file_filter import FileFilter
 
 
 @pytest.mark.parametrize(
     "user_in,is_ignored,is_not_ignored",
     [
         (
-            "src|!src/file.h|!",
-            ["src/file.h", "src/sub/path/file.h"],
-            ["src/file.h", "file.h"],
+            "tests|!tests/demo/demo.h|!",
+            ["tests/test_misc.py", "tests/demo/demo.cpp"],
+            ["tests/demo/demo.h", "pyproject.toml"],
         ),
         (
-            "!src|./",
-            ["file.h", "sub/path/file.h"],
-            ["src/file.h", "src/sub/path/file.h"],
+            "!tests|./",
+            ["pyproject.toml", "tests/demo/demo.cpp", "cpp_linter/__init__.py"],
+            ["tests/test_misc.py", "tests/demo/demo.cpp"],
+        ),
+        (
+            "tests/**|!tests/demo|!cpp_linter/*.py|",
+            [
+                "tests/test_misc.py",
+                "tests/ignored_paths",
+                "tests/ignored_paths/.gitmodules",
+            ],
+            ["tests/demo/demo.cpp", "tests/demo", "cpp_linter/__init__.py"],
         ),
     ],
 )
@@ -30,20 +38,21 @@ def test_ignore(
 ):
     """test ignoring of a specified path."""
     caplog.set_level(10)
-    ignored, not_ignored = parse_ignore_option(user_in, [])
+    file_filter = FileFilter(extensions=[], ignore_value=user_in, not_ignored=[])
     for p in is_ignored:
-        assert is_file_in_list(ignored, p, "ignored")
+        assert file_filter.is_file_in_list(ignored=True, file_name=p)
     for p in is_not_ignored:
-        assert is_file_in_list(not_ignored, p, "not ignored")
+        assert file_filter.is_file_in_list(ignored=False, file_name=p)
 
 
 def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
     """test auto detection of submodules and ignore the paths appropriately."""
     monkeypatch.chdir(str(Path(__file__).parent))
-    ignored, not_ignored = parse_ignore_option("!pybind11", [])
+    file_filter = FileFilter(extensions=[], ignore_value="!pybind11", not_ignored=[])
+    file_filter.parse_submodules()
     for ignored_submodule in ["RF24", "RF24Network", "RF24Mesh"]:
-        assert ignored_submodule in ignored
-    assert "pybind11" in not_ignored
+        assert ignored_submodule in file_filter.ignored
+    assert "pybind11" in file_filter.not_ignored
 
 
 @pytest.mark.parametrize(
@@ -51,5 +60,5 @@ def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
 )
 def test_positional_arg(user_input: List[str]):
     """Make sure positional arg value(s) are added to not_ignored list."""
-    _, not_ignored = parse_ignore_option("", user_input)
-    assert user_input == not_ignored
+    file_filter = FileFilter(extensions=[], ignore_value="", not_ignored=user_input)
+    assert {p: [] for p in user_input} == file_filter.not_ignored

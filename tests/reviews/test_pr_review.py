@@ -8,6 +8,7 @@ import pytest
 
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.common_fs.file_filter import FileFilter
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
@@ -136,9 +137,7 @@ def test_post_review(
 
         # run the actual test
         files = gh_client.get_list_of_changed_files(
-            extensions=["cpp", "hpp"],
-            ignored=[],
-            not_ignored=[],
+            FileFilter(extensions=["cpp", "hpp"], ignore_value="", not_ignored=[]),
             lines_changed_only=changes,
         )
         assert files

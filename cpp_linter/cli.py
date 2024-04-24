@@ -1,11 +1,7 @@
 """Setup the options for CLI arguments."""
 
 import argparse
-import configparser
-from pathlib import Path
-from typing import Tuple, List, Optional
-
-from .loggers import logger
+from typing import Optional
 
 
 cli_arg_parser = argparse.ArgumentParser(
@@ -138,8 +134,8 @@ cli_arg_parser.add_argument(
 - In the case of multiple paths, you can use ``|`` to
   separate each path.
 - There is no need to use ``./`` for each entry; a
-  blank string (``''``) represents the repo-root
-  path.
+  blank string (``''``) represents the
+  :std:option:`--repo-root` path.
 - This can also have files, but the file's path
   (relative to the :std:option:`--repo-root`) has to
   be specified with the filename.
@@ -149,8 +145,15 @@ cli_arg_parser.add_argument(
 - Prefix a path with ``!`` to explicitly not ignore
   it. This can be applied to a submodule's path (if
   desired) but not hidden directories.
-- Glob patterns are not supported here. All asterisk
-  characters (``*``) are literal.""",
+- .. versionadded:: 1.9 Glob patterns are supported
+      here.
+      :collapsible:
+
+      All asterisk characters (``*``) are not literal
+      as they were before. See
+      :py:meth:`~pathlib.Path.glob()` for more details
+      about Unix style glob patterns.
+""",
 )
 cli_arg_parser.add_argument(
     "-l",
@@ -330,54 +333,3 @@ be set to the number of all available CPU cores.
 
 Defaults to ``%(default)s``.""",
 )
-
-
-def parse_ignore_option(
-    paths: str, not_ignored: List[str]
-) -> Tuple[List[str], List[str]]:
-    """Parse a given string of paths (separated by a ``|``) into ``ignored`` and
-    ``not_ignored`` lists of strings.
-
-    :param paths: This argument conforms to the input value of CLI arg
-        :std:option:`--ignore`.
-
-    :returns:
-        Returns a tuple of lists in which each list is a set of strings.
-
-        - index 0 is the ``ignored`` list
-        - index 1 is the ``not_ignored`` list
-    """
-    ignored = []
-
-    for path in paths.split("|"):
-        is_included = path.startswith("!")
-        if path.startswith("!./" if is_included else "./"):
-            path = path.replace("./", "", 1)  # relative dir is assumed
-        path = path.strip()  # strip leading/trailing spaces
-        if is_included:
-            not_ignored.append(path[1:])  # strip leading `!`
-        else:
-            ignored.append(path)
-
-    # auto detect submodules
-    gitmodules = Path(".gitmodules")
-    if gitmodules.exists():
-        submodules = configparser.ConfigParser()
-        submodules.read(gitmodules.resolve().as_posix())
-        for module in submodules.sections():
-            path = submodules[module]["path"]
-            if path not in not_ignored:
-                logger.info("Appending submodule to ignored paths: %s", path)
-                ignored.append(path)
-
-    if ignored:
-        logger.info(
-            "Ignoring the following paths/files:\n\t./%s",
-            "\n\t./".join(f for f in ignored),
-        )
-    if not_ignored:
-        logger.info(
-            "Not ignoring the following paths/files:\n\t./%s",
-            "\n\t./".join(f for f in not_ignored),
-        )
-    return (ignored, not_ignored)

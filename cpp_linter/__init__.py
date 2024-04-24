@@ -3,10 +3,11 @@ If executed from command-line, then `main()` is the entrypoint.
 """
 
 import os
-from .common_fs import list_source_files, CACHE_PATH
+from .common_fs import CACHE_PATH
+from .common_fs.file_filter import FileFilter
 from .loggers import start_log_group, end_log_group, logger
 from .clang_tools import capture_clang_tools_output
-from .cli import cli_arg_parser, parse_ignore_option
+from .cli import cli_arg_parser
 from .rest_api.github_api import GithubApiClient
 
 
@@ -28,30 +29,34 @@ def main():
     logger.setLevel(10 if args.verbosity or rest_api_client.debug_enabled else 20)
 
     # prepare ignored paths list
-    ignored, not_ignored = parse_ignore_option(args.ignore, args.files)
+    global_file_filter = FileFilter(
+        extensions=args.extensions, ignore_value=args.ignore, not_ignored=args.files
+    )
+    global_file_filter.parse_submodules()
 
     # change working directory
     os.chdir(args.repo_root)
     CACHE_PATH.mkdir(exist_ok=True)
 
+    start_log_group("Get list of specified source files")
     if args.files_changed_only:
         files = rest_api_client.get_list_of_changed_files(
             extensions=args.extensions,
-            ignored=ignored,
-            not_ignored=not_ignored,
+            ignored=global_file_filter.ignored,
+            not_ignored=global_file_filter.not_ignored,
             lines_changed_only=args.lines_changed_only,
         )
         rest_api_client.verify_files_are_present(files)
     else:
-        files = list_source_files(args.extensions, ignored, not_ignored)
+        files = global_file_filter.list_source_files()
         # at this point, files have no info about git changes.
         # for PR reviews, we need this info
         if is_pr_event and (args.tidy_review or args.format_review):
             # get file changes from diff
             git_changes = rest_api_client.get_list_of_changed_files(
                 extensions=args.extensions,
-                ignored=ignored,
-                not_ignored=not_ignored,
+                ignored=global_file_filter.ignored,
+                not_ignored=global_file_filter.not_ignored,
                 lines_changed_only=0,  # prevent filtering out unchanged files
             )
             # merge info from git changes into list of all files

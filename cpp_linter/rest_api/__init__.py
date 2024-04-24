@@ -9,6 +9,7 @@ import time
 from typing import Optional, Dict, List, Any, cast, NamedTuple
 import requests
 from ..common_fs import FileObj
+from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import FormatAdvice
 from ..clang_tools.clang_tidy import TidyAdvice
 from ..loggers import logger, log_response_msg
@@ -153,16 +154,12 @@ class RestApiClient(ABC):
 
     def get_list_of_changed_files(
         self,
-        extensions: List[str],
-        ignored: List[str],
-        not_ignored: List[str],
+        file_filter: FileFilter,
         lines_changed_only: int,
     ) -> List[FileObj]:
         """Fetch a list of the event's changed files.
 
-        :param extensions: A list of file extensions to focus on only.
-        :param ignored: A list of paths or files to ignore.
-        :param not_ignored: A list of paths or files to explicitly not ignore.
+        :param file_filter: A `FileFilter` obj to filter files.
         :param lines_changed_only: A value that dictates what file changes to focus on.
         """
         raise NotImplementedError("must be implemented in the derivative")
