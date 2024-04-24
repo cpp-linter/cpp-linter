@@ -44,6 +44,8 @@ class Args:
     tidy_review: bool = False
     format_review: bool = False
     jobs: int = 1
+    ignore_tidy: str = ""
+    ignore_format: str = ""
 
 
 def test_defaults():
@@ -83,6 +85,7 @@ def test_defaults():
         ("jobs", "1", "jobs", 1),
         ("jobs", "4", "jobs", 4),
         pytest.param("jobs", "x", "jobs", 0, marks=pytest.mark.xfail),
+        ("ignore-tidy", "!src|", "ignore_tidy", "!src|"),
     ],
 )
 def test_arg_parser(

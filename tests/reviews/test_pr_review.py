@@ -157,6 +157,9 @@ def test_post_review(
             tidy_review=tidy_review,
             format_review=format_review,
             num_workers=num_workers,
+            extensions=["cpp", "hpp"],
+            tidy_ignore="",
+            format_ignore="",
         )
         if not force_approved:
             assert [note for concern in tidy_advice for note in concern.notes]

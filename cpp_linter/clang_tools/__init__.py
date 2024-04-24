@@ -7,6 +7,7 @@ from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
+from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
 from ..loggers import start_log_group, end_log_group, worker_log_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
@@ -35,21 +36,25 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
 def _run_on_single_file(
     file: FileObj,
     log_lvl: int,
-    tidy_cmd,
-    checks,
-    lines_changed_only,
-    database,
-    extra_args,
-    db_json,
-    tidy_review,
-    format_cmd,
-    style,
-    format_review,
+    tidy_cmd: Optional[str],
+    checks: str,
+    lines_changed_only: int,
+    database: str,
+    extra_args: List[str],
+    db_json: Optional[List[Dict[str, str]]],
+    tidy_review: bool,
+    format_cmd: Optional[str],
+    style: str,
+    format_review: bool,
+    format_filter: Optional[FormatFileFilter],
+    tidy_filter: Optional[TidyFileFilter],
 ):
     log_stream = worker_log_init(log_lvl)
 
     tidy_note = None
-    if tidy_cmd is not None:
+    if tidy_cmd is not None and (
+        tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
+    ):
         tidy_note = run_clang_tidy(
             tidy_cmd,
             file,
@@ -62,7 +67,9 @@ def _run_on_single_file(
         )
 
     format_advice = None
-    if format_cmd is not None:
+    if format_cmd is not None and (
+        format_filter is None or format_filter.is_source_or_ignored(file.name)
+    ):
         format_advice = run_clang_format(
             format_cmd, file, style, lines_changed_only, format_review
         )
@@ -81,6 +88,9 @@ def capture_clang_tools_output(
     tidy_review: bool,
     format_review: bool,
     num_workers: Optional[int],
+    extensions: List[str],
+    tidy_ignore: str,
+    format_ignore: str,
 ) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
@@ -102,6 +112,9 @@ def capture_clang_tools_output(
         PR review comments using clang-format.
     :param num_workers: The number of workers to use for parallel processing. If
         `None`, then the number of workers is set to the number of CPU cores.
+    :param extensions: The list of file :std:option:`--extensions`.
+    :param tidy_ignore: The specified :std:option:`--ignore-tidy` value.
+    :param format_ignore: The specified :std:option:`--ignore-format` value.
     """
 
     def show_tool_version_output(cmd: str):  # show version output for executable used
@@ -111,14 +124,25 @@ def capture_clang_tools_output(
         logger.info("%s --version\n%s", cmd, indent(version_out.stdout.decode(), "\t"))
 
     tidy_cmd, format_cmd = (None, None)
+    tidy_filter, format_filter = (None, None)
     if style:  # if style is an empty value, then clang-format is skipped
         format_cmd = assemble_version_exec("clang-format", version)
         assert format_cmd is not None, "clang-format executable was not found"
         show_tool_version_output(format_cmd)
+        tidy_filter = TidyFileFilter(
+            extensions=extensions,
+            ignore_value=tidy_ignore,
+            not_ignored=[],
+        )
     if checks != "-*":  # if all checks are disabled, then clang-tidy is skipped
         tidy_cmd = assemble_version_exec("clang-tidy", version)
         assert tidy_cmd is not None, "clang-tidy executable was not found"
         show_tool_version_output(tidy_cmd)
+        format_filter = FormatFileFilter(
+            extensions=extensions,
+            ignore_value=format_ignore,
+            not_ignored=[],
+        )
 
     db_json: Optional[List[Dict[str, str]]] = None
     if database and not PurePath(database).is_absolute():
@@ -145,6 +169,8 @@ def capture_clang_tools_output(
                 format_cmd=format_cmd,
                 style=style,
                 format_review=format_review,
+                format_filter=format_filter,
+                tidy_filter=tidy_filter,
             )
             for file in files
         ]

@@ -198,6 +198,8 @@ class FileFilter:
 
 
 class TidyFileFilter(FileFilter):
+    """A specialized `FileFilter` whose debug prompts indicate clang-tidy preparation."""
+
     def __init__(
         self, extensions: List[str], ignore_value: str, not_ignored: List[str]
     ) -> None:
@@ -205,6 +207,8 @@ class TidyFileFilter(FileFilter):
 
 
 class FormatFileFilter(FileFilter):
+    """A specialized `FileFilter` whose debug prompts indicate clang-format preparation."""
+
     def __init__(
         self, extensions: List[str], ignore_value: str, not_ignored: List[str]
     ) -> None:

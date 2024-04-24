@@ -225,6 +225,7 @@ REQUIRED_VERSIONS = {
     "1.6.0": ["step_summary"],
     "1.4.7": ["extra_arg"],
     "1.8.1": ["jobs"],
+    "1.9.0": ["ignore_tidy", "ignore_format"],
 }
 
 PERMISSIONS = {

@@ -156,6 +156,22 @@ cli_arg_parser.add_argument(
 """,
 )
 cli_arg_parser.add_argument(
+    "-M",
+    "--ignore-format",
+    default="",
+    help="""Set this option with path(s) to ignore (or not ignore)
+when using clang-format. See :std:option:`--ignore` for
+more detail.""",
+)
+cli_arg_parser.add_argument(
+    "-D",
+    "--ignore-tidy",
+    default="",
+    help="""Set this option with path(s) to ignore (or not ignore)
+when using clang-tidy. See :std:option:`--ignore` for
+more detail.""",
+)
+cli_arg_parser.add_argument(
     "-l",
     "--lines-changed-only",
     default="false",

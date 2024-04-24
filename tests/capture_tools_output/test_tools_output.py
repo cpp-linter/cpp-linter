@@ -281,6 +281,9 @@ def test_format_annotations(
         tidy_review=False,
         format_review=False,
         num_workers=None,
+        extensions=["c", "h", "cpp", "hpp"],
+        tidy_ignore="",
+        format_ignore="",
     )
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
@@ -362,6 +365,9 @@ def test_tidy_annotations(
         tidy_review=False,
         format_review=False,
         num_workers=None,
+        extensions=["c", "h", "cpp", "hpp"],
+        tidy_ignore="",
+        format_ignore="",
     )
     assert [note for concern in tidy_advice for note in concern.notes]
     assert not [note for note in format_advice]
@@ -417,6 +423,9 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         tidy_review=False,
         format_review=False,
         num_workers=None,
+        extensions=["cpp", "hpp"],
+        tidy_ignore="",
+        format_ignore="",
     )
     comment, format_checks_failed, tidy_checks_failed = make_comment(
         files, format_advice, tidy_advice
@@ -512,6 +521,9 @@ def test_tidy_extra_args(
         tidy_review=False,
         format_review=False,
         num_workers=None,
+        extensions=["cpp", "hpp"],
+        tidy_ignore="",
+        format_ignore="",
     )
     stdout = capsys.readouterr().out
     msg_match = CLANG_TIDY_COMMAND.search(stdout)

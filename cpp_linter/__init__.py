@@ -41,9 +41,7 @@ def main():
     start_log_group("Get list of specified source files")
     if args.files_changed_only:
         files = rest_api_client.get_list_of_changed_files(
-            extensions=args.extensions,
-            ignored=global_file_filter.ignored,
-            not_ignored=global_file_filter.not_ignored,
+            file_filter=global_file_filter,
             lines_changed_only=args.lines_changed_only,
         )
         rest_api_client.verify_files_are_present(files)
@@ -54,9 +52,7 @@ def main():
         if is_pr_event and (args.tidy_review or args.format_review):
             # get file changes from diff
             git_changes = rest_api_client.get_list_of_changed_files(
-                extensions=args.extensions,
-                ignored=global_file_filter.ignored,
-                not_ignored=global_file_filter.not_ignored,
+                file_filter=global_file_filter,
                 lines_changed_only=0,  # prevent filtering out unchanged files
             )
             # merge info from git changes into list of all files
@@ -87,6 +83,9 @@ def main():
         tidy_review=is_pr_event and args.tidy_review,
         format_review=is_pr_event and args.format_review,
         num_workers=args.jobs,
+        extensions=args.extensions,
+        tidy_ignore=args.ignore_tidy,
+        format_ignore=args.ignore_format,
     )
 
     start_log_group("Posting comment(s)")
