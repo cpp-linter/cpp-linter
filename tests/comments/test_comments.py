@@ -81,7 +81,7 @@ def test_post_feedback(
     )
 
     # patch env vars
-    event_payload = {"number": TEST_PR, "repository": {"private": False}}
+    event_payload = {"number": TEST_PR}
     event_payload_path = tmp_path / "event_payload.json"
     event_payload_path.write_text(json.dumps(event_payload), encoding="utf-8")
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event_payload_path))
