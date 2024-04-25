@@ -319,16 +319,16 @@ class RestApiClient(ABC):
         """
         raise NotImplementedError("Must be defined in the derivative")
 
+    @staticmethod
+    def has_more_pages(response: requests.Response) -> Optional[str]:
+        """A helper function to parse a HTTP request's response headers to determine if
+        the previous REST API call is paginated.
 
-def has_more_pages(response: requests.Response) -> Optional[str]:
-    """A helper function to parse a HTTP request's response headers to determine if the
-    previous REST API call is paginated.
+        :param response: A HTTP request's response.
 
-    :param response: A HTTP request's response.
-
-    :returns: The URL of the next page if any, otherwise `None`.
-    """
-    links = response.links
-    if "next" in links and "url" in links["next"]:
-        return links["next"]["url"]
-    return None
+        :returns: The URL of the next page if any, otherwise `None`.
+        """
+        links = response.links
+        if "next" in links and "url" in links["next"]:
+            return links["next"]["url"]
+        return None

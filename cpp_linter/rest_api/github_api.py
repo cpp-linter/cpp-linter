@@ -27,13 +27,7 @@ from ..clang_tools.clang_tidy import TidyAdvice, tally_tidy_advice
 from ..common_fs import FileObj, CACHE_PATH
 from ..loggers import start_log_group, logger, log_commander
 from ..git import parse_diff, get_diff
-from . import (
-    RestApiClient,
-    USER_OUTREACH,
-    COMMENT_MARKER,
-    RateLimitHeaders,
-    has_more_pages,
-)
+from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -340,7 +334,7 @@ class GithubApiClient(RestApiClient):
         next_page: Optional[str] = comments_url + f"?page={page}&per_page=100"
         while next_page:
             response = self.api_request(url=next_page)
-            next_page = has_more_pages(response)
+            next_page = self.has_more_pages(response)
             page += 1
 
             comments = cast(List[Dict[str, Any]], response.json())
@@ -521,7 +515,7 @@ class GithubApiClient(RestApiClient):
         next_page: Optional[str] = url + "?page=1&per_page=100"
         while next_page:
             response = self.api_request(url=next_page)
-            next_page = has_more_pages(response)
+            next_page = self.has_more_pages(response)
 
             reviews: List[Dict[str, Any]] = response.json()
             for review in reviews:
