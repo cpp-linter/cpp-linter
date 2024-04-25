@@ -1,8 +1,12 @@
+"""This base module holds abstractions common to using REST API.
+See other modules in ``rest_api`` subpackage for detailed derivatives.
+"""
+
 from abc import ABC
 from pathlib import PurePath
 import sys
 import time
-from typing import Optional, Dict, List, Any, cast
+from typing import Optional, Dict, List, Any, cast, NamedTuple
 import requests
 from ..common_fs import FileObj
 from ..clang_tools.clang_format import FormatAdvice
@@ -17,17 +21,13 @@ USER_OUTREACH = (
 COMMENT_MARKER = "<!-- cpp linter action -->\n"
 
 
-class RateLimitHeaders:
+class RateLimitHeaders(NamedTuple):
     """A collection of HTTP response header keys that describe a REST API's rate limits.
     Each parameter corresponds to a instance attribute (see below)."""
 
-    def __init__(self, reset: str, remaining: str, retry: str) -> None:
-        #: The header key of the rate limit's reset time.
-        self.reset = reset
-        #: The header key of the rate limit's remaining attempts.
-        self.remaining = remaining
-        #: The header key of the rate limit's "backoff" time interval.
-        self.retry = retry
+    reset: str  #: The header key of the rate limit's reset time.
+    remaining: str  #: The header key of the rate limit's remaining attempts.
+    retry: str  #: The header key of the rate limit's "backoff" time interval.
 
 
 class RestApiClient(ABC):
