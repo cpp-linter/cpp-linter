@@ -10,14 +10,14 @@ from cpp_linter.common_fs.file_filter import FileFilter
     "user_in,is_ignored,is_not_ignored",
     [
         (
-            "tests|!tests/demo/demo.h|!",
-            ["tests/test_misc.py", "tests/demo/demo.cpp"],
-            ["tests/demo/demo.h", "pyproject.toml"],
+            "src|!src/file.h|!",
+            ["src/file.h", "src/sub/path/file.h"],
+            ["src/file.h", "file.h"],
         ),
         (
-            "!tests|./",
-            ["pyproject.toml", "tests/demo/demo.cpp", "cpp_linter/__init__.py"],
-            ["tests/test_misc.py", "tests/demo/demo.cpp"],
+            "!src|./",
+            ["file.h", "sub/path/file.h"],
+            ["src/file.h", "src/sub/path/file.h"],
         ),
         (
             "tests/**|!tests/demo|!cpp_linter/*.py|",

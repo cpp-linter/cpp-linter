@@ -106,33 +106,33 @@ class FileFilter:
         tool_name = "" if not self._tool_name else f"[{self._tool_name}] "
         path_list = self.ignored if ignored else self.not_ignored
         file_posix = file_name.as_posix()
+        prompt_pattern = ""
         for pattern in path_list:
+            prompt_pattern = pattern
+            # works well for files, but not well for sub dir of a pattern
             if pattern and file_name.match(pattern):
-                logger.debug(
-                    "%s./%s is %s as specified by pattern ./%s",
-                    tool_name,
-                    file_posix,
-                    prompt,
-                    pattern,
-                )
-                return True
-            path = Path(pattern or ".")
+                break
+
+            # works well to identify a sub dir by matching the
+            # common path between them with the literal pattern.
+            path = PurePath(pattern or ".")
             path_posix = path.as_posix()
-            if path.is_dir():
-                # if path has no parts, then it is considered repo-root
-                if not path.parts or (
-                    PurePath(os.path.commonpath([file_posix, path_posix])).as_posix()
-                    == path_posix
-                ):
-                    logger.debug(
-                        '"%s./%s" is %s as specified in the domain "./%s"',
-                        tool_name,
-                        file_posix,
-                        prompt,
-                        pattern,
-                    )
-                    return True
-        return False
+            # if path has no parts, then it is considered repo-root
+            if not path.parts or (
+                PurePath(os.path.commonpath([file_posix, path_posix])).as_posix()
+                == path_posix
+            ):
+                break
+        else:
+            return False
+        logger.debug(
+            '"%s./%s" is %s as specified by pattern "%s"',
+            tool_name,
+            file_posix,
+            prompt,
+            prompt_pattern or "./",
+        )
+        return True
 
     def is_source_or_ignored(self, file_name: str) -> bool:
         """Exclude undesired files (specified by user input :std:option:`--extensions`
