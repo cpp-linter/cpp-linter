@@ -2,8 +2,6 @@
 If executed from command-line, then `main()` is the entrypoint.
 """
 
-import json
-import logging
 import os
 from .common_fs import list_source_files, CACHE_PATH
 from .loggers import start_log_group, end_log_group, logger
@@ -35,11 +33,6 @@ def main():
     # change working directory
     os.chdir(args.repo_root)
     CACHE_PATH.mkdir(exist_ok=True)
-
-    if logger.getEffectiveLevel() <= logging.DEBUG:
-        start_log_group("Event json from the runner")
-        logger.debug(json.dumps(rest_api_client.event_payload))
-        end_log_group()
 
     if args.files_changed_only:
         files = rest_api_client.get_list_of_changed_files(

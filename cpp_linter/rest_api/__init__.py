@@ -1,11 +1,17 @@
+"""This base module holds abstractions common to using REST API.
+See other modules in ``rest_api`` subpackage for detailed derivatives.
+"""
+
 from abc import ABC
 from pathlib import PurePath
+import sys
+import time
+from typing import Optional, Dict, List, Any, cast, NamedTuple
 import requests
-from typing import Optional, Dict, List, Any
 from ..common_fs import FileObj
 from ..clang_tools.clang_format import FormatAdvice
 from ..clang_tools.clang_tidy import TidyAdvice
-from ..loggers import logger
+from ..loggers import logger, log_response_msg
 
 
 USER_OUTREACH = (
@@ -15,9 +21,41 @@ USER_OUTREACH = (
 COMMENT_MARKER = "<!-- cpp linter action -->\n"
 
 
+class RateLimitHeaders(NamedTuple):
+    """A collection of HTTP response header keys that describe a REST API's rate limits.
+    Each parameter corresponds to a instance attribute (see below)."""
+
+    reset: str  #: The header key of the rate limit's reset time.
+    remaining: str  #: The header key of the rate limit's remaining attempts.
+    retry: str  #: The header key of the rate limit's "backoff" time interval.
+
+
 class RestApiClient(ABC):
-    def __init__(self) -> None:
+    """A class that describes the API used to interact with a git server's REST API.
+
+    :param rate_limit_headers: See `RateLimitHeaders` class.
+    """
+
+    def __init__(self, rate_limit_headers: RateLimitHeaders) -> None:
         self.session = requests.Session()
+
+        # The remain API requests allowed under the given token (if any).
+        self._rate_limit_remaining = -1  # -1 means unknown
+        # a counter for avoiding secondary rate limits
+        self._rate_limit_back_step = 0
+        # the rate limit reset time
+        self._rate_limit_reset: Optional[time.struct_time] = None
+        # the rate limit HTTP response header keys
+        self._rate_limit_headers = rate_limit_headers
+
+    def _rate_limit_exceeded(self):
+        logger.error("RATE LIMIT EXCEEDED!")
+        if self._rate_limit_reset is not None:
+            logger.error(
+                "Gitlab REST API rate limit resets on %s",
+                time.strftime("%d %B %Y %H:%M +0000", self._rate_limit_reset),
+            )
+        sys.exit(1)
 
     def api_request(
         self,
@@ -42,7 +80,45 @@ class RestApiClient(ABC):
         :returns:
             The HTTP request's response object.
         """
-        raise NotImplementedError("Must be defined in the derivative")
+        if self._rate_limit_back_step >= 5 or self._rate_limit_remaining == 0:
+            self._rate_limit_exceeded()
+        response = self.session.request(
+            method=method or ("GET" if data is None else "POST"),
+            url=url,
+            headers=headers,
+            data=data,
+        )
+        self._rate_limit_remaining = int(
+            response.headers.get(self._rate_limit_headers.remaining, "-1")
+        )
+        if self._rate_limit_headers.reset in response.headers:
+            self._rate_limit_reset = time.gmtime(
+                int(response.headers[self._rate_limit_headers.reset])
+            )
+        log_response_msg(response)
+        if response.status_code in [403, 429]:  # rate limit exceeded
+            # secondary rate limit handling
+            if self._rate_limit_headers.retry in response.headers:
+                wait_time = (
+                    float(
+                        cast(str, response.headers.get(self._rate_limit_headers.retry))
+                    )
+                    * self._rate_limit_back_step
+                )
+                logger.warning(
+                    "SECONDARY RATE LIMIT HIT! Backing off for %f seconds",
+                    wait_time,
+                )
+                time.sleep(wait_time)
+                self._rate_limit_back_step += 1
+                return self.api_request(url, method=method, data=data, headers=headers)
+            # primary rate limit handling
+            if self._rate_limit_remaining == 0:
+                self._rate_limit_exceeded()
+        if strict:
+            response.raise_for_status()
+        self._rate_limit_back_step = 0
+        return response
 
     def set_exit_code(
         self,
@@ -242,3 +318,17 @@ class RestApiClient(ABC):
             PR review comments using clang-format.
         """
         raise NotImplementedError("Must be defined in the derivative")
+
+    @staticmethod
+    def has_more_pages(response: requests.Response) -> Optional[str]:
+        """A helper function to parse a HTTP request's response headers to determine if
+        the previous REST API call is paginated.
+
+        :param response: A HTTP request's response.
+
+        :returns: The URL of the next page if any, otherwise `None`.
+        """
+        links = response.links
+        if "next" in links and "url" in links["next"]:
+            return links["next"]["url"]
+        return None
