@@ -8,6 +8,7 @@ import pytest
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
+from cpp_linter.cli import Args
 from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.loggers import logger
 
@@ -50,25 +51,22 @@ def test_post_feedback(
     file_filter = FileFilter(
         extensions=["cpp", "hpp"],
         ignore_value="tests/capture_tools_output",
-        not_ignored=[],
     )
     files = file_filter.list_source_files()
     assert files
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=environ.get("CLANG_VERSION", "16"),
-        checks="readability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*",
-        style="llvm",
-        lines_changed_only=0,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+
+    args = Args()
+    args.tidy_checks = "readability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*"
+    args.version = environ.get("CLANG_VERSION", "16")
+    args.style = "llvm"
+    args.extensions = ["cpp", "hpp"]
+    args.lines_changed_only = 0
+    args.no_lgtm = no_lgtm
+    args.thread_comments = thread_comments
+    args.step_summary = thread_comments == "update" and not no_lgtm
+    args.file_annotations = thread_comments == "update" and no_lgtm
+
+    format_advice, tidy_advice = capture_clang_tools_output(files, args=args)
     # add a non project file to tidy_advice to intentionally cover a log.debug()
     assert tidy_advice
     tidy_advice[-1].notes.append(
@@ -149,15 +147,4 @@ def test_post_feedback(
         # to get debug files saved to test workspace folders: enable logger verbosity
         caplog.set_level(logging.DEBUG, logger=logger.name)
 
-        gh_client.post_feedback(
-            files,
-            format_advice,
-            tidy_advice,
-            thread_comments,
-            no_lgtm,
-            step_summary=thread_comments == "update" and not no_lgtm,
-            file_annotations=thread_comments == "update" and no_lgtm,
-            style="llvm",
-            tidy_review=False,
-            format_review=False,
-        )
+        gh_client.post_feedback(files, format_advice, tidy_advice, args)

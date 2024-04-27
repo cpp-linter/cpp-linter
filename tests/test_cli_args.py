@@ -2,57 +2,7 @@
 
 from typing import List, Union
 import pytest
-from cpp_linter.cli import cli_arg_parser
-
-
-class Args:
-    """A pseudo namespace declaration. Each attribute is initialized with the
-    corresponding CLI arg's default value."""
-
-    verbosity: bool = False
-    database: str = ""
-    style: str = "llvm"
-    tidy_checks: str = (
-        "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
-        "clang-analyzer-*,cppcoreguidelines-*"
-    )
-    version: str = ""
-    extensions: List[str] = [
-        "c",
-        "h",
-        "C",
-        "H",
-        "cpp",
-        "hpp",
-        "cc",
-        "hh",
-        "c++",
-        "h++",
-        "cxx",
-        "hxx",
-    ]
-    repo_root: str = "."
-    ignore: str = ".github"
-    lines_changed_only: int = 0
-    files_changed_only: bool = False
-    thread_comments: str = "false"
-    step_summary: bool = False
-    file_annotations: bool = True
-    extra_arg: List[str] = []
-    no_lgtm: bool = True
-    files: List[str] = []
-    tidy_review: bool = False
-    format_review: bool = False
-    jobs: int = 1
-    ignore_tidy: str = ""
-    ignore_format: str = ""
-
-
-def test_defaults():
-    """test default values"""
-    args = cli_arg_parser.parse_args("")
-    for key in args.__dict__.keys():
-        assert args.__dict__[key] == getattr(Args, key)
+from cpp_linter.cli import cli_arg_parser, Args
 
 
 @pytest.mark.parametrize(
@@ -95,5 +45,5 @@ def test_arg_parser(
     attr_value: Union[int, str, List[str], bool, None],
 ):
     """parameterized test of specific args compared to their parsed value"""
-    args = cli_arg_parser.parse_args([f"--{arg_name}={arg_value}"])
+    args = cli_arg_parser.parse_args([f"--{arg_name}={arg_value}"], namespace=Args())
     assert getattr(args, attr_name) == attr_value

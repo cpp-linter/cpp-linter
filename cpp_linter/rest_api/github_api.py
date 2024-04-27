@@ -148,20 +148,14 @@ class GithubApiClient(RestApiClient):
         files: List[FileObj],
         format_advice: List[FormatAdvice],
         tidy_advice: List[TidyAdvice],
-        thread_comments: str,
-        no_lgtm: bool,
-        step_summary: bool,
-        file_annotations: bool,
-        style: str,
-        tidy_review: bool,
-        format_review: bool,
+        args: Args,
     ):
         format_checks_failed = tally_format_advice(format_advice=format_advice)
         tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
         checks_failed = format_checks_failed + tidy_checks_failed
         comment: Optional[str] = None
 
-        if step_summary and "GITHUB_STEP_SUMMARY" in environ:
+        if args.step_summary and "GITHUB_STEP_SUMMARY" in environ:
             comment = super().make_comment(
                 files=files,
                 format_advice=format_advice,
@@ -173,12 +167,12 @@ class GithubApiClient(RestApiClient):
             with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
                 summary.write(f"\n{comment}\n")
 
-        if file_annotations:
+        if args.file_annotations:
             self.make_annotations(
                 files=files,
                 format_advice=format_advice,
                 tidy_advice=tidy_advice,
-                style=style,
+                style=args.style,
             )
 
         self.set_exit_code(
@@ -187,7 +181,7 @@ class GithubApiClient(RestApiClient):
             tidy_checks_failed=tidy_checks_failed,
         )
 
-        if thread_comments != "false":
+        if args.thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
                 sys.exit(1)
@@ -202,7 +196,7 @@ class GithubApiClient(RestApiClient):
                     len_limit=65535,
                 )
 
-            update_only = thread_comments == "update"
+            update_only = args.thread_comments == "update"
             is_lgtm = not checks_failed
             comments_url = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
@@ -213,19 +207,21 @@ class GithubApiClient(RestApiClient):
             self.update_comment(
                 comment=comment,
                 comments_url=comments_url,
-                no_lgtm=no_lgtm,
+                no_lgtm=args.no_lgtm,
                 update_only=update_only,
                 is_lgtm=is_lgtm,
             )
 
-        if self.event_name == "pull_request" and (tidy_review or format_review):
+        if self.event_name == "pull_request" and (
+            args.tidy_review or args.format_review
+        ):
             self.post_review(
                 files=files,
                 tidy_advice=tidy_advice,
                 format_advice=format_advice,
-                tidy_review=tidy_review,
-                format_review=format_review,
-                no_lgtm=no_lgtm,
+                tidy_review=args.tidy_review,
+                format_review=args.format_review,
+                no_lgtm=args.no_lgtm,
             )
 
     def make_annotations(

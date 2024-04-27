@@ -7,7 +7,7 @@ from .common_fs import CACHE_PATH
 from .common_fs.file_filter import FileFilter
 from .loggers import start_log_group, end_log_group, logger
 from .clang_tools import capture_clang_tools_output
-from .cli import cli_arg_parser
+from .cli import cli_arg_parser, Args
 from .rest_api.github_api import GithubApiClient
 
 
@@ -15,7 +15,7 @@ def main():
     """The main script."""
 
     # The parsed CLI args
-    args = cli_arg_parser.parse_args()
+    args = cli_arg_parser.parse_args(namespace=Args())
 
     #  force files-changed-only to reflect value of lines-changed-only
     if args.lines_changed_only:
@@ -24,6 +24,9 @@ def main():
     rest_api_client = GithubApiClient()
     logger.info("processing %s event", rest_api_client.event_name)
     is_pr_event = rest_api_client.event_name == "pull_request"
+    if not is_pr_event:
+        args.tidy_review = False
+        args.format_review = False
 
     # set logging verbosity
     logger.setLevel(10 if args.verbosity or rest_api_client.debug_enabled else 20)
@@ -72,34 +75,14 @@ def main():
         )
     end_log_group()
 
-    (format_advice, tidy_advice) = capture_clang_tools_output(
-        files=files,
-        version=args.version,
-        checks=args.tidy_checks,
-        style=args.style,
-        lines_changed_only=args.lines_changed_only,
-        database=args.database,
-        extra_args=args.extra_arg,
-        tidy_review=is_pr_event and args.tidy_review,
-        format_review=is_pr_event and args.format_review,
-        num_workers=args.jobs,
-        extensions=args.extensions,
-        tidy_ignore=args.ignore_tidy,
-        format_ignore=args.ignore_format,
-    )
+    (format_advice, tidy_advice) = capture_clang_tools_output(files=files, args=args)
 
     start_log_group("Posting comment(s)")
     rest_api_client.post_feedback(
         files=files,
         format_advice=format_advice,
         tidy_advice=tidy_advice,
-        thread_comments=args.thread_comments,
-        no_lgtm=args.no_lgtm,
-        step_summary=args.step_summary,
-        file_annotations=args.file_annotations,
-        style=args.style,
-        tidy_review=args.tidy_review,
-        format_review=args.format_review,
+        args=args,
     )
     end_log_group()
 

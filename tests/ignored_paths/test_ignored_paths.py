@@ -1,6 +1,6 @@
 """Tests that focus on the ``ignore`` option's parsing."""
 
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import List
 import pytest
 from cpp_linter.common_fs.file_filter import FileFilter
@@ -38,17 +38,17 @@ def test_ignore(
 ):
     """test ignoring of a specified path."""
     caplog.set_level(10)
-    file_filter = FileFilter(extensions=[], ignore_value=user_in, not_ignored=[])
+    file_filter = FileFilter(ignore_value=user_in)
     for p in is_ignored:
-        assert file_filter.is_file_in_list(ignored=True, file_name=p)
+        assert file_filter.is_file_in_list(ignored=True, file_name=PurePath(p))
     for p in is_not_ignored:
-        assert file_filter.is_file_in_list(ignored=False, file_name=p)
+        assert file_filter.is_file_in_list(ignored=False, file_name=PurePath(p))
 
 
 def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
     """test auto detection of submodules and ignore the paths appropriately."""
     monkeypatch.chdir(str(Path(__file__).parent))
-    file_filter = FileFilter(extensions=[], ignore_value="!pybind11", not_ignored=[])
+    file_filter = FileFilter(ignore_value="!pybind11")
     file_filter.parse_submodules()
     for ignored_submodule in ["RF24", "RF24Network", "RF24Mesh"]:
         assert ignored_submodule in file_filter.ignored
@@ -60,5 +60,5 @@ def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
 )
 def test_positional_arg(user_input: List[str]):
     """Make sure positional arg value(s) are added to not_ignored list."""
-    file_filter = FileFilter(extensions=[], ignore_value="", not_ignored=user_input)
-    assert {p: [] for p in user_input} == file_filter.not_ignored
+    file_filter = FileFilter(not_ignored=user_input)
+    assert set([p for p in user_input]) == file_filter.not_ignored

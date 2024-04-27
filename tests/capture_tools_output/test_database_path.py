@@ -14,6 +14,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
+from cpp_linter.cli import Args
 from mesonbuild.mesonmain import main as meson  # type: ignore
 
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
@@ -48,21 +49,15 @@ def test_db_detection(
     demo_src = "demo/demo.cpp"
     files = [FileObj(demo_src)]
 
-    _ = capture_clang_tools_output(
-        files,
-        version=os.getenv("CLANG_VERSION", "12"),
-        checks="",  # let clang-tidy use a .clang-tidy config file
-        style="",  # don't invoke clang-format
-        lines_changed_only=0,  # analyze complete file
-        database=database,
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+    args = Args()
+    args.database = database
+    args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
+    args.version = os.getenv("CLANG_VERSION", "12")
+    args.style = ""  # don't invoke clang-format
+    args.extensions = ["cpp", "hpp"]
+    args.lines_changed_only = 0  # analyze complete file
+
+    _ = capture_clang_tools_output(files, args=args)
     stdout = capsys.readouterr().out
     assert "Error while trying to load a compilation database" not in stdout
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
@@ -97,22 +92,16 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]
 
+    args = Args()
+    args.database = "build"  # point to generated compile_commands.txt
+    args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
+    args.version = os.getenv("CLANG_VERSION", "12")
+    args.style = ""  # don't invoke clang-format
+    args.extensions = ["cpp", "hpp"]
+    args.lines_changed_only = 0  # analyze complete file
+
     # run clang-tidy and verify paths of project files were matched with database paths
-    (format_advice, tidy_advice) = capture_clang_tools_output(
-        files,
-        version=os.getenv("CLANG_VERSION", "12"),
-        checks="",  # let clang-tidy use a .clang-tidy config file
-        style="",  # don't invoke clang-format
-        lines_changed_only=0,  # analyze complete file
-        database="build",  # point to generated compile_commands.txt
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+    (format_advice, tidy_advice) = capture_clang_tools_output(files, args=args)
     found_project_file = False
     for concern in tidy_advice:
         for note in concern.notes:

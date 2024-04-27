@@ -75,7 +75,7 @@ def test_list_src_files(
     """List the source files in the root folder of this repo."""
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    file_filter = FileFilter(extensions=extensions, ignore_value="", not_ignored=[])
+    file_filter = FileFilter(extensions=extensions)
     files = file_filter.list_source_files()
     assert files
     for file in files:
@@ -142,9 +142,7 @@ def test_get_changed_files(
             text="",
         )
 
-        files = gh_client.get_list_of_changed_files(
-            FileFilter(extensions=[], ignore_value="", not_ignored=[]), 0
-        )
+        files = gh_client.get_list_of_changed_files(FileFilter(), 0)
         assert not files
 
 

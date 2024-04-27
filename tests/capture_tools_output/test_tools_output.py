@@ -21,7 +21,7 @@ from cpp_linter.clang_tools.clang_format import tally_format_advice, FormatAdvic
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice, TidyAdvice
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
-from cpp_linter.cli import cli_arg_parser
+from cpp_linter.cli import cli_arg_parser, Args
 from cpp_linter.common_fs.file_filter import FileFilter
 
 
@@ -157,9 +157,7 @@ def prep_tmp_dir(
     monkeypatch.chdir(str(repo_cache))
     CACHE_PATH.mkdir(exist_ok=True)
     files = gh_client.get_list_of_changed_files(
-        FileFilter(
-            extensions=["c", "h", "hpp", "cpp"], ignore_value=".github", not_ignored=[]
-        ),
+        FileFilter(extensions=["c", "h", "hpp", "cpp"]),
         lines_changed_only=lines_changed_only,
     )
     gh_client.verify_files_are_present(files)
@@ -210,7 +208,7 @@ def test_lines_changed_only(
     CACHE_PATH.mkdir(exist_ok=True)
     gh_client = prep_api_client(monkeypatch, repo, commit)
     files = gh_client.get_list_of_changed_files(
-        FileFilter(extensions=extensions, ignore_value=".github", not_ignored=[]),
+        FileFilter(extensions=extensions),
         lines_changed_only=lines_changed_only,
     )
     if files:
@@ -270,21 +268,15 @@ def test_format_annotations(
         lines_changed_only=lines_changed_only,
         copy_configs=True,
     )
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=CLANG_VERSION,
-        checks="-*",  # disable clang-tidy output
-        style=style,
-        lines_changed_only=lines_changed_only,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["c", "h", "cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+
+    args = Args()
+    args.lines_changed_only = lines_changed_only
+    args.tidy_checks = "-*"  # disable clang-tidy output
+    args.version = CLANG_VERSION
+    args.style = style
+    args.extensions = ["c", "h", "cpp", "hpp"]
+
+    format_advice, tidy_advice = capture_clang_tools_output(files, args=args)
     assert [note for note in format_advice]
     assert not [note for concern in tidy_advice for note in concern.notes]
 
@@ -354,21 +346,15 @@ def test_tidy_annotations(
         lines_changed_only=lines_changed_only,
         copy_configs=False,
     )
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=CLANG_VERSION,
-        checks=checks,
-        style="",  # disable clang-format output
-        lines_changed_only=lines_changed_only,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["c", "h", "cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+
+    args = Args()
+    args.lines_changed_only = lines_changed_only
+    args.tidy_checks = checks
+    args.version = CLANG_VERSION
+    args.style = ""  # disable clang-format output
+    args.extensions = ["c", "h", "cpp", "hpp"]
+
+    format_advice, tidy_advice = capture_clang_tools_output(files, args=args)
     assert [note for concern in tidy_advice for note in concern.notes]
     assert not [note for note in format_advice]
     caplog.set_level(logging.DEBUG)
@@ -411,22 +397,14 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     files: List[FileObj] = []  # no files to test means no concerns to note
 
+    args = Args()
+    args.tidy_checks = "-*"
+    args.version = CLANG_VERSION
+    args.style = ""  # disable clang-format output
+    args.extensions = ["cpp", "hpp"]
+
     # this call essentially does nothing with the file system
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=CLANG_VERSION,
-        checks="-*",
-        style="",
-        lines_changed_only=0,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+    format_advice, tidy_advice = capture_clang_tools_output(files, args=args)
     comment, format_checks_failed, tidy_checks_failed = make_comment(
         files, format_advice, tidy_advice
     )
@@ -483,7 +461,7 @@ def test_parse_diff(
     Path(CACHE_PATH).mkdir()
     files = parse_diff(
         get_diff(),
-        FileFilter(extensions=["cpp", "hpp"], ignore_value="", not_ignored=[]),
+        FileFilter(extensions=["cpp", "hpp"]),
         lines_changed_only=0,
     )
     if sha == TEST_REPO_COMMIT_PAIRS[4]["commit"] or patch:
@@ -504,27 +482,19 @@ def test_tidy_extra_args(
 ):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
-    cli_in = []
+    cli_in = [
+        f"--version={CLANG_VERSION}",
+        "--tidy-checks=''",
+        "--style=''",
+        "--lines-changed-only=false",
+        "--extension=cpp,hpp",
+    ]
     for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
     logger.setLevel(logging.INFO)
-    args = cli_arg_parser.parse_args(cli_in)
+    args = cli_arg_parser.parse_args(cli_in, namespace=Args())
     assert len(user_input) == len(args.extra_arg)
-    _, _ = capture_clang_tools_output(
-        files=[FileObj("tests/demo/demo.cpp")],
-        version=CLANG_VERSION,
-        checks="",  # use .clang-tidy config
-        style="",  # disable clang-format
-        lines_changed_only=0,
-        database="",
-        extra_args=args.extra_arg,
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-        extensions=["cpp", "hpp"],
-        tidy_ignore="",
-        format_ignore="",
-    )
+    _, _ = capture_clang_tools_output(files=[FileObj("tests/demo/demo.cpp")], args=args)
     stdout = capsys.readouterr().out
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
     if msg_match is None:  # pragma: no cover

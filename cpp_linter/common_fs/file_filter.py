@@ -1,7 +1,7 @@
 import configparser
 import os
 from pathlib import Path, PurePath
-from typing import List, Optional, Dict
+from typing import List, Optional, Set
 from . import FileObj
 from ..loggers import logger
 
@@ -10,8 +10,8 @@ class FileFilter:
     """A reusable mechanism for parsing and validating file filters.
 
     :param extensions: A list of file extensions in which to focus.
-    :param ignore_value: The user input specified via :std:option:`--ignore` CLI
-        argument.
+    :param ignore_value: The user input specified via :std:option:`--ignore`
+        CLI argument.
     :param not_ignored: A list of files or paths that will be explicitly not ignored.
     :param tool_specific_name: A clang tool name for which the file filter is
         specifically applied. This only gets used in debug statements.
@@ -19,49 +19,43 @@ class FileFilter:
 
     def __init__(
         self,
-        extensions: List[str],
-        ignore_value: str,
-        not_ignored: List[str],
+        ignore_value: str = "",
+        extensions: Optional[List[str]] = None,
+        not_ignored: Optional[List[str]] = None,
         tool_specific_name: Optional[str] = None,
     ) -> None:
-        #: A list of file extensions that are considered C/C++ sources.
-        self.extensions = extensions
-        #: A dict of ignore patterns (keys) mapped to their effects paths (values).
-        self.ignored: Dict[str, List[Path]] = {}
-        #: A dict of not-ignore patterns (keys) mapped to their effects paths (values).
-        self.not_ignored: Dict[str, List[Path]] = {
-            f: FileFilter._resolve_glob(f) for f in not_ignored
-        }
+        #: A set of file extensions that are considered C/C++ sources.
+        self.extensions: Set[str] = set(extensions or [])
+        #: A set of ignore patterns.
+        self.ignored: Set[str] = set()
+        #: A set of not-ignore patterns.
+        self.not_ignored: Set[str] = set(not_ignored or [])
         self._tool_name = tool_specific_name or ""
         self._parse_ignore_option(paths=ignore_value)
 
-    @staticmethod
-    def _resolve_glob(pattern: str):
-        if not pattern:
-            return [Path(".")]
-        return list(Path(".").glob(pattern))
-
     def parse_submodules(self, path: str = ".gitmodules"):
-        """Automatically detect submodules from given ``path``.
+        """Automatically detect submodules from the given relative ``path``.
         This will add each submodule to the `ignored` list unless already specified as
         `not_ignored`."""
         git_modules = Path(path)
         if git_modules.exists():
+            git_modules_parent = git_modules.parent
             submodules = configparser.ConfigParser()
             submodules.read(git_modules.resolve().as_posix())
             for module in submodules.sections():
-                sub_mod_path = submodules[module]["path"]
-                if sub_mod_path not in self.not_ignored:
+                sub_mod_path = git_modules_parent / submodules[module]["path"]
+                if not self.is_file_in_list(ignored=False, file_name=sub_mod_path):
+                    sub_mod_posix = sub_mod_path.as_posix()
                     logger.info(
-                        "Appending submodule to ignored paths: %s", sub_mod_path
+                        "Appending submodule to ignored paths: %s", sub_mod_posix
                     )
-                    self.ignored[sub_mod_path] = [Path(sub_mod_path)]
+                    self.ignored.add(sub_mod_posix)
 
     def _parse_ignore_option(self, paths: str):
         """Parse a given string of paths (separated by a ``|``) into ``ignored`` and
         ``not_ignored`` lists of strings.
 
-        :param paths: This argument conforms to the input value of CLI arg
+        :param paths: This argument conforms to the input value of :doc:`:doc:`CLI <cli_args>` <cli_args>` arg
             :std:option:`--ignore`.
 
         Results are added accordingly to the `ignored` and `not_ignored` attributes.
@@ -76,32 +70,27 @@ class FileFilter:
                     path = path.replace("./", "", 1)  # relative dir is assumed
 
                 # NOTE: A blank string is now the repo-root `path`
-                _glob_result = FileFilter._resolve_glob(path)
 
                 if is_included:
-                    self.not_ignored[path] = _glob_result
+                    self.not_ignored.add(path)
                 else:
-                    self.ignored[path] = _glob_result
+                    self.ignored.add(path)
 
         tool_name = "" if not self._tool_name else (self._tool_name + " ")
         if self.ignored:
             logger.info(
-                "%sIgnoring the following paths/files:\n\t./%s",
+                "%sIgnoring the following paths/files/patterns:\n\t./%s",
                 tool_name,
-                "\n\t./".join(
-                    f.as_posix() for values in self.ignored.values() for f in values
-                ),
+                "\n\t./".join(PurePath(p).as_posix() for p in self.ignored),
             )
         if self.not_ignored:
             logger.info(
-                "%sNot ignoring the following paths/files:\n\t./%s",
+                "%sNot ignoring the following paths/files/patterns:\n\t./%s",
                 tool_name,
-                "\n\t./".join(
-                    f.as_posix() for values in self.not_ignored.values() for f in values
-                ),
+                "\n\t./".join(PurePath(p).as_posix() for p in self.not_ignored),
             )
 
-    def is_file_in_list(self, ignored: bool, file_name: str) -> bool:
+    def is_file_in_list(self, ignored: bool, file_name: PurePath) -> bool:
         """Determine if a file is specified in a list of paths and/or filenames.
 
         :param ignored: A flag that specifies which set of list to compare with.
@@ -113,36 +102,32 @@ class FileFilter:
             - True if ``file_name`` is in the ``path_list``.
             - False if ``file_name`` is not in the ``path_list``.
         """
-        file_path = PurePath(file_name)
         prompt = "ignored" if ignored else "not ignored"
         tool_name = "" if not self._tool_name else f"[{self._tool_name}] "
         path_list = self.ignored if ignored else self.not_ignored
-        for pattern, paths in path_list.items():
-            for path in paths:
-                if path.is_dir():
-                    # if path has no parts, then it is considered repo-root
-                    if (
-                        not path.parts
-                        or PurePath(
-                            os.path.commonpath(
-                                [f.as_posix() for f in [file_path, path]]
-                            )
-                        ).as_posix()
-                        == path.as_posix()
-                    ):
-                        logger.debug(
-                            '"%s./%s" is %s as specified in the domain "./%s"',
-                            tool_name,
-                            file_name,
-                            prompt,
-                            pattern,
-                        )
-                        return True
-                if path.is_file() and path.as_posix() == file_path.as_posix():
+        file_posix = file_name.as_posix()
+        for pattern in path_list:
+            if pattern and file_name.match(pattern):
+                logger.debug(
+                    "%s./%s is %s as specified by pattern ./%s",
+                    tool_name,
+                    file_posix,
+                    prompt,
+                    pattern,
+                )
+                return True
+            path = Path(pattern or ".")
+            path_posix = path.as_posix()
+            if path.is_dir():
+                # if path has no parts, then it is considered repo-root
+                if not path.parts or (
+                    PurePath(os.path.commonpath([file_posix, path_posix])).as_posix()
+                    == path_posix
+                ):
                     logger.debug(
-                        "%s./%s is %s as specified by pattern ./%s",
+                        '"%s./%s" is %s as specified in the domain "./%s"',
                         tool_name,
-                        file_name,
+                        file_posix,
                         prompt,
                         pattern,
                     )
@@ -167,9 +152,10 @@ class FileFilter:
 
             Otherwise ``False``.
         """
-        return PurePath(file_name).suffix.lstrip(".") in self.extensions and (
-            self.is_file_in_list(ignored=False, file_name=file_name)
-            or not self.is_file_in_list(ignored=True, file_name=file_name)
+        file_path = PurePath(file_name)
+        return file_path.suffix.lstrip(".") in self.extensions and (
+            self.is_file_in_list(ignored=False, file_name=file_path)
+            or not self.is_file_in_list(ignored=True, file_name=file_path)
         )
 
     def list_source_files(self) -> List[FileObj]:
@@ -180,10 +166,9 @@ class FileFilter:
         :returns: A list of `FileObj` objects without diff information.
         """
 
-        root_path = Path(".")
         files = []
         for ext in self.extensions:
-            for rel_path in root_path.rglob(f"*.{ext}"):
+            for rel_path in Path(".").rglob(f"*.{ext}"):
                 for parent in rel_path.parts[:-1]:
                     if parent.startswith("."):
                         break
@@ -191,8 +176,8 @@ class FileFilter:
                     file_path = rel_path.as_posix()
                     logger.debug('"./%s" is a source code file', file_path)
                     if self.is_file_in_list(
-                        ignored=False, file_name=file_path
-                    ) or not self.is_file_in_list(ignored=True, file_name=file_path):
+                        ignored=False, file_name=rel_path
+                    ) or not self.is_file_in_list(ignored=True, file_name=rel_path):
                         files.append(FileObj(file_path))
         return files
 
@@ -201,15 +186,31 @@ class TidyFileFilter(FileFilter):
     """A specialized `FileFilter` whose debug prompts indicate clang-tidy preparation."""
 
     def __init__(
-        self, extensions: List[str], ignore_value: str, not_ignored: List[str]
+        self,
+        ignore_value: str = "",
+        extensions: Optional[List[str]] = None,
+        not_ignored: Optional[List[str]] = None,
     ) -> None:
-        super().__init__(extensions, ignore_value, not_ignored, "clang-tidy ")
+        super().__init__(
+            ignore_value=ignore_value,
+            extensions=extensions,
+            not_ignored=not_ignored,
+            tool_specific_name="clang-tidy",
+        )
 
 
 class FormatFileFilter(FileFilter):
     """A specialized `FileFilter` whose debug prompts indicate clang-format preparation."""
 
     def __init__(
-        self, extensions: List[str], ignore_value: str, not_ignored: List[str]
+        self,
+        ignore_value: str = "",
+        extensions: Optional[List[str]] = None,
+        not_ignored: Optional[List[str]] = None,
     ) -> None:
-        super().__init__(extensions, ignore_value, not_ignored, "clang-format ")
+        super().__init__(
+            ignore_value=ignore_value,
+            extensions=extensions,
+            not_ignored=not_ignored,
+            tool_specific_name="clang-format",
+        )

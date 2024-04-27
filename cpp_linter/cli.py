@@ -1,7 +1,72 @@
-"""Setup the options for CLI arguments."""
+"""Setup the options for :doc:`CLI <../cli_args>` arguments."""
 
 import argparse
-from typing import Optional
+from collections import UserDict
+from typing import Optional, List
+
+
+class Args(UserDict):
+    """A pseudo namespace declaration. Each attribute is initialized with the
+    corresponding :doc:`CLI <../cli_args>` arg's default value."""
+
+    #: See :std:option:`--verbosity`.
+    verbosity: bool = False
+    #: See :std:option:`--database`.
+    database: str = ""
+    #: See :std:option:`--style`.
+    style: str = "llvm"
+    #: See :std:option:`--tidy-checks`.
+    tidy_checks: str = (
+        "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
+        "clang-analyzer-*,cppcoreguidelines-*"
+    )
+    #: See :std:option:`--version`.
+    version: str = ""
+    #: See :std:option:`--extensions`.
+    extensions: List[str] = [
+        "c",
+        "h",
+        "C",
+        "H",
+        "cpp",
+        "hpp",
+        "cc",
+        "hh",
+        "c++",
+        "h++",
+        "cxx",
+        "hxx",
+    ]
+    #: See :std:option:`--repo-root`.
+    repo_root: str = "."
+    #: See :std:option:`--ignore`.
+    ignore: str = ".github"
+    #: See :std:option:`--lines-changed-only`.
+    lines_changed_only: int = 0
+    #: See :std:option:`--files-changed-only`.
+    files_changed_only: bool = False
+    #: See :std:option:`--thread-comments`.
+    thread_comments: str = "false"
+    #: See :std:option:`--step-summary`.
+    step_summary: bool = False
+    #: See :std:option:`--file-annotations`.
+    file_annotations: bool = True
+    #: See :std:option:`--extra-arg`.
+    extra_arg: List[str] = []
+    #: See :std:option:`--no-lgtm`.
+    no_lgtm: bool = True
+    #: These are the optional not-ignored paths passed as positional arguments to the CLI.
+    files: List[str] = []
+    #: See :std:option:`--tidy-review`.
+    tidy_review: bool = False
+    #: See :std:option:`--format-review`.
+    format_review: bool = False
+    #: See :std:option:`--jobs`.
+    jobs: int = 1
+    #: See :std:option:`--ignore-tidy`.
+    ignore_tidy: str = ""
+    #: See :std:option:`--ignore-format`.
+    ignore_format: str = ""
 
 
 cli_arg_parser = argparse.ArgumentParser(

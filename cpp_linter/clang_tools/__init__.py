@@ -11,6 +11,7 @@ from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
 from ..loggers import start_log_group, end_log_group, worker_log_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
+from ..cli import Args
 
 
 def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[str]:
@@ -79,42 +80,13 @@ def _run_on_single_file(
 
 def capture_clang_tools_output(
     files: List[FileObj],
-    version: str,
-    checks: str,
-    style: str,
-    lines_changed_only: int,
-    database: str,
-    extra_args: List[str],
-    tidy_review: bool,
-    format_review: bool,
-    num_workers: Optional[int],
-    extensions: List[str],
-    tidy_ignore: str,
-    format_ignore: str,
+    args: Args,
 ) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
 
     :param files: A list of files to analyze.
-    :param version: The version of clang-tidy to run.
-    :param checks: The `str` of comma-separated regulate expressions that describe
-        the desired clang-tidy checks to be enabled/configured.
-    :param style: The clang-format style rules to adhere. Set this to 'file' to
-        use the relative-most .clang-format configuration file.
-    :param lines_changed_only: A flag that forces focus on only changes in the event's
-        diff info.
-    :param database: The path to the compilation database.
-    :param extra_args: A list of extra arguments used by clang-tidy as compiler
-        arguments.
-    :param tidy_review: A flag to enable/disable creating a diff suggestion for
-        PR review comments using clang-tidy.
-    :param format_review: A flag to enable/disable creating a diff suggestion for
-        PR review comments using clang-format.
-    :param num_workers: The number of workers to use for parallel processing. If
-        `None`, then the number of workers is set to the number of CPU cores.
-    :param extensions: The list of file :std:option:`--extensions`.
-    :param tidy_ignore: The specified :std:option:`--ignore-tidy` value.
-    :param format_ignore: The specified :std:option:`--ignore-format` value.
+    :param args: A namespace of parsed args from the :doc:`CLI <../cli_args>`.
     """
 
     def show_tool_version_output(cmd: str):  # show version output for executable used
@@ -125,34 +97,33 @@ def capture_clang_tools_output(
 
     tidy_cmd, format_cmd = (None, None)
     tidy_filter, format_filter = (None, None)
-    if style:  # if style is an empty value, then clang-format is skipped
-        format_cmd = assemble_version_exec("clang-format", version)
+    if args.style:  # if style is an empty value, then clang-format is skipped
+        format_cmd = assemble_version_exec("clang-format", args.version)
         assert format_cmd is not None, "clang-format executable was not found"
         show_tool_version_output(format_cmd)
         tidy_filter = TidyFileFilter(
-            extensions=extensions,
-            ignore_value=tidy_ignore,
-            not_ignored=[],
+            extensions=args.extensions,
+            ignore_value=args.ignore_tidy,
         )
-    if checks != "-*":  # if all checks are disabled, then clang-tidy is skipped
-        tidy_cmd = assemble_version_exec("clang-tidy", version)
+    if args.tidy_checks != "-*":
+        # if all checks are disabled, then clang-tidy is skipped
+        tidy_cmd = assemble_version_exec("clang-tidy", args.version)
         assert tidy_cmd is not None, "clang-tidy executable was not found"
         show_tool_version_output(tidy_cmd)
         format_filter = FormatFileFilter(
-            extensions=extensions,
-            ignore_value=format_ignore,
-            not_ignored=[],
+            extensions=args.extensions,
+            ignore_value=args.ignore_format,
         )
 
     db_json: Optional[List[Dict[str, str]]] = None
-    if database and not PurePath(database).is_absolute():
-        database = str(Path(database).resolve())
-    if database:
-        db_path = Path(database, "compile_commands.json")
+    if args.database and not PurePath(args.database).is_absolute():
+        args.database = str(Path(args.database).resolve())
+    if args.database:
+        db_path = Path(args.database, "compile_commands.json")
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
-    with ProcessPoolExecutor(num_workers) as executor:
+    with ProcessPoolExecutor(args.jobs) as executor:
         log_lvl = logger.getEffectiveLevel()
         futures = [
             executor.submit(
@@ -160,15 +131,15 @@ def capture_clang_tools_output(
                 file,
                 log_lvl=log_lvl,
                 tidy_cmd=tidy_cmd,
-                checks=checks,
-                lines_changed_only=lines_changed_only,
-                database=database,
-                extra_args=extra_args,
+                checks=args.tidy_checks,
+                lines_changed_only=args.lines_changed_only,
+                database=args.database,
+                extra_args=args.extra_arg,
                 db_json=db_json,
-                tidy_review=tidy_review,
+                tidy_review=args.tidy_review,
                 format_cmd=format_cmd,
-                style=style,
-                format_review=format_review,
+                style=args.style,
+                format_review=args.format_review,
                 format_filter=format_filter,
                 tidy_filter=tidy_filter,
             )

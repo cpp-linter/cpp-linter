@@ -12,6 +12,7 @@ from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import FormatAdvice
 from ..clang_tools.clang_tidy import TidyAdvice
+from ..cli import Args
 from ..loggers import logger, log_response_msg
 
 
@@ -284,13 +285,7 @@ class RestApiClient(ABC):
         files: List[FileObj],
         format_advice: List[FormatAdvice],
         tidy_advice: List[TidyAdvice],
-        thread_comments: str,
-        no_lgtm: bool,
-        step_summary: bool,
-        file_annotations: bool,
-        style: str,
-        tidy_review: bool,
-        format_review: bool,
+        args: Args,
     ):
         """Post action's results using REST API.
 
@@ -299,20 +294,7 @@ class RestApiClient(ABC):
             ``files``.
         :param tidy_advice: A list of clang-tidy advice parallel to the list of
             ``files``.
-        :param thread_comments: A flag that describes if how thread comments should
-            be handled. See :std:option:`--thread-comments`.
-        :param no_lgtm: A flag to control if a "Looks Good To Me" comment should be
-            posted. If this is `False`, then an outdated bot comment will still be
-            deleted. See :std:option:`--no-lgtm`.
-        :param step_summary: A flag that describes if a step summary should
-            be posted. See :std:option:`--step-summary`.
-        :param file_annotations: A flag that describes if file annotations should
-            be posted. See :std:option:`--file-annotations`.
-        :param style: The style used for clang-format. See :std:option:`--style`.
-        :param tidy_review: A flag to enable/disable creating a diff suggestion for
-            PR review comments using clang-tidy.
-        :param format_review: A flag to enable/disable creating a diff suggestion for
-            PR review comments using clang-format.
+        :param args: A namespace of arguments parsed from the :doc:`CLI <../cli_args>`.
         """
         raise NotImplementedError("Must be defined in the derivative")
 

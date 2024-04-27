@@ -8,6 +8,7 @@ import pytest
 
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.cli import Args
 from cpp_linter.common_fs.file_filter import FileFilter
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
@@ -137,7 +138,7 @@ def test_post_review(
 
         # run the actual test
         files = gh_client.get_list_of_changed_files(
-            FileFilter(extensions=["cpp", "hpp"], ignore_value="", not_ignored=[]),
+            FileFilter(extensions=["cpp", "hpp"]),
             lines_changed_only=changes,
         )
         assert files
@@ -146,21 +147,20 @@ def test_post_review(
         if force_approved:
             files.clear()
 
-        format_advice, tidy_advice = capture_clang_tools_output(
-            files,
-            version=environ.get("CLANG_VERSION", "16"),
-            checks=DEFAULT_TIDY_CHECKS,
-            style="file",
-            lines_changed_only=changes,
-            database="",
-            extra_args=[],
-            tidy_review=tidy_review,
-            format_review=format_review,
-            num_workers=num_workers,
-            extensions=["cpp", "hpp"],
-            tidy_ignore="",
-            format_ignore="",
-        )
+        args = Args()
+        args.tidy_checks = DEFAULT_TIDY_CHECKS
+        args.version = environ.get("CLANG_VERSION", "16")
+        args.style = "file"
+        args.extensions = ["cpp", "hpp"]
+        args.lines_changed_only = changes
+        args.tidy_review = tidy_review
+        args.format_review = format_review
+        args.jobs = num_workers
+        args.thread_comments = "false"
+        args.no_lgtm = no_lgtm
+        args.file_annotations = False
+
+        format_advice, tidy_advice = capture_clang_tools_output(files, args=args)
         if not force_approved:
             assert [note for concern in tidy_advice for note in concern.notes]
             assert [note for note in format_advice]
@@ -182,18 +182,7 @@ def test_post_review(
             headers={"Accept": "application/vnd.github.text+json"},
             text=cache_pr_response,
         )
-        gh_client.post_feedback(
-            files,
-            format_advice,
-            tidy_advice,
-            thread_comments="false",
-            no_lgtm=no_lgtm,
-            step_summary=False,
-            file_annotations=False,
-            style="file",
-            tidy_review=tidy_review,
-            format_review=format_review,
-        )
+        gh_client.post_feedback(files, format_advice, tidy_advice, args)
 
         # inspect the review payload for correctness
         last_request = mock.last_request

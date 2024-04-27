@@ -21,6 +21,7 @@
    API-Reference/cpp_linter.git
    API-Reference/cpp_linter.git.git_str
    API-Reference/cpp_linter.loggers
+   API-Reference/cpp_linter.cli
    API-Reference/cpp_linter.common_fs
    API-Reference/cpp_linter.common_fs.file_filter
 
