@@ -509,14 +509,20 @@
 
 
 <h1>Source code for cpp_linter.rest_api</h1><div class="highlight"><pre>
-<span></span><code><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+<span></span><code><span class="sd">&quot;&quot;&quot;This base module holds abstractions common to using REST API.</span>
+<span class="sd">See other modules in ``rest_api`` subpackage for detailed derivatives.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">NamedTuple</span>
 <span class="kn">import</span> <span class="nn">requests</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="n">FormatAdvice</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span>
-<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_response_msg</span>
 
 
 <span class="n">USER_OUTREACH</span> <span class="o">=</span> <span class="p">(</span>
@@ -526,11 +532,46 @@
 <span class="n">COMMENT_MARKER</span> <span class="o">=</span> <span class="s2">&quot;&lt;!-- cpp linter action --&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
 
 
+<div class="viewcode-block" id="RateLimitHeaders">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RateLimitHeaders">[docs]</a>
+<span class="k">class</span> <span class="nc">RateLimitHeaders</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A collection of HTTP response header keys that describe a REST API&#39;s rate limits.</span>
+<span class="sd">    Each parameter corresponds to a instance attribute (see below).&quot;&quot;&quot;</span>
+
+    <span class="n">reset</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1">#: The header key of the rate limit&#39;s reset time.</span>
+    <span class="n">remaining</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1">#: The header key of the rate limit&#39;s remaining attempts.</span>
+    <span class="n">retry</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1">#: The header key of the rate limit&#39;s &quot;backoff&quot; time interval.</span></div>
+
+
+
 <div class="viewcode-block" id="RestApiClient">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient">[docs]</a>
 <span class="k">class</span> <span class="nc">RestApiClient</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A class that describes the API used to interact with a git server&#39;s REST API.</span>
+
+<span class="sd">    :param rate_limit_headers: See `RateLimitHeaders` class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rate_limit_headers</span><span class="p">:</span> <span class="n">RateLimitHeaders</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+
+        <span class="c1"># The remain API requests allowed under the given token (if any).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_remaining</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># -1 means unknown</span>
+        <span class="c1"># a counter for avoiding secondary rate limits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_back_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># the rate limit reset time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_reset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">struct_time</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># the rate limit HTTP response header keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_headers</span> <span class="o">=</span> <span class="n">rate_limit_headers</span>
+
+    <span class="k">def</span> <span class="nf">_rate_limit_exceeded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;RATE LIMIT EXCEEDED!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_reset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Gitlab REST API rate limit resets on </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> %B %Y %H:%M +0000&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_reset</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
 <div class="viewcode-block" id="RestApiClient.api_request">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient.api_request">[docs]</a>
@@ -557,7 +598,45 @@
 <span class="sd">        :returns:</span>
 <span class="sd">            The HTTP request&#39;s response object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be defined in the derivative&quot;</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_back_step</span> <span class="o">&gt;=</span> <span class="mi">5</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_remaining</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_exceeded</span><span class="p">()</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="n">method</span><span class="o">=</span><span class="n">method</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;GET&quot;</span> <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;POST&quot;</span><span class="p">),</span>
+            <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_remaining</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_headers</span><span class="o">.</span><span class="n">remaining</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_headers</span><span class="o">.</span><span class="n">reset</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_reset</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">gmtime</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_headers</span><span class="o">.</span><span class="n">reset</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="n">log_response_msg</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">403</span><span class="p">,</span> <span class="mi">429</span><span class="p">]:</span>  <span class="c1"># rate limit exceeded</span>
+            <span class="c1"># secondary rate limit handling</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_headers</span><span class="o">.</span><span class="n">retry</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">:</span>
+                <span class="n">wait_time</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_headers</span><span class="o">.</span><span class="n">retry</span><span class="p">))</span>
+                    <span class="p">)</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_back_step</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;SECONDARY RATE LIMIT HIT! Backing off for </span><span class="si">%f</span><span class="s2"> seconds&quot;</span><span class="p">,</span>
+                    <span class="n">wait_time</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_back_step</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+            <span class="c1"># primary rate limit handling</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_remaining</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_exceeded</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rate_limit_back_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">response</span></div>
 
 
 <div class="viewcode-block" id="RestApiClient.set_exit_code">
@@ -772,6 +851,23 @@
 <span class="sd">            PR review comments using clang-format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be defined in the derivative&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RestApiClient.has_more_pages">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient.has_more_pages">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">has_more_pages</span><span class="p">(</span><span class="n">response</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A helper function to parse a HTTP request&#39;s response headers to determine if</span>
+<span class="sd">        the previous REST API call is paginated.</span>
+
+<span class="sd">        :param response: A HTTP request&#39;s response.</span>
+
+<span class="sd">        :returns: The URL of the next page if any, otherwise `None`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">links</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">links</span>
+        <span class="k">if</span> <span class="s2">&quot;next&quot;</span> <span class="ow">in</span> <span class="n">links</span> <span class="ow">and</span> <span class="s2">&quot;url&quot;</span> <span class="ow">in</span> <span class="n">links</span><span class="p">[</span><span class="s2">&quot;next&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">links</span><span class="p">[</span><span class="s2">&quot;next&quot;</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 </div>
 
 </code></pre></div>
@@ -812,7 +908,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.2.6.
+    7.3.7.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   

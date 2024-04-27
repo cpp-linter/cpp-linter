@@ -513,8 +513,6 @@
 <span class="sd">If executed from command-line, then `main()` is the entrypoint.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">.common_fs</span> <span class="kn">import</span> <span class="n">list_source_files</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
 <span class="kn">from</span> <span class="nn">.loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">end_log_group</span><span class="p">,</span> <span class="n">logger</span>
@@ -548,11 +546,6 @@
     <span class="c1"># change working directory</span>
     <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">repo_root</span><span class="p">)</span>
     <span class="n">CACHE_PATH</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
-        <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Event json from the runner&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">rest_api_client</span><span class="o">.</span><span class="n">event_payload</span><span class="p">))</span>
-        <span class="n">end_log_group</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">files_changed_only</span><span class="p">:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">get_list_of_changed_files</span><span class="p">(</span>
@@ -661,7 +654,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    7.2.6.
+    7.3.7.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
