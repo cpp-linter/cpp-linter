@@ -2,7 +2,7 @@
 
 import argparse
 from collections import UserDict
-from typing import Optional, List
+from typing import Optional, List, Dict, Any, Sequence
 
 
 class Args(UserDict):
@@ -55,7 +55,7 @@ class Args(UserDict):
     extra_arg: List[str] = []
     #: See :std:option:`--no-lgtm`.
     no_lgtm: bool = True
-    #: These are the optional not-ignored paths passed as positional arguments to the CLI.
+    #: See :std:option:`files`.
     files: List[str] = []
     #: See :std:option:`--tidy-review`.
     tidy_review: bool = False
@@ -69,16 +69,8 @@ class Args(UserDict):
     ignore_format: str = ""
 
 
-cli_arg_parser = argparse.ArgumentParser(
-    description=(
-        "Run clang-tidy and clang-format on a list of changed files "
-        + "provided by GitHub's REST API."
-    ),
-    formatter_class=argparse.RawTextHelpFormatter,
-)
-cli_arg_parser.add_argument(
-    "-v",
-    "--verbosity",
+_parser_args: Dict[Sequence[str], Any] = {}
+_parser_args[("-v", "--verbosity")] = dict(
     type=lambda a: a.lower() in ["debug", "10"],
     default="info",
     help="""This controls the action's verbosity in the workflow's
@@ -94,9 +86,7 @@ markers.
 
 Defaults to level ``%(default)s``""",
 )
-cli_arg_parser.add_argument(
-    "-p",
-    "--database",
+_parser_args[("-p", "--database")] = dict(
     default="",
     help="""The path that is used to read a compile command
 database. For example, it can be a CMake build
@@ -114,9 +104,7 @@ tree.
     path. Otherwise, cpp-linter will have difficulty
     parsing clang-tidy output.""",
 )
-cli_arg_parser.add_argument(
-    "-s",
-    "--style",
+_parser_args[("-s", "--style")] = dict(
     default="llvm",
     help="""The style rules to use.
 
@@ -129,9 +117,7 @@ See `clang-format docs <https://clang.llvm.org/docs/ClangFormat.html>`_ for more
 
 Defaults to ``%(default)s``""",
 )
-cli_arg_parser.add_argument(
-    "-c",
-    "--tidy-checks",
+_parser_args[("-c", "--tidy-checks")] = dict(
     default="boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
     "clang-analyzer-*,cppcoreguidelines-*",
     help="""A comma-separated list of globs with optional
@@ -155,9 +141,7 @@ Defaults to:
     %(default)s
 """,
 )
-cli_arg_parser.add_argument(
-    "-V",
-    "--version",
+_parser_args[("-V", "--version")] = dict(
     default="",
     help="""The desired version of the clang tools to use.
 
@@ -170,9 +154,7 @@ cli_arg_parser.add_argument(
 
 Defaults to ``''``""",
 )
-cli_arg_parser.add_argument(
-    "-e",
-    "--extensions",
+_parser_args[("-e", "--extensions")] = dict(
     default="c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx",
     type=lambda i: [ext.strip().lstrip(".") for ext in i.split(",")],
     help="""The file extensions to analyze.
@@ -181,18 +163,14 @@ Defaults to:
     %(default)s
 """,
 )
-cli_arg_parser.add_argument(
-    "-r",
-    "--repo-root",
+_parser_args[("-r", "--repo-root")] = dict(
     default=".",
     help="""The relative path to the repository root directory.
 This path is relative to the working directory from
 which cpp-linter was executed.
 Defaults to ``%(default)s``""",
 )
-cli_arg_parser.add_argument(
-    "-i",
-    "--ignore",
+_parser_args[("-i", "--ignore")] = dict(
     default=".github",
     help="""Set this option with path(s) to ignore (or not ignore).
 
@@ -220,25 +198,19 @@ cli_arg_parser.add_argument(
       about Unix style glob patterns.
 """,
 )
-cli_arg_parser.add_argument(
-    "-M",
-    "--ignore-format",
+_parser_args[("-M", "--ignore-format")] = dict(
     default="",
     help="""Set this option with path(s) to ignore (or not ignore)
 when using clang-format. See :std:option:`--ignore` for
 more detail.""",
 )
-cli_arg_parser.add_argument(
-    "-D",
-    "--ignore-tidy",
+_parser_args[("-D", "--ignore-tidy")] = dict(
     default="",
     help="""Set this option with path(s) to ignore (or not ignore)
 when using clang-tidy. See :std:option:`--ignore` for
 more detail.""",
 )
-cli_arg_parser.add_argument(
-    "-l",
-    "--lines-changed-only",
+_parser_args[("-l", "--lines-changed-only")] = dict(
     default="false",
     type=lambda a: 2 if a.lower() == "true" else int(a.lower() == "diff"),
     help="""This controls what part of the files are analyzed.
@@ -252,9 +224,7 @@ The following values are accepted:
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-f",
-    "--files-changed-only",
+_parser_args[("-f", "--files-changed-only")] = dict(
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set this option to false to analyze any source
@@ -273,9 +243,7 @@ files in the repo. This is automatically enabled if
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-g",
-    "--no-lgtm",
+_parser_args[("-g", "--no-lgtm")] = dict(
     default="true",
     type=lambda input: input.lower() == "true",
     help="""Set this option to true or false to enable or
@@ -289,9 +257,7 @@ checks pass).
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-t",
-    "--thread-comments",
+_parser_args[("-t", "--thread-comments")] = dict(
     default="false",
     choices=["true", "false", "update"],
     help="""This controls the behavior of posted thread
@@ -318,9 +284,7 @@ The following options are supported:
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-w",
-    "--step-summary",
+_parser_args[("-w", "--step-summary")] = dict(
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set this option to true or false to enable or
@@ -329,9 +293,7 @@ has concluded.
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-a",
-    "--file-annotations",
+_parser_args[("-a", "--file-annotations")] = dict(
     default="true",
     type=lambda input: input.lower() == "true",
     help="""Set this option to false to disable the use of
@@ -339,9 +301,7 @@ file annotations as feedback.
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-x",
-    "--extra-arg",
+_parser_args[("-x", "--extra-arg")] = dict(
     default=[],
     action="append",
     help="""A string of extra arguments passed to clang-tidy
@@ -357,19 +317,17 @@ between name and value (use ``=`` instead):
 Defaults to none.
 """,
 )
-cli_arg_parser.add_argument(
-    "files",
+_parser_args[("files",)] = dict(
     nargs="*",
-    help="""A space separated list of files to focus on.
+    help="""
+A space separated list of files to focus on.
 These files will automatically be added to the list of
 explicitly not-ignored files. While other filtering is
 done with :std:option:`--extensions`, the files
 specified as positional arguments will be exempt from
 explicitly ignored domains (see :std:option:`--ignore`).""",
 )
-cli_arg_parser.add_argument(
-    "-d",
-    "--tidy-review",
+_parser_args[("-d", "--tidy-review")] = dict(
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable Pull Request reviews
@@ -377,9 +335,7 @@ from clang-tidy.
 
 Defaults to ``%(default)s``.""",
 )
-cli_arg_parser.add_argument(
-    "-m",
-    "--format-review",
+_parser_args[("-m", "--format-review")] = dict(
     default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to enable Pull Request reviews
@@ -403,9 +359,7 @@ def _parse_jobs(val: str) -> Optional[int]:
     return jobs
 
 
-cli_arg_parser.add_argument(
-    "-j",
-    "--jobs",
+_parser_args[("-j", "--jobs")] = dict(
     default=1,
     type=_parse_jobs,
     help="""Set the number of jobs to run simultaneously.
@@ -414,3 +368,16 @@ be set to the number of all available CPU cores.
 
 Defaults to ``%(default)s``.""",
 )
+
+
+def get_cli_parser() -> argparse.ArgumentParser:
+    cli_parser = argparse.ArgumentParser(
+        description=(
+            "Run clang-tidy and clang-format on a list of changed files "
+            + "provided by GitHub's REST API."
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    for switches, kwargs in _parser_args.items():
+        cli_parser.add_argument(*switches, **kwargs)
+    return cli_parser

@@ -7,7 +7,7 @@ from .common_fs import CACHE_PATH
 from .common_fs.file_filter import FileFilter
 from .loggers import start_log_group, end_log_group, logger
 from .clang_tools import capture_clang_tools_output
-from .cli import cli_arg_parser, Args
+from .cli import get_cli_parser, Args
 from .rest_api.github_api import GithubApiClient
 
 
@@ -15,7 +15,7 @@ def main():
     """The main script."""
 
     # The parsed CLI args
-    args = cli_arg_parser.parse_args(namespace=Args())
+    args = get_cli_parser().parse_args(namespace=Args())
 
     #  force files-changed-only to reflect value of lines-changed-only
     if args.lines_changed_only:

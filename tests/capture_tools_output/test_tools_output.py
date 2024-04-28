@@ -21,7 +21,7 @@ from cpp_linter.clang_tools.clang_format import tally_format_advice, FormatAdvic
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice, TidyAdvice
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
-from cpp_linter.cli import cli_arg_parser, Args
+from cpp_linter.cli import get_cli_parser, Args
 from cpp_linter.common_fs.file_filter import FileFilter
 
 
@@ -492,7 +492,7 @@ def test_tidy_extra_args(
     for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
     logger.setLevel(logging.INFO)
-    args = cli_arg_parser.parse_args(cli_in, namespace=Args())
+    args = get_cli_parser().parse_args(cli_in, namespace=Args())
     assert len(user_input) == len(args.extra_arg)
     _, _ = capture_clang_tools_output(files=[FileObj("tests/demo/demo.cpp")], args=args)
     stdout = capsys.readouterr().out
