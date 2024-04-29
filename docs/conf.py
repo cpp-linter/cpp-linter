@@ -25,7 +25,6 @@ release = get_version("cpp-linter")
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 extensions = [
     "sphinx_immaterial",
-    "sphinx_immaterial.task_lists",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",

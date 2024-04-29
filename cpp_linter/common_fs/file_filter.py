@@ -146,12 +146,9 @@ class FileFilter:
         :returns:
             ``True`` if (in order of precedence)
 
-            .. task-list::
-                :custom:
-
-                - [x] ``file_name`` is using one of the specified `extensions`.
-                - [x] ``file_name`` is in `not_ignored`.
-                - [x] ``file_name`` is not in `ignored`.
+            - ``file_name`` is using one of the specified `extensions` AND
+            - ``file_name`` is in `not_ignored` OR
+            - ``file_name`` is not in `ignored`.
 
             Otherwise ``False``.
         """
