@@ -10,23 +10,28 @@ from cpp_linter.common_fs.file_filter import FileFilter
     "user_in,is_ignored,is_not_ignored",
     [
         (
-            "src|!src/file.h|!",
+            "src | !src/file.h |!",
             ["src/file.h", "src/sub/path/file.h"],
             ["src/file.h", "file.h"],
         ),
         (
-            "!src|./",
+            "! src | ./",
             ["file.h", "sub/path/file.h"],
             ["src/file.h", "src/sub/path/file.h"],
         ),
         (
-            "tests/**|!tests/demo|!cpp_linter/*.py|",
+            "tests/** | !tests/demo| ! cpp_linter/*.py|",
             [
                 "tests/test_misc.py",
                 "tests/ignored_paths",
                 "tests/ignored_paths/.gitmodules",
             ],
             ["tests/demo/demo.cpp", "tests/demo", "cpp_linter/__init__.py"],
+        ),
+        (
+            "examples/*/build | !src",
+            ["examples/linux/build/some/file.c"],
+            ["src/file.h", "src/sub/path/file.h"],
         ),
     ],
 )

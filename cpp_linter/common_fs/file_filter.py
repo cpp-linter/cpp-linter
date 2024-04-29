@@ -1,5 +1,4 @@
 import configparser
-import os
 from pathlib import Path, PurePath
 from typing import List, Optional, Set
 from . import FileObj
@@ -109,19 +108,24 @@ class FileFilter:
         prompt_pattern = ""
         for pattern in path_list:
             prompt_pattern = pattern
-            # works well for files, but not well for sub dir of a pattern
+            # This works well for files, but not well for sub dir of a pattern
             if pattern and file_name.match(pattern):
                 break
 
-            # works well to identify a sub dir by matching the
-            # common path between them with the literal pattern.
-            path = PurePath(pattern or ".")
-            path_posix = path.as_posix()
-            # if path has no parts, then it is considered repo-root
-            if not path.parts or (
-                PurePath(os.path.commonpath([file_posix, path_posix])).as_posix()
-                == path_posix
-            ):
+            if not pattern:  # if pattern is blank; assume its repo-root
+                break
+
+            # Lastly, to support ignoring recursively with globs:
+            # We know the file_name is not a directory, so
+            # iterate through its parent paths and compare with the pattern
+            file_parent = file_name.parent
+            found_parent = False
+            while file_parent.parts:
+                if file_parent.match(pattern):
+                    found_parent = True
+                    break
+                file_parent = file_parent.parent
+            if found_parent:
                 break
         else:
             return False
