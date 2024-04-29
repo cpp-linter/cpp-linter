@@ -66,4 +66,4 @@ def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
 def test_positional_arg(user_input: List[str]):
     """Make sure positional arg value(s) are added to not_ignored list."""
     file_filter = FileFilter(not_ignored=user_input)
-    assert set([p for p in user_input]) == file_filter.not_ignored
+    assert set(user_input) == file_filter.not_ignored
