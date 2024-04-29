@@ -62,7 +62,7 @@ class Args(UserDict):
     #: See :std:option:`--format-review`.
     format_review: bool = False
     #: See :std:option:`--jobs`.
-    jobs: int = 1
+    jobs: Optional[int] = 1
     #: See :std:option:`--ignore-tidy`.
     ignore_tidy: str = ""
     #: See :std:option:`--ignore-format`.
