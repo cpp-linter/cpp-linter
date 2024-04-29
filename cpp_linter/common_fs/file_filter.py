@@ -59,21 +59,20 @@ class FileFilter:
 
         Results are added accordingly to the `ignored` and `not_ignored` attributes.
         """
-        if paths:
-            for path in paths.split("|"):
-                path = path.strip()  # strip leading/trailing spaces
-                is_included = path.startswith("!")
-                if is_included:  # strip leading `!`
-                    path = path[1:].lstrip()
-                if path.startswith("./"):
-                    path = path.replace("./", "", 1)  # relative dir is assumed
+        for path in paths.split("|") if paths else []:
+            path = path.strip()  # strip leading/trailing spaces
+            is_included = path.startswith("!")
+            if is_included:  # strip leading `!`
+                path = path[1:].lstrip()
+            if path.startswith("./"):
+                path = path.replace("./", "", 1)  # relative dir is assumed
 
-                # NOTE: A blank string is now the repo-root `path`
+            # NOTE: A blank string is now the repo-root `path`
 
-                if is_included:
-                    self.not_ignored.add(path)
-                else:
-                    self.ignored.add(path)
+            if is_included:
+                self.not_ignored.add(path)
+            else:
+                self.ignored.add(path)
 
         tool_name = "" if not self._tool_name else (self._tool_name + " ")
         if self.ignored:
@@ -101,38 +100,38 @@ class FileFilter:
             - True if ``file_name`` is in the ``path_list``.
             - False if ``file_name`` is not in the ``path_list``.
         """
-        prompt = "ignored" if ignored else "not ignored"
+        prompt = "not ignored"
+        path_list = self.not_ignored
+        if ignored:
+            prompt = "ignored"
+            path_list = self.ignored
         tool_name = "" if not self._tool_name else f"[{self._tool_name}] "
-        path_list = self.ignored if ignored else self.not_ignored
-        file_posix = file_name.as_posix()
         prompt_pattern = ""
         for pattern in path_list:
             prompt_pattern = pattern
-            # This works well for files, but not well for sub dir of a pattern
-            if pattern and file_name.match(pattern):
-                break
-
-            if not pattern:  # if pattern is blank; assume its repo-root
+            # This works well for files, but not well for sub dir of a pattern.
+            # If pattern is blank, then assume its repo-root (& it is included)
+            if not pattern or file_name.match(pattern):
                 break
 
             # Lastly, to support ignoring recursively with globs:
             # We know the file_name is not a directory, so
             # iterate through its parent paths and compare with the pattern
             file_parent = file_name.parent
-            found_parent = False
+            matched_parent = False
             while file_parent.parts:
                 if file_parent.match(pattern):
-                    found_parent = True
+                    matched_parent = True
                     break
                 file_parent = file_parent.parent
-            if found_parent:
+            if matched_parent:
                 break
         else:
             return False
         logger.debug(
             '"%s./%s" is %s as specified by pattern "%s"',
             tool_name,
-            file_posix,
+            file_name.as_posix(),
             prompt,
             prompt_pattern or "./",
         )
@@ -179,9 +178,7 @@ class FileFilter:
                 else:
                     file_path = rel_path.as_posix()
                     logger.debug('"./%s" is a source code file', file_path)
-                    if self.is_file_in_list(
-                        ignored=False, file_name=rel_path
-                    ) or not self.is_file_in_list(ignored=True, file_name=rel_path):
+                    if self.is_source_or_ignored(rel_path.as_posix()):
                         files.append(FileObj(file_path))
         return files
 

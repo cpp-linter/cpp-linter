@@ -1,6 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
-from pathlib import Path, PurePath
+from pathlib import Path
 import subprocess
 from textwrap import indent
 from typing import Optional, List, Dict, Tuple
@@ -38,17 +38,11 @@ def _run_on_single_file(
     file: FileObj,
     log_lvl: int,
     tidy_cmd: Optional[str],
-    checks: str,
-    lines_changed_only: int,
-    database: str,
-    extra_args: List[str],
     db_json: Optional[List[Dict[str, str]]],
-    tidy_review: bool,
     format_cmd: Optional[str],
-    style: str,
-    format_review: bool,
     format_filter: Optional[FormatFileFilter],
     tidy_filter: Optional[TidyFileFilter],
+    args: Args,
 ):
     log_stream = worker_log_init(log_lvl)
 
@@ -57,14 +51,14 @@ def _run_on_single_file(
         tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
     ):
         tidy_note = run_clang_tidy(
-            tidy_cmd,
-            file,
-            checks,
-            lines_changed_only,
-            database,
-            extra_args,
-            db_json,
-            tidy_review,
+            command=tidy_cmd,
+            file_obj=file,
+            checks=args.tidy_checks,
+            lines_changed_only=args.lines_changed_only,
+            database=args.database,
+            extra_args=args.extra_arg,
+            db_json=db_json,
+            tidy_review=args.tidy_review,
         )
 
     format_advice = None
@@ -72,7 +66,11 @@ def _run_on_single_file(
         format_filter is None or format_filter.is_source_or_ignored(file.name)
     ):
         format_advice = run_clang_format(
-            format_cmd, file, style, lines_changed_only, format_review
+            command=format_cmd,
+            file_obj=file,
+            style=args.style,
+            lines_changed_only=args.lines_changed_only,
+            format_review=args.format_review,
         )
 
     return file.name, log_stream.getvalue(), tidy_note, format_advice
@@ -116,10 +114,11 @@ def capture_clang_tools_output(
         )
 
     db_json: Optional[List[Dict[str, str]]] = None
-    if args.database and not PurePath(args.database).is_absolute():
-        args.database = str(Path(args.database).resolve())
     if args.database:
-        db_path = Path(args.database, "compile_commands.json")
+        db = Path(args.database)
+        if not db.is_absolute():
+            args.database = str(db.resolve())
+        db_path = db / "compile_commands.json"
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
@@ -131,17 +130,11 @@ def capture_clang_tools_output(
                 file,
                 log_lvl=log_lvl,
                 tidy_cmd=tidy_cmd,
-                checks=args.tidy_checks,
-                lines_changed_only=args.lines_changed_only,
-                database=args.database,
-                extra_args=args.extra_arg,
                 db_json=db_json,
-                tidy_review=args.tidy_review,
                 format_cmd=format_cmd,
-                style=args.style,
-                format_review=args.format_review,
                 format_filter=format_filter,
                 tidy_filter=tidy_filter,
+                args=args,
             )
             for file in files
         ]
