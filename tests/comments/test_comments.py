@@ -48,10 +48,9 @@ def test_post_feedback(
     no_lgtm: bool,
 ):
     """A mock test of posting comments and step summary"""
-    file_filter = FileFilter(
-        extensions=["cpp", "hpp"],
-        ignore_value="tests/capture_tools_output",
-    )
+
+    extensions = ["cpp", "hpp", "c"]
+    file_filter = FileFilter(extensions=extensions)
     files = file_filter.list_source_files()
     assert files
 
@@ -59,28 +58,51 @@ def test_post_feedback(
     args.tidy_checks = "readability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*"
     args.version = environ.get("CLANG_VERSION", "16")
     args.style = "llvm"
-    args.extensions = ["cpp", "hpp"]
+    args.extensions = extensions
+    args.ignore_tidy = "*.c"
+    args.ignore_format = "*.c"
     args.lines_changed_only = 0
     args.no_lgtm = no_lgtm
     args.thread_comments = thread_comments
     args.step_summary = thread_comments == "update" and not no_lgtm
     args.file_annotations = thread_comments == "update" and no_lgtm
-
-    format_advice, tidy_advice = capture_clang_tools_output(files, args=args)
+    capture_clang_tools_output(files, args=args)
     # add a non project file to tidy_advice to intentionally cover a log.debug()
-    assert tidy_advice
-    tidy_advice[-1].notes.append(
-        TidyNotification(
-            notification_line=(
-                "/usr/include/stdio.h",
-                33,
-                10,
-                "error",
-                "'stddef.h' file not found",
-                "clang-diagnostic-error",
-            ),
-        )
-    )
+    for file in files:
+        if file.tidy_advice:
+            file.tidy_advice.notes.extend(
+                [
+                    TidyNotification(
+                        notification_line=(
+                            "/usr/include/stdio.h",
+                            33,
+                            10,
+                            "error",
+                            "'stddef.h' file not found",
+                            "clang-diagnostic-error",
+                        ),
+                    ),
+                    TidyNotification(
+                        notification_line=(
+                            "../demo/demo.cpp",
+                            33,
+                            10,
+                            "error",
+                            "'stddef.h' file not found",
+                            "clang-diagnostic-error",
+                        ),
+                        database=[
+                            {
+                                "file": "../demo/demo.cpp",
+                                "directory": str(Path(__file__).parent),
+                            }
+                        ],
+                    ),
+                ]
+            )
+            break
+    else:  # pragma: no cover
+        raise AssertionError("no clang-tidy advice notes to inject dummy data")
 
     # patch env vars
     event_payload = {"number": TEST_PR}
@@ -147,4 +169,4 @@ def test_post_feedback(
         # to get debug files saved to test workspace folders: enable logger verbosity
         caplog.set_level(logging.DEBUG, logger=logger.name)
 
-        gh_client.post_feedback(files, format_advice, tidy_advice, args)
+        gh_client.post_feedback(files, args)

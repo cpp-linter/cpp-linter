@@ -43,7 +43,7 @@ def _run_on_single_file(
     format_filter: Optional[FormatFileFilter],
     tidy_filter: Optional[TidyFileFilter],
     args: Args,
-):
+) -> Tuple[str, str, Optional[TidyAdvice], Optional[FormatAdvice]]:
     log_stream = worker_log_init(log_lvl)
 
     tidy_note = None
@@ -76,10 +76,7 @@ def _run_on_single_file(
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 
 
-def capture_clang_tools_output(
-    files: List[FileObj],
-    args: Args,
-) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
+def capture_clang_tools_output(files: List[FileObj], args: Args):
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
 
@@ -118,7 +115,7 @@ def capture_clang_tools_output(
         db = Path(args.database)
         if not db.is_absolute():
             args.database = str(db.resolve())
-        db_path = db / "compile_commands.json"
+        db_path = (db / "compile_commands.json").resolve()
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
@@ -140,19 +137,20 @@ def capture_clang_tools_output(
         ]
 
         # temporary cache of parsed notifications for use in log commands
-        format_advice_map: Dict[str, Optional[FormatAdvice]] = {}
-        tidy_notes_map: Dict[str, Optional[TidyAdvice]] = {}
         for future in as_completed(futures):
-            file, logs, note, advice = future.result()
+            file_name, logs, tidy_advice, format_advice = future.result()
 
-            start_log_group(f"Performing checkup on {file}")
+            start_log_group(f"Performing checkup on {file_name}")
             print(logs, flush=True)
             end_log_group()
 
-            format_advice_map[file] = advice
-            tidy_notes_map[file] = note
-
-    format_advice = list(filter(None, (format_advice_map[file.name] for file in files)))
-    tidy_notes = list(filter(None, (tidy_notes_map[file.name] for file in files)))
-
-    return (format_advice, tidy_notes)
+            if tidy_advice or format_advice:
+                for file in files:
+                    if file.name == file_name:
+                        if tidy_advice:
+                            file.tidy_advice = tidy_advice
+                        if format_advice:
+                            file.format_advice = format_advice
+                        break
+                else:  # pragma: no cover
+                    raise ValueError(f"Failed to find {file_name} in list of files.")

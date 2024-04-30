@@ -1,8 +1,13 @@
 from os import environ
 from pathlib import Path
-from typing import List, Dict, Any, Union, Tuple, Optional
+from typing import List, Dict, Any, Union, Tuple, Optional, TYPE_CHECKING
 from pygit2 import DiffHunk  # type: ignore
 from ..loggers import logger
+
+if TYPE_CHECKING:  # pragma: no covers
+    # circular import
+    from ..clang_tools.clang_tidy import TidyAdvice
+    from ..clang_tools.clang_format import FormatAdvice
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
 CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
@@ -38,6 +43,10 @@ class FileObj:
         """A list of line numbers that define the beginning and ending of ranges that
         have added changes. This will be empty if not focusing on lines changed only.
         """
+        #: The results from clang-tidy
+        self.tidy_advice: Optional["TidyAdvice"] = None
+        #: The results from clang-format
+        self.format_advice: Optional["FormatAdvice"] = None
 
     @staticmethod
     def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:

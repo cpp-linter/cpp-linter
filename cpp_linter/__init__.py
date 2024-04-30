@@ -75,15 +75,10 @@ def main():
         )
     end_log_group()
 
-    (format_advice, tidy_advice) = capture_clang_tools_output(files=files, args=args)
+    capture_clang_tools_output(files=files, args=args)
 
     start_log_group("Posting comment(s)")
-    rest_api_client.post_feedback(
-        files=files,
-        format_advice=format_advice,
-        tidy_advice=tidy_advice,
-        args=args,
-    )
+    rest_api_client.post_feedback(files=files, args=args)
     end_log_group()
 
 

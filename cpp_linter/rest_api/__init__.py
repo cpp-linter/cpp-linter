@@ -10,8 +10,6 @@ from typing import Optional, Dict, List, Any, cast, NamedTuple
 import requests
 from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
-from ..clang_tools.clang_format import FormatAdvice
-from ..clang_tools.clang_tidy import TidyAdvice
 from ..cli import Args
 from ..loggers import logger, log_response_msg
 
@@ -168,8 +166,6 @@ class RestApiClient(ABC):
     @staticmethod
     def make_comment(
         files: List[FileObj],
-        format_advice: List[FormatAdvice],
-        tidy_advice: List[TidyAdvice],
         format_checks_failed: int,
         tidy_checks_failed: int,
         len_limit: Optional[int] = None,
@@ -178,10 +174,6 @@ class RestApiClient(ABC):
         checks failed for each tool (clang-format and clang-tidy)
 
         :param files: A list of objects, each describing a file's information.
-        :param format_advice: A list of clang-format advice parallel to the list of
-            ``files``.
-        :param tidy_advice: A list of clang-tidy advice parallel to the list of
-            ``files``.
         :param format_checks_failed: The amount of clang-format checks that have failed.
         :param tidy_checks_failed: The amount of clang-tidy checks that have failed.
         :param len_limit: The length limit of the comment generated.
@@ -205,14 +197,12 @@ class RestApiClient(ABC):
             if format_checks_failed:
                 comment += RestApiClient._make_format_comment(
                     files=files,
-                    advice_fix=format_advice,
                     checks_failed=format_checks_failed,
                     len_limit=len_limit,
                 )
             if tidy_checks_failed:
                 comment += RestApiClient._make_tidy_comment(
                     files=files,
-                    advice_fix=tidy_advice,
                     checks_failed=tidy_checks_failed,
                     len_limit=adjust_limit(limit=len_limit, text=comment),
                 )
@@ -223,7 +213,6 @@ class RestApiClient(ABC):
     @staticmethod
     def _make_format_comment(
         files: List[FileObj],
-        advice_fix: List[FormatAdvice],
         checks_failed: int,
         len_limit: Optional[int] = None,
     ) -> str:
@@ -232,8 +221,10 @@ class RestApiClient(ABC):
         comment += f"{checks_failed} file(s) not formatted</strong></summary>\n\n"
         closer = "\n</details>"
         checks_failed = 0
-        for file_obj, advice in zip(files, advice_fix):
-            if advice.replaced_lines:
+        for file_obj in files:
+            if not file_obj.format_advice:
+                continue
+            if file_obj.format_advice.replaced_lines:
                 format_comment = f"- {file_obj.name}\n"
                 if (
                     len_limit is None
@@ -245,7 +236,6 @@ class RestApiClient(ABC):
     @staticmethod
     def _make_tidy_comment(
         files: List[FileObj],
-        advice_fix: List[TidyAdvice],
         checks_failed: int,
         len_limit: Optional[int] = None,
     ) -> str:
@@ -253,8 +243,10 @@ class RestApiClient(ABC):
         comment = "\n<details><summary>clang-tidy reports: <strong>"
         comment += f"{checks_failed} concern(s)</strong></summary>\n\n"
         closer = "\n</details>"
-        for file_obj, concern in zip(files, advice_fix):
-            for note in concern.notes:
+        for file_obj in files:
+            if not file_obj.tidy_advice:
+                continue
+            for note in file_obj.tidy_advice.notes:
                 if file_obj.name == note.filename:
                     tidy_comment = "- **{filename}:{line}:{cols}:** ".format(
                         filename=file_obj.name,
@@ -283,17 +275,11 @@ class RestApiClient(ABC):
     def post_feedback(
         self,
         files: List[FileObj],
-        format_advice: List[FormatAdvice],
-        tidy_advice: List[TidyAdvice],
         args: Args,
     ):
         """Post action's results using REST API.
 
         :param files: A list of objects, each describing a file's information.
-        :param format_advice: A list of clang-format advice parallel to the list of
-            ``files``.
-        :param tidy_advice: A list of clang-tidy advice parallel to the list of
-            ``files``.
         :param args: A namespace of arguments parsed from the :doc:`CLI <../cli_args>`.
         """
         raise NotImplementedError("Must be defined in the derivative")

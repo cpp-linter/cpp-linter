@@ -11,14 +11,13 @@ def test_comment_length_limit(tmp_path: Path):
     file_name = "tests/demo/demo.cpp"
     abs_limit = 65535
     format_checks_failed = 3000
-    files = [FileObj(file_name)] * format_checks_failed
+    file = FileObj(file_name)
     dummy_advice = FormatAdvice(file_name)
     dummy_advice.replaced_lines = [FormatReplacementLine(line_numb=1)]
-    format_advice = [dummy_advice] * format_checks_failed
+    file.format_advice = dummy_advice
+    files = [file] * format_checks_failed
     thread_comment = GithubApiClient.make_comment(
         files=files,
-        format_advice=format_advice,
-        tidy_advice=[],
         format_checks_failed=format_checks_failed,
         tidy_checks_failed=0,
         len_limit=abs_limit,
@@ -27,8 +26,6 @@ def test_comment_length_limit(tmp_path: Path):
     assert thread_comment.endswith(USER_OUTREACH)
     step_summary = GithubApiClient.make_comment(
         files=files,
-        format_advice=format_advice,
-        tidy_advice=[],
         format_checks_failed=format_checks_failed,
         tidy_checks_failed=0,
         len_limit=None,

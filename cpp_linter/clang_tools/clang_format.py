@@ -79,11 +79,13 @@ class FormatAdvice:
         )
 
 
-def tally_format_advice(format_advice: List[FormatAdvice]) -> int:
+def tally_format_advice(files: List[FileObj]) -> int:
     """Returns the sum of clang-format errors"""
     format_checks_failed = 0
-    for advice in format_advice:
-        if advice.replaced_lines:
+    for file_obj in files:
+        if not file_obj.format_advice:
+            continue
+        if file_obj.format_advice.replaced_lines:
             format_checks_failed += 1
     return format_checks_failed
 
