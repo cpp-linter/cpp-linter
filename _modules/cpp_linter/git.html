@@ -448,8 +448,38 @@
   
   
     <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.cli.html" class="md-nav__link">
+        <span class="md-ellipsis">cli</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../API-Reference/cpp_linter.common_fs.html" class="md-nav__link">
         <span class="md-ellipsis">common_<wbr>fs</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.common_fs.file_filter.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs.<wbr>file_<wbr>filter</span>
       </a>
     </li>
   
@@ -531,7 +561,8 @@
     <span class="n">GitError</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">CACHE_PATH</span>
-<span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">is_source_or_ignored</span><span class="p">,</span> <span class="n">has_line_changes</span>
+<span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">has_line_changes</span>
+<span class="kn">from</span> <span class="nn">..common_fs.file_filter</span> <span class="kn">import</span> <span class="n">FileFilter</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">.git_str</span> <span class="kn">import</span> <span class="n">parse_diff</span> <span class="k">as</span> <span class="n">legacy_parse_diff</span>
 
@@ -604,19 +635,15 @@
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.git.html#cpp_linter.git.parse_diff">[docs]</a>
 <span class="k">def</span> <span class="nf">parse_diff</span><span class="p">(</span>
     <span class="n">diff_obj</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Diff</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
-    <span class="n">extensions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">file_filter</span><span class="p">:</span> <span class="n">FileFilter</span><span class="p">,</span>
     <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a given diff into file objects.</span>
 
 <span class="sd">    :param diff_obj: The complete git diff object for an event.</span>
-<span class="sd">    :param extensions: A list of file extensions to focus on only.</span>
-<span class="sd">    :param ignored: A list of paths or files to ignore.</span>
-<span class="sd">    :param not_ignored: A list of paths or files to explicitly not ignore.</span>
+<span class="sd">    :param file_filter: A `FileFilter` object.</span>
 <span class="sd">    :param lines_changed_only: A value that dictates what file changes to focus on.</span>
-<span class="sd">    :returns: A `list` of `dict` containing information about the files changed.</span>
+<span class="sd">    :returns: A `list` of `FileObj` describing information about the files changed.</span>
 
 <span class="sd">        .. note:: Deleted files are omitted because we only want to analyze updates.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -626,15 +653,11 @@
             <span class="n">diff_obj</span> <span class="o">=</span> <span class="n">Diff</span><span class="o">.</span><span class="n">parse_diff</span><span class="p">(</span><span class="n">diff_obj</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">GitError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pygit2.Diff.parse_diff() threw </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">legacy_parse_diff</span><span class="p">(</span>
-                <span class="n">diff_obj</span><span class="p">,</span> <span class="n">extensions</span><span class="p">,</span> <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span><span class="p">,</span> <span class="n">lines_changed_only</span>
-            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">legacy_parse_diff</span><span class="p">(</span><span class="n">diff_obj</span><span class="p">,</span> <span class="n">file_filter</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="n">diff_obj</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ADDITIVE_STATUS</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_source_or_ignored</span><span class="p">(</span>
-            <span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="o">.</span><span class="n">new_file</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">extensions</span><span class="p">,</span> <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_filter</span><span class="o">.</span><span class="n">is_source_or_ignored</span><span class="p">(</span><span class="n">patch</span><span class="o">.</span><span class="n">delta</span><span class="o">.</span><span class="n">new_file</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">diff_chunks</span><span class="p">,</span> <span class="n">additions</span> <span class="o">=</span> <span class="n">parse_patch</span><span class="p">(</span><span class="n">patch</span><span class="o">.</span><span class="n">hunks</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">has_line_changes</span><span class="p">(</span><span class="n">lines_changed_only</span><span class="p">,</span> <span class="n">diff_chunks</span><span class="p">,</span> <span class="n">additions</span><span class="p">):</span>

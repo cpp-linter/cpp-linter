@@ -448,8 +448,38 @@
   
   
     <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.cli.html" class="md-nav__link">
+        <span class="md-ellipsis">cli</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../API-Reference/cpp_linter.common_fs.html" class="md-nav__link">
         <span class="md-ellipsis">common_<wbr>fs</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.common_fs.file_filter.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs.<wbr>file_<wbr>filter</span>
       </a>
     </li>
   
@@ -511,16 +541,18 @@
 <h1>Source code for cpp_linter.clang_tools</h1><div class="highlight"><pre>
 <span></span><code><span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">PurePath</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">indent</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
+<span class="kn">from</span> <span class="nn">..common_fs.file_filter</span> <span class="kn">import</span> <span class="n">TidyFileFilter</span><span class="p">,</span> <span class="n">FormatFileFilter</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">end_log_group</span><span class="p">,</span> <span class="n">worker_log_init</span><span class="p">,</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">.clang_tidy</span> <span class="kn">import</span> <span class="n">run_clang_tidy</span><span class="p">,</span> <span class="n">TidyAdvice</span>
 <span class="kn">from</span> <span class="nn">.clang_format</span> <span class="kn">import</span> <span class="n">run_clang_format</span><span class="p">,</span> <span class="n">FormatAdvice</span>
+<span class="kn">from</span> <span class="nn">..cli</span> <span class="kn">import</span> <span class="n">Args</span>
 
 
 <div class="viewcode-block" id="assemble_version_exec">
@@ -549,36 +581,40 @@
 <span class="k">def</span> <span class="nf">_run_on_single_file</span><span class="p">(</span>
     <span class="n">file</span><span class="p">:</span> <span class="n">FileObj</span><span class="p">,</span>
     <span class="n">log_lvl</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">tidy_cmd</span><span class="p">,</span>
-    <span class="n">checks</span><span class="p">,</span>
-    <span class="n">lines_changed_only</span><span class="p">,</span>
-    <span class="n">database</span><span class="p">,</span>
-    <span class="n">extra_args</span><span class="p">,</span>
-    <span class="n">db_json</span><span class="p">,</span>
-    <span class="n">tidy_review</span><span class="p">,</span>
-    <span class="n">format_cmd</span><span class="p">,</span>
-    <span class="n">style</span><span class="p">,</span>
-    <span class="n">format_review</span><span class="p">,</span>
-<span class="p">):</span>
+    <span class="n">tidy_cmd</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">db_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]],</span>
+    <span class="n">format_cmd</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">format_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FormatFileFilter</span><span class="p">],</span>
+    <span class="n">tidy_filter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TidyFileFilter</span><span class="p">],</span>
+    <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">]]:</span>
     <span class="n">log_stream</span> <span class="o">=</span> <span class="n">worker_log_init</span><span class="p">(</span><span class="n">log_lvl</span><span class="p">)</span>
 
     <span class="n">tidy_note</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="n">tidy_filter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">tidy_filter</span><span class="o">.</span><span class="n">is_source_or_ignored</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="p">):</span>
         <span class="n">tidy_note</span> <span class="o">=</span> <span class="n">run_clang_tidy</span><span class="p">(</span>
-            <span class="n">tidy_cmd</span><span class="p">,</span>
-            <span class="n">file</span><span class="p">,</span>
-            <span class="n">checks</span><span class="p">,</span>
-            <span class="n">lines_changed_only</span><span class="p">,</span>
-            <span class="n">database</span><span class="p">,</span>
-            <span class="n">extra_args</span><span class="p">,</span>
-            <span class="n">db_json</span><span class="p">,</span>
-            <span class="n">tidy_review</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="n">tidy_cmd</span><span class="p">,</span>
+            <span class="n">file_obj</span><span class="o">=</span><span class="n">file</span><span class="p">,</span>
+            <span class="n">checks</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_checks</span><span class="p">,</span>
+            <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
+            <span class="n">database</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+            <span class="n">extra_args</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">,</span>
+            <span class="n">db_json</span><span class="o">=</span><span class="n">db_json</span><span class="p">,</span>
+            <span class="n">tidy_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="n">format_advice</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="n">format_filter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">format_filter</span><span class="o">.</span><span class="n">is_source_or_ignored</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="p">):</span>
         <span class="n">format_advice</span> <span class="o">=</span> <span class="n">run_clang_format</span><span class="p">(</span>
-            <span class="n">format_cmd</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">,</span> <span class="n">format_review</span>
+            <span class="n">command</span><span class="o">=</span><span class="n">format_cmd</span><span class="p">,</span>
+            <span class="n">file_obj</span><span class="o">=</span><span class="n">file</span><span class="p">,</span>
+            <span class="n">style</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
+            <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
+            <span class="n">format_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">log_stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="n">tidy_note</span><span class="p">,</span> <span class="n">format_advice</span>
@@ -586,38 +622,12 @@
 
 <div class="viewcode-block" id="capture_clang_tools_output">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tools.html#cpp_linter.clang_tools.capture_clang_tools_output">[docs]</a>
-<span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span>
-    <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">checks</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">database</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">extra_args</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-    <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-    <span class="n">num_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span><span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span> <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute and capture all output from clang-tidy and clang-format. This aggregates</span>
 <span class="sd">    results in the :attr:`~cpp_linter.Globals.OUTPUT`.</span>
 
 <span class="sd">    :param files: A list of files to analyze.</span>
-<span class="sd">    :param version: The version of clang-tidy to run.</span>
-<span class="sd">    :param checks: The `str` of comma-separated regulate expressions that describe</span>
-<span class="sd">        the desired clang-tidy checks to be enabled/configured.</span>
-<span class="sd">    :param style: The clang-format style rules to adhere. Set this to &#39;file&#39; to</span>
-<span class="sd">        use the relative-most .clang-format configuration file.</span>
-<span class="sd">    :param lines_changed_only: A flag that forces focus on only changes in the event&#39;s</span>
-<span class="sd">        diff info.</span>
-<span class="sd">    :param database: The path to the compilation database.</span>
-<span class="sd">    :param extra_args: A list of extra arguments used by clang-tidy as compiler</span>
-<span class="sd">        arguments.</span>
-<span class="sd">    :param tidy_review: A flag to enable/disable creating a diff suggestion for</span>
-<span class="sd">        PR review comments using clang-tidy.</span>
-<span class="sd">    :param format_review: A flag to enable/disable creating a diff suggestion for</span>
-<span class="sd">        PR review comments using clang-format.</span>
-<span class="sd">    :param num_workers: The number of workers to use for parallel processing. If</span>
-<span class="sd">        `None`, then the number of workers is set to the number of CPU cores.</span>
+<span class="sd">    :param args: A namespace of parsed args from the :doc:`CLI &lt;../cli_args&gt;`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">show_tool_version_output</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># show version output for executable used</span>
@@ -627,24 +637,35 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> --version</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">indent</span><span class="p">(</span><span class="n">version_out</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">))</span>
 
     <span class="n">tidy_cmd</span><span class="p">,</span> <span class="n">format_cmd</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">style</span><span class="p">:</span>  <span class="c1"># if style is an empty value, then clang-format is skipped</span>
-        <span class="n">format_cmd</span> <span class="o">=</span> <span class="n">assemble_version_exec</span><span class="p">(</span><span class="s2">&quot;clang-format&quot;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="n">tidy_filter</span><span class="p">,</span> <span class="n">format_filter</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">:</span>  <span class="c1"># if style is an empty value, then clang-format is skipped</span>
+        <span class="n">format_cmd</span> <span class="o">=</span> <span class="n">assemble_version_exec</span><span class="p">(</span><span class="s2">&quot;clang-format&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;clang-format executable was not found&quot;</span>
         <span class="n">show_tool_version_output</span><span class="p">(</span><span class="n">format_cmd</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">checks</span> <span class="o">!=</span> <span class="s2">&quot;-*&quot;</span><span class="p">:</span>  <span class="c1"># if all checks are disabled, then clang-tidy is skipped</span>
-        <span class="n">tidy_cmd</span> <span class="o">=</span> <span class="n">assemble_version_exec</span><span class="p">(</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+        <span class="n">tidy_filter</span> <span class="o">=</span> <span class="n">TidyFileFilter</span><span class="p">(</span>
+            <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
+            <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore_tidy</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tidy_checks</span> <span class="o">!=</span> <span class="s2">&quot;-*&quot;</span><span class="p">:</span>
+        <span class="c1"># if all checks are disabled, then clang-tidy is skipped</span>
+        <span class="n">tidy_cmd</span> <span class="o">=</span> <span class="n">assemble_version_exec</span><span class="p">(</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;clang-tidy executable was not found&quot;</span>
         <span class="n">show_tool_version_output</span><span class="p">(</span><span class="n">tidy_cmd</span><span class="p">)</span>
+        <span class="n">format_filter</span> <span class="o">=</span> <span class="n">FormatFileFilter</span><span class="p">(</span>
+            <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
+            <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore_format</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="n">db_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">database</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">PurePath</span><span class="p">(</span><span class="n">database</span><span class="p">)</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">():</span>
-        <span class="n">database</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">database</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
-    <span class="k">if</span> <span class="n">database</span><span class="p">:</span>
-        <span class="n">db_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="s2">&quot;compile_commands.json&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">db</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">():</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">database</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
+        <span class="n">db_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">db</span> <span class="o">/</span> <span class="s2">&quot;compile_commands.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">db_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">db_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">db_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
 
-    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">num_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">jobs</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
         <span class="n">log_lvl</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span>
         <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
@@ -652,36 +673,33 @@
                 <span class="n">file</span><span class="p">,</span>
                 <span class="n">log_lvl</span><span class="o">=</span><span class="n">log_lvl</span><span class="p">,</span>
                 <span class="n">tidy_cmd</span><span class="o">=</span><span class="n">tidy_cmd</span><span class="p">,</span>
-                <span class="n">checks</span><span class="o">=</span><span class="n">checks</span><span class="p">,</span>
-                <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">lines_changed_only</span><span class="p">,</span>
-                <span class="n">database</span><span class="o">=</span><span class="n">database</span><span class="p">,</span>
-                <span class="n">extra_args</span><span class="o">=</span><span class="n">extra_args</span><span class="p">,</span>
                 <span class="n">db_json</span><span class="o">=</span><span class="n">db_json</span><span class="p">,</span>
-                <span class="n">tidy_review</span><span class="o">=</span><span class="n">tidy_review</span><span class="p">,</span>
                 <span class="n">format_cmd</span><span class="o">=</span><span class="n">format_cmd</span><span class="p">,</span>
-                <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
-                <span class="n">format_review</span><span class="o">=</span><span class="n">format_review</span><span class="p">,</span>
+                <span class="n">format_filter</span><span class="o">=</span><span class="n">format_filter</span><span class="p">,</span>
+                <span class="n">tidy_filter</span><span class="o">=</span><span class="n">tidy_filter</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span>
         <span class="p">]</span>
 
         <span class="c1"># temporary cache of parsed notifications for use in log commands</span>
-        <span class="n">format_advice_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">tidy_notes_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
-            <span class="n">file</span><span class="p">,</span> <span class="n">logs</span><span class="p">,</span> <span class="n">note</span><span class="p">,</span> <span class="n">advice</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+            <span class="n">file_name</span><span class="p">,</span> <span class="n">logs</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">,</span> <span class="n">format_advice</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
 
-            <span class="n">start_log_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performing checkup on </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">start_log_group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performing checkup on </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">logs</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">end_log_group</span><span class="p">()</span>
 
-            <span class="n">format_advice_map</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">=</span> <span class="n">advice</span>
-            <span class="n">tidy_notes_map</span><span class="p">[</span><span class="n">file</span><span class="p">]</span> <span class="o">=</span> <span class="n">note</span>
-
-    <span class="n">format_advice</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">format_advice_map</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">)))</span>
-    <span class="n">tidy_notes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">tidy_notes_map</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">)))</span>
-
-    <span class="k">return</span> <span class="p">(</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_notes</span><span class="p">)</span></div>
+            <span class="k">if</span> <span class="n">tidy_advice</span> <span class="ow">or</span> <span class="n">format_advice</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">tidy_advice</span><span class="p">:</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">tidy_advice</span> <span class="o">=</span> <span class="n">tidy_advice</span>
+                        <span class="k">if</span> <span class="n">format_advice</span><span class="p">:</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">format_advice</span> <span class="o">=</span> <span class="n">format_advice</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to find </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"> in list of files.&quot;</span><span class="p">)</span></div>
 
 </code></pre></div>
 

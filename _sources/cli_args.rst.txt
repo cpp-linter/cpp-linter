@@ -6,6 +6,37 @@ Command Line Interface Options
     These options have a direct relationship with the
     `cpp-linter-action user inputs <https://cpp-linter.github.io/cpp-linter-action/inputs-outputs#inputs>`_. Although, some default values may differ.
 
+.. code-block:: text
+    :caption: Usage
+    :class: no-copy
+
+    cpp-linter [-h] [-v VERBOSITY] [-p DATABASE] [-s STYLE]
+               [-c TIDY_CHECKS] [-V VERSION] [-e EXTENSIONS] [-r REPO_ROOT]
+               [-i IGNORE] [-M IGNORE_FORMAT] [-D IGNORE_TIDY]
+               [-l LINES_CHANGED_ONLY] [-f FILES_CHANGED_ONLY] [-g NO_LGTM]
+               [-t {true,false,update}] [-w STEP_SUMMARY]
+               [-a FILE_ANNOTATIONS] [-x EXTRA_ARG] [-d TIDY_REVIEW]
+               [-m FORMAT_REVIEW] [-j JOBS]
+               [files ...]
+
+
+Positional Arguments
+--------------------
+
+
+.. std:option:: files
+
+
+    A space separated list of files to focus on.
+    These files will automatically be added to the list of
+    explicitly not-ignored files. While other filtering is
+    done with :std:option:`--extensions`, the files
+    specified as positional arguments will be exempt from
+    explicitly ignored domains (see :std:option:`--ignore`).
+
+Optional Arguments
+------------------
+
 
 .. std:option:: -v, --verbosity
 
@@ -117,8 +148,8 @@ Command Line Interface Options
     - In the case of multiple paths, you can use ``|`` to
       separate each path.
     - There is no need to use ``./`` for each entry; a
-      blank string (``''``) represents the repo-root
-      path.
+      blank string (``''``) represents the
+      :std:option:`--repo-root` path.
     - This can also have files, but the file's path
       (relative to the :std:option:`--repo-root`) has to
       be specified with the filename.
@@ -128,8 +159,30 @@ Command Line Interface Options
     - Prefix a path with ``!`` to explicitly not ignore
       it. This can be applied to a submodule's path (if
       desired) but not hidden directories.
-    - Glob patterns are not supported here. All asterisk
-      characters (``*``) are literal
+    - .. versionadded:: 1.9 Glob patterns are supported
+          here.
+          :collapsible:
+    
+          All asterisk characters (``*``) are not literal
+          as they were before. See
+          :py:meth:`~pathlib.Path.glob()` for more details
+          about Unix style glob patterns.
+
+.. std:option:: -M, --ignore-format
+
+    :badge-version:`1.9.0` :badge-default:`''` 
+
+    Set this option with path(s) to ignore (or not ignore)
+    when using clang-format. See :std:option:`--ignore` for
+    more detail
+
+.. std:option:: -D, --ignore-tidy
+
+    :badge-version:`1.9.0` :badge-default:`''` 
+
+    Set this option with path(s) to ignore (or not ignore)
+    when using clang-tidy. See :std:option:`--ignore` for
+    more detail
 
 .. std:option:: -l, --lines-changed-only
 

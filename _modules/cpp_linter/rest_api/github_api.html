@@ -448,8 +448,38 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../API-Reference/cpp_linter.cli.html" class="md-nav__link">
+        <span class="md-ellipsis">cli</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../API-Reference/cpp_linter.common_fs.html" class="md-nav__link">
         <span class="md-ellipsis">common_<wbr>fs</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../API-Reference/cpp_linter.common_fs.file_filter.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs.<wbr>file_<wbr>filter</span>
       </a>
     </li>
   
@@ -526,17 +556,19 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">urllib.parse</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">Patch</span>  <span class="c1"># type: ignore</span>
+<span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
+<span class="kn">from</span> <span class="nn">..common_fs.file_filter</span> <span class="kn">import</span> <span class="n">FileFilter</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">FormatAdvice</span><span class="p">,</span>
     <span class="n">formalize_style_name</span><span class="p">,</span>
     <span class="n">tally_format_advice</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span><span class="p">,</span> <span class="n">tally_tidy_advice</span>
-<span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
-<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_commander</span>
+<span class="kn">from</span> <span class="nn">..cli</span> <span class="kn">import</span> <span class="n">Args</span>
+<span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_commander</span>
 <span class="kn">from</span> <span class="nn">..git</span> <span class="kn">import</span> <span class="n">parse_diff</span><span class="p">,</span> <span class="n">get_diff</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">RestApiClient</span><span class="p">,</span> <span class="n">USER_OUTREACH</span><span class="p">,</span> <span class="n">COMMENT_MARKER</span><span class="p">,</span> <span class="n">RateLimitHeaders</span>
 
@@ -601,12 +633,9 @@
 <a class="viewcode-back" href="../../../API-Reference/cpp_linter.rest_api.github_api.html#cpp_linter.rest_api.github_api.GithubApiClient.get_list_of_changed_files">[docs]</a>
     <span class="k">def</span> <span class="nf">get_list_of_changed_files</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">extensions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">file_filter</span><span class="p">:</span> <span class="n">FileFilter</span><span class="p">,</span>
         <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">]:</span>
-        <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Get list of specified source files&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CI&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
             <span class="n">files_link</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_url</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2">/&quot;</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span><span class="p">:</span>
@@ -623,17 +652,9 @@
             <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_request</span><span class="p">(</span>
                 <span class="n">url</span><span class="o">=</span><span class="n">files_link</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">(</span><span class="n">use_diff</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="n">files</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span>
-                <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
-                <span class="n">extensions</span><span class="p">,</span>
-                <span class="n">ignored</span><span class="p">,</span>
-                <span class="n">not_ignored</span><span class="p">,</span>
-                <span class="n">lines_changed_only</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">file_filter</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">files</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span>
-                <span class="n">get_diff</span><span class="p">(),</span> <span class="n">extensions</span><span class="p">,</span> <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span><span class="p">,</span> <span class="n">lines_changed_only</span>
-            <span class="p">)</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="n">parse_diff</span><span class="p">(</span><span class="n">get_diff</span><span class="p">(),</span> <span class="n">file_filter</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">files</span></div>
 
 
@@ -682,26 +703,16 @@
     <span class="k">def</span> <span class="nf">post_feedback</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
-        <span class="n">thread_comments</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">step_summary</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">file_annotations</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">format_checks_failed</span> <span class="o">=</span> <span class="n">tally_format_advice</span><span class="p">(</span><span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">)</span>
-        <span class="n">tidy_checks_failed</span> <span class="o">=</span> <span class="n">tally_tidy_advice</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">)</span>
+        <span class="n">format_checks_failed</span> <span class="o">=</span> <span class="n">tally_format_advice</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+        <span class="n">tidy_checks_failed</span> <span class="o">=</span> <span class="n">tally_tidy_advice</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
         <span class="n">checks_failed</span> <span class="o">=</span> <span class="n">format_checks_failed</span> <span class="o">+</span> <span class="n">tidy_checks_failed</span>
         <span class="n">comment</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">step_summary</span> <span class="ow">and</span> <span class="s2">&quot;GITHUB_STEP_SUMMARY&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">step_summary</span> <span class="ow">and</span> <span class="s2">&quot;GITHUB_STEP_SUMMARY&quot;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
             <span class="n">comment</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">make_comment</span><span class="p">(</span>
                 <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-                <span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
-                <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
                 <span class="n">format_checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
                 <span class="n">tidy_checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
                 <span class="n">len_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -709,12 +720,10 @@
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GITHUB_STEP_SUMMARY&quot;</span><span class="p">],</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">summary</span><span class="p">:</span>
                 <span class="n">summary</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">comment</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">file_annotations</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">file_annotations</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">make_annotations</span><span class="p">(</span>
                 <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-                <span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
-                <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
-                <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_exit_code</span><span class="p">(</span>
@@ -723,7 +732,7 @@
             <span class="n">tidy_checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">thread_comments</span> <span class="o">!=</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">thread_comments</span> <span class="o">!=</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">&quot;GITHUB_TOKEN&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The GITHUB_TOKEN is required!&quot;</span><span class="p">)</span>
                 <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -731,14 +740,12 @@
             <span class="k">if</span> <span class="n">comment</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">65535</span><span class="p">:</span>
                 <span class="n">comment</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">make_comment</span><span class="p">(</span>
                     <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-                    <span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
-                    <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
                     <span class="n">format_checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
                     <span class="n">tidy_checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
                     <span class="n">len_limit</span><span class="o">=</span><span class="mi">65535</span><span class="p">,</span>
                 <span class="p">)</span>
 
-            <span class="n">update_only</span> <span class="o">=</span> <span class="n">thread_comments</span> <span class="o">==</span> <span class="s2">&quot;update&quot;</span>
+            <span class="n">update_only</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">thread_comments</span> <span class="o">==</span> <span class="s2">&quot;update&quot;</span>
             <span class="n">is_lgtm</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">checks_failed</span>
             <span class="n">comments_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_url</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2">/&quot;</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span><span class="p">:</span>
@@ -749,19 +756,19 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">update_comment</span><span class="p">(</span>
                 <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">,</span>
                 <span class="n">comments_url</span><span class="o">=</span><span class="n">comments_url</span><span class="p">,</span>
-                <span class="n">no_lgtm</span><span class="o">=</span><span class="n">no_lgtm</span><span class="p">,</span>
+                <span class="n">no_lgtm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">no_lgtm</span><span class="p">,</span>
                 <span class="n">update_only</span><span class="o">=</span><span class="n">update_only</span><span class="p">,</span>
                 <span class="n">is_lgtm</span><span class="o">=</span><span class="n">is_lgtm</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">tidy_review</span> <span class="ow">or</span> <span class="n">format_review</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span>
+        <span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">post_review</span><span class="p">(</span>
                 <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-                <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
-                <span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
-                <span class="n">tidy_review</span><span class="o">=</span><span class="n">tidy_review</span><span class="p">,</span>
-                <span class="n">format_review</span><span class="o">=</span><span class="n">format_review</span><span class="p">,</span>
-                <span class="n">no_lgtm</span><span class="o">=</span><span class="n">no_lgtm</span><span class="p">,</span>
+                <span class="n">tidy_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
+                <span class="n">format_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
+                <span class="n">no_lgtm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">no_lgtm</span><span class="p">,</span>
             <span class="p">)</span></div>
 
 
@@ -770,41 +777,39 @@
     <span class="k">def</span> <span class="nf">make_annotations</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
         <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Use github log commands to make annotations from clang-format and</span>
 <span class="sd">        clang-tidy output.</span>
 
 <span class="sd">        :param files: A list of objects, each describing a file&#39;s information.</span>
-<span class="sd">        :param format_advice: A list of clang-format advice parallel to the list of</span>
-<span class="sd">            ``files``.</span>
-<span class="sd">        :param tidy_advice: A list of clang-tidy advice parallel to the list of</span>
-<span class="sd">            ``files``.</span>
 <span class="sd">        :param style: The chosen code style guidelines. The value &#39;file&#39; is replaced</span>
 <span class="sd">            with &#39;custom style&#39;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">style_guide</span> <span class="o">=</span> <span class="n">formalize_style_name</span><span class="p">(</span><span class="n">style</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">advice</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">format_advice</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">format_advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
                 <span class="n">line_list</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">fix</span> <span class="ow">in</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">fix</span> <span class="ow">in</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">format_advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
                     <span class="n">line_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fix</span><span class="o">.</span><span class="n">line</span><span class="p">))</span>
                 <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;::notice file=&quot;</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span>
                 <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">,title=Run clang-format on </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">::File </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="n">output</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; does not conform to </span><span class="si">{</span><span class="n">style_guide</span><span class="si">}</span><span class="s2"> style guidelines. &quot;</span>
                 <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;(lines </span><span class="si">{lines}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lines</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line_list</span><span class="p">))</span>
                 <span class="n">log_commander</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">concerns</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tidy_advice</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concerns</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span> <span class="o">==</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
                     <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;::</span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="s2">&quot;notice&quot;</span> <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">severity</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;note&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">note</span><span class="o">.</span><span class="n">severity</span>
                     <span class="p">)</span>
                     <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;file=</span><span class="si">{file}</span><span class="s2">,line=</span><span class="si">{line}</span><span class="s2">,title=</span><span class="si">{file}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">file</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">line</span>
+                        <span class="n">file</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">line</span>
                     <span class="p">)</span>
                     <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{cols}</span><span class="s2"> [</span><span class="si">{diag}</span><span class="s2">]::</span><span class="si">{info}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">cols</span><span class="o">=</span><span class="n">note</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span>
@@ -905,8 +910,6 @@
     <span class="k">def</span> <span class="nf">post_review</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
-        <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
         <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -929,14 +932,14 @@
         <span class="n">summary_only</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CPP_LINTER_PR_REVIEW_SUMMARY_ONLY&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
         <span class="p">)</span>
-        <span class="n">advice</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">,</span> <span class="n">FormatAdvice</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">advice</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">format_review</span><span class="p">:</span>
-            <span class="n">advice</span><span class="p">[</span><span class="s2">&quot;clang-format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">format_advice</span>
+            <span class="n">advice</span><span class="p">[</span><span class="s2">&quot;clang-format&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
-            <span class="n">advice</span><span class="p">[</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tidy_advice</span>
-        <span class="k">for</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">tool_advice</span> <span class="ow">in</span> <span class="n">advice</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">advice</span><span class="p">[</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">tidy_tool</span> <span class="ow">in</span> <span class="n">advice</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">comments</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_review_comments</span><span class="p">(</span>
-                <span class="n">files</span><span class="p">,</span> <span class="n">tool_advice</span><span class="p">,</span> <span class="n">summary_only</span>
+                <span class="n">files</span><span class="p">,</span> <span class="n">tidy_tool</span><span class="p">,</span> <span class="n">summary_only</span>
             <span class="p">)</span>
             <span class="n">total_changes</span> <span class="o">+=</span> <span class="n">total</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">summary_only</span><span class="p">:</span>
@@ -970,20 +973,27 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">create_review_comments</span><span class="p">(</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">tool_advice</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">,</span> <span class="n">TidyAdvice</span><span class="p">]],</span>
+        <span class="n">tidy_tool</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">summary_only</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a batch of comments for a specific clang tool&#39;s PR review&quot;&quot;&quot;</span>
         <span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">comments</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">full_patch</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">file</span><span class="p">,</span> <span class="n">advice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tool_advice</span><span class="p">):</span>
-            <span class="k">assert</span> <span class="n">advice</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No suggested patch found for </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">tool_advice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">,</span> <span class="n">FormatAdvice</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">tidy_tool</span><span class="p">:</span>
+                <span class="n">tool_advice</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tool_advice</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">format_advice</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tool_advice</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">assert</span> <span class="n">tool_advice</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;No suggested patch found for </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">patch</span> <span class="o">=</span> <span class="n">Patch</span><span class="o">.</span><span class="n">create_from</span><span class="p">(</span>
-                <span class="n">old</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span>
-                <span class="n">new</span><span class="o">=</span><span class="n">advice</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span>
-                <span class="n">old_as_path</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">new_as_path</span><span class="o">=</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">old</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">(),</span>
+                <span class="n">new</span><span class="o">=</span><span class="n">tool_advice</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span>
+                <span class="n">old_as_path</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">new_as_path</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                 <span class="n">context_lines</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># trim all unchanged lines from start/end of hunks</span>
             <span class="p">)</span>
             <span class="n">full_patch</span> <span class="o">+=</span> <span class="n">patch</span><span class="o">.</span><span class="n">text</span>
@@ -991,20 +1001,22 @@
                 <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">summary_only</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="n">new_hunk_range</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">is_hunk_contained</span><span class="p">(</span><span class="n">hunk</span><span class="p">)</span>
+                <span class="n">new_hunk_range</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">is_hunk_contained</span><span class="p">(</span><span class="n">hunk</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">new_hunk_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="n">start_lines</span><span class="p">,</span> <span class="n">end_lines</span> <span class="o">=</span> <span class="n">new_hunk_range</span>
-                <span class="n">comment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
+                <span class="n">comment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">}</span>
                 <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">advice</span><span class="p">,</span> <span class="n">TidyAdvice</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">tidy_tool</span> <span class="ow">and</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="p">:</span>
                     <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;### clang-tidy &quot;</span>
-                    <span class="n">diagnostics</span> <span class="o">=</span> <span class="n">advice</span><span class="o">.</span><span class="n">diagnostics_in_range</span><span class="p">(</span><span class="n">start_lines</span><span class="p">,</span> <span class="n">end_lines</span><span class="p">)</span>
+                    <span class="n">diagnostics</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="o">.</span><span class="n">diagnostics_in_range</span><span class="p">(</span>
+                        <span class="n">start_lines</span><span class="p">,</span> <span class="n">end_lines</span>
+                    <span class="p">)</span>
                     <span class="k">if</span> <span class="n">diagnostics</span><span class="p">:</span>
                         <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;diagnostics</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">diagnostics</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;suggestions</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="k">else</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">tidy_tool</span><span class="p">:</span>
                     <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;### clang-format suggestions</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="k">if</span> <span class="n">start_lines</span> <span class="o">&lt;</span> <span class="n">end_lines</span><span class="p">:</span>
                     <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;start_line&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start_lines</span>
@@ -1024,24 +1036,24 @@
                 <span class="n">comment</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">body</span>
                 <span class="n">comments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">tool_advice</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tool_advice</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">TidyAdvice</span><span class="p">):</span>
             <span class="c1"># now check for clang-tidy warnings with no fixes applied</span>
-            <span class="k">for</span> <span class="n">file</span><span class="p">,</span> <span class="n">tidy_advice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">tool_advice</span><span class="p">):</span>
-                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tidy_advice</span><span class="p">,</span> <span class="n">TidyAdvice</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">tidy_advice</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tidy_tool</span> <span class="ow">and</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">note</span><span class="o">.</span><span class="n">applied_fixes</span><span class="p">:</span>  <span class="c1"># if no fix was applied</span>
                         <span class="n">total</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="n">line_numb</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">is_range_contained</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">line_numb</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">line_numb</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">is_range_contained</span><span class="p">(</span>
+                            <span class="n">start</span><span class="o">=</span><span class="n">line_numb</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">line_numb</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="p">):</span>
                             <span class="n">diag</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                                <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                                 <span class="s2">&quot;line&quot;</span><span class="p">:</span> <span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
                             <span class="p">}</span>
-                            <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;### clang-tidy diagnostic</span><span class="se">\n</span><span class="s2">**</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:&quot;</span>
+                            <span class="n">body</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;### clang-tidy diagnostic</span><span class="se">\n</span><span class="s2">**</span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:&quot;</span>
                             <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">cols</span><span class="si">}</span><span class="s2">:** </span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">severity</span><span class="si">}</span><span class="s2">: &quot;</span>
                             <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">diagnostic_link</span><span class="si">}</span><span class="s2">]</span><span class="se">\n</span><span class="s2">&gt; </span><span class="si">{</span><span class="n">note</span><span class="o">.</span><span class="n">rationale</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                             <span class="k">if</span> <span class="n">note</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">:</span>
-                                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;```</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                                <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;```</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span>
                                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">note</span><span class="o">.</span><span class="n">fixit_lines</span><span class="p">:</span>
                                     <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                                 <span class="n">body</span> <span class="o">+=</span> <span class="s2">&quot;```</span><span class="se">\n</span><span class="s2">&quot;</span>

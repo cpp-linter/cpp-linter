@@ -448,8 +448,38 @@
   
   
     <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.cli.html" class="md-nav__link">
+        <span class="md-ellipsis">cli</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../API-Reference/cpp_linter.common_fs.html" class="md-nav__link">
         <span class="md-ellipsis">common_<wbr>fs</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.common_fs.file_filter.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs.<wbr>file_<wbr>filter</span>
       </a>
     </li>
   
@@ -520,8 +550,8 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">NamedTuple</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
-<span class="kn">from</span> <span class="nn">..clang_tools.clang_format</span> <span class="kn">import</span> <span class="n">FormatAdvice</span>
-<span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">TidyAdvice</span>
+<span class="kn">from</span> <span class="nn">..common_fs.file_filter</span> <span class="kn">import</span> <span class="n">FileFilter</span>
+<span class="kn">from</span> <span class="nn">..cli</span> <span class="kn">import</span> <span class="n">Args</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_response_msg</span>
 
 
@@ -680,16 +710,12 @@
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.rest_api.html#cpp_linter.rest_api.RestApiClient.get_list_of_changed_files">[docs]</a>
     <span class="k">def</span> <span class="nf">get_list_of_changed_files</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">extensions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-        <span class="n">not_ignored</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">file_filter</span><span class="p">:</span> <span class="n">FileFilter</span><span class="p">,</span>
         <span class="n">lines_changed_only</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch a list of the event&#39;s changed files.</span>
 
-<span class="sd">        :param extensions: A list of file extensions to focus on only.</span>
-<span class="sd">        :param ignored: A list of paths or files to ignore.</span>
-<span class="sd">        :param not_ignored: A list of paths or files to explicitly not ignore.</span>
+<span class="sd">        :param file_filter: A `FileFilter` obj to filter files.</span>
 <span class="sd">        :param lines_changed_only: A value that dictates what file changes to focus on.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;must be implemented in the derivative&quot;</span><span class="p">)</span></div>
@@ -700,8 +726,6 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">make_comment</span><span class="p">(</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
         <span class="n">format_checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">tidy_checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -710,10 +734,6 @@
 <span class="sd">        checks failed for each tool (clang-format and clang-tidy)</span>
 
 <span class="sd">        :param files: A list of objects, each describing a file&#39;s information.</span>
-<span class="sd">        :param format_advice: A list of clang-format advice parallel to the list of</span>
-<span class="sd">            ``files``.</span>
-<span class="sd">        :param tidy_advice: A list of clang-tidy advice parallel to the list of</span>
-<span class="sd">            ``files``.</span>
 <span class="sd">        :param format_checks_failed: The amount of clang-format checks that have failed.</span>
 <span class="sd">        :param tidy_checks_failed: The amount of clang-tidy checks that have failed.</span>
 <span class="sd">        :param len_limit: The length limit of the comment generated.</span>
@@ -737,14 +757,12 @@
             <span class="k">if</span> <span class="n">format_checks_failed</span><span class="p">:</span>
                 <span class="n">comment</span> <span class="o">+=</span> <span class="n">RestApiClient</span><span class="o">.</span><span class="n">_make_format_comment</span><span class="p">(</span>
                     <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-                    <span class="n">advice_fix</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
                     <span class="n">checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
                     <span class="n">len_limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">if</span> <span class="n">tidy_checks_failed</span><span class="p">:</span>
                 <span class="n">comment</span> <span class="o">+=</span> <span class="n">RestApiClient</span><span class="o">.</span><span class="n">_make_tidy_comment</span><span class="p">(</span>
                     <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-                    <span class="n">advice_fix</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
                     <span class="n">checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
                     <span class="n">len_limit</span><span class="o">=</span><span class="n">adjust_limit</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">comment</span><span class="p">),</span>
                 <span class="p">)</span>
@@ -756,7 +774,6 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_make_format_comment</span><span class="p">(</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">advice_fix</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
         <span class="n">checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -765,8 +782,10 @@
         <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checks_failed</span><span class="si">}</span><span class="s2"> file(s) not formatted&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
         <span class="n">closer</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
         <span class="n">checks_failed</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">advice</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">advice_fix</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">format_advice</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">format_advice</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">:</span>
                 <span class="n">format_comment</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="n">len_limit</span> <span class="ow">is</span> <span class="kc">None</span>
@@ -778,7 +797,6 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_make_tidy_comment</span><span class="p">(</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">advice_fix</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
         <span class="n">checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -786,8 +804,10 @@
         <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-tidy reports: &lt;strong&gt;&quot;</span>
         <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checks_failed</span><span class="si">}</span><span class="s2"> concern(s)&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
         <span class="n">closer</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
-        <span class="k">for</span> <span class="n">file_obj</span><span class="p">,</span> <span class="n">concern</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">advice_fix</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">concern</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">tidy_advice</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">note</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
                     <span class="n">tidy_comment</span> <span class="o">=</span> <span class="s2">&quot;- **</span><span class="si">{filename}</span><span class="s2">:</span><span class="si">{line}</span><span class="s2">:</span><span class="si">{cols}</span><span class="s2">:** &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">filename</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -818,37 +838,12 @@
     <span class="k">def</span> <span class="nf">post_feedback</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
-        <span class="n">format_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FormatAdvice</span><span class="p">],</span>
-        <span class="n">tidy_advice</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TidyAdvice</span><span class="p">],</span>
-        <span class="n">thread_comments</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">step_summary</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">file_annotations</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">tidy_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Post action&#39;s results using REST API.</span>
 
 <span class="sd">        :param files: A list of objects, each describing a file&#39;s information.</span>
-<span class="sd">        :param format_advice: A list of clang-format advice parallel to the list of</span>
-<span class="sd">            ``files``.</span>
-<span class="sd">        :param tidy_advice: A list of clang-tidy advice parallel to the list of</span>
-<span class="sd">            ``files``.</span>
-<span class="sd">        :param thread_comments: A flag that describes if how thread comments should</span>
-<span class="sd">            be handled. See :std:option:`--thread-comments`.</span>
-<span class="sd">        :param no_lgtm: A flag to control if a &quot;Looks Good To Me&quot; comment should be</span>
-<span class="sd">            posted. If this is `False`, then an outdated bot comment will still be</span>
-<span class="sd">            deleted. See :std:option:`--no-lgtm`.</span>
-<span class="sd">        :param step_summary: A flag that describes if a step summary should</span>
-<span class="sd">            be posted. See :std:option:`--step-summary`.</span>
-<span class="sd">        :param file_annotations: A flag that describes if file annotations should</span>
-<span class="sd">            be posted. See :std:option:`--file-annotations`.</span>
-<span class="sd">        :param style: The style used for clang-format. See :std:option:`--style`.</span>
-<span class="sd">        :param tidy_review: A flag to enable/disable creating a diff suggestion for</span>
-<span class="sd">            PR review comments using clang-tidy.</span>
-<span class="sd">        :param format_review: A flag to enable/disable creating a diff suggestion for</span>
-<span class="sd">            PR review comments using clang-format.</span>
+<span class="sd">        :param args: A namespace of arguments parsed from the :doc:`CLI &lt;../cli_args&gt;`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be defined in the derivative&quot;</span><span class="p">)</span></div>
 

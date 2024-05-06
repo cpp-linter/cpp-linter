@@ -448,8 +448,38 @@
   
   
     <li class="md-nav__item">
+      <a href="../API-Reference/cpp_linter.cli.html" class="md-nav__link">
+        <span class="md-ellipsis">cli</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../API-Reference/cpp_linter.common_fs.html" class="md-nav__link">
         <span class="md-ellipsis">common_<wbr>fs</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../API-Reference/cpp_linter.common_fs.file_filter.html" class="md-nav__link">
+        <span class="md-ellipsis">common_<wbr>fs.<wbr>file_<wbr>filter</span>
       </a>
     </li>
   
@@ -514,10 +544,11 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">.common_fs</span> <span class="kn">import</span> <span class="n">list_source_files</span><span class="p">,</span> <span class="n">CACHE_PATH</span>
+<span class="kn">from</span> <span class="nn">.common_fs</span> <span class="kn">import</span> <span class="n">CACHE_PATH</span>
+<span class="kn">from</span> <span class="nn">.common_fs.file_filter</span> <span class="kn">import</span> <span class="n">FileFilter</span>
 <span class="kn">from</span> <span class="nn">.loggers</span> <span class="kn">import</span> <span class="n">start_log_group</span><span class="p">,</span> <span class="n">end_log_group</span><span class="p">,</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">.clang_tools</span> <span class="kn">import</span> <span class="n">capture_clang_tools_output</span>
-<span class="kn">from</span> <span class="nn">.cli</span> <span class="kn">import</span> <span class="n">cli_arg_parser</span><span class="p">,</span> <span class="n">parse_ignore_option</span>
+<span class="kn">from</span> <span class="nn">.cli</span> <span class="kn">import</span> <span class="n">get_cli_parser</span><span class="p">,</span> <span class="n">Args</span>
 <span class="kn">from</span> <span class="nn">.rest_api.github_api</span> <span class="kn">import</span> <span class="n">GithubApiClient</span>
 
 
@@ -527,7 +558,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The main script.&quot;&quot;&quot;</span>
 
     <span class="c1"># The parsed CLI args</span>
-    <span class="n">args</span> <span class="o">=</span> <span class="n">cli_arg_parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_cli_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">namespace</span><span class="o">=</span><span class="n">Args</span><span class="p">())</span>
 
     <span class="c1">#  force files-changed-only to reflect value of lines-changed-only</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">:</span>
@@ -536,35 +567,38 @@
     <span class="n">rest_api_client</span> <span class="o">=</span> <span class="n">GithubApiClient</span><span class="p">()</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing </span><span class="si">%s</span><span class="s2"> event&quot;</span><span class="p">,</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">event_name</span><span class="p">)</span>
     <span class="n">is_pr_event</span> <span class="o">=</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">event_name</span> <span class="o">==</span> <span class="s2">&quot;pull_request&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_pr_event</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">format_review</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># set logging verbosity</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">10</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">verbosity</span> <span class="ow">or</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">debug_enabled</span> <span class="k">else</span> <span class="mi">20</span><span class="p">)</span>
 
     <span class="c1"># prepare ignored paths list</span>
-    <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span> <span class="o">=</span> <span class="n">parse_ignore_option</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">ignore</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+    <span class="n">global_file_filter</span> <span class="o">=</span> <span class="n">FileFilter</span><span class="p">(</span>
+        <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span> <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore</span><span class="p">,</span> <span class="n">not_ignored</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">files</span>
+    <span class="p">)</span>
+    <span class="n">global_file_filter</span><span class="o">.</span><span class="n">parse_submodules</span><span class="p">()</span>
 
     <span class="c1"># change working directory</span>
     <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">repo_root</span><span class="p">)</span>
     <span class="n">CACHE_PATH</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+    <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Get list of specified source files&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">files_changed_only</span><span class="p">:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">get_list_of_changed_files</span><span class="p">(</span>
-            <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
-            <span class="n">ignored</span><span class="o">=</span><span class="n">ignored</span><span class="p">,</span>
-            <span class="n">not_ignored</span><span class="o">=</span><span class="n">not_ignored</span><span class="p">,</span>
+            <span class="n">file_filter</span><span class="o">=</span><span class="n">global_file_filter</span><span class="p">,</span>
             <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">rest_api_client</span><span class="o">.</span><span class="n">verify_files_are_present</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">files</span> <span class="o">=</span> <span class="n">list_source_files</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span> <span class="n">ignored</span><span class="p">,</span> <span class="n">not_ignored</span><span class="p">)</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">global_file_filter</span><span class="o">.</span><span class="n">list_source_files</span><span class="p">()</span>
         <span class="c1"># at this point, files have no info about git changes.</span>
         <span class="c1"># for PR reviews, we need this info</span>
         <span class="k">if</span> <span class="n">is_pr_event</span> <span class="ow">and</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">):</span>
             <span class="c1"># get file changes from diff</span>
             <span class="n">git_changes</span> <span class="o">=</span> <span class="n">rest_api_client</span><span class="o">.</span><span class="n">get_list_of_changed_files</span><span class="p">(</span>
-                <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
-                <span class="n">ignored</span><span class="o">=</span><span class="n">ignored</span><span class="p">,</span>
-                <span class="n">not_ignored</span><span class="o">=</span><span class="n">not_ignored</span><span class="p">,</span>
+                <span class="n">file_filter</span><span class="o">=</span><span class="n">global_file_filter</span><span class="p">,</span>
                 <span class="n">lines_changed_only</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># prevent filtering out unchanged files</span>
             <span class="p">)</span>
             <span class="c1"># merge info from git changes into list of all files</span>
@@ -584,32 +618,10 @@
         <span class="p">)</span>
     <span class="n">end_log_group</span><span class="p">()</span>
 
-    <span class="p">(</span><span class="n">format_advice</span><span class="p">,</span> <span class="n">tidy_advice</span><span class="p">)</span> <span class="o">=</span> <span class="n">capture_clang_tools_output</span><span class="p">(</span>
-        <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-        <span class="n">version</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-        <span class="n">checks</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_checks</span><span class="p">,</span>
-        <span class="n">style</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
-        <span class="n">lines_changed_only</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lines_changed_only</span><span class="p">,</span>
-        <span class="n">database</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
-        <span class="n">extra_args</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extra_arg</span><span class="p">,</span>
-        <span class="n">tidy_review</span><span class="o">=</span><span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
-        <span class="n">format_review</span><span class="o">=</span><span class="n">is_pr_event</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
-        <span class="n">num_workers</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">jobs</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">capture_clang_tools_output</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
 
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Posting comment(s)&quot;</span><span class="p">)</span>
-    <span class="n">rest_api_client</span><span class="o">.</span><span class="n">post_feedback</span><span class="p">(</span>
-        <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
-        <span class="n">format_advice</span><span class="o">=</span><span class="n">format_advice</span><span class="p">,</span>
-        <span class="n">tidy_advice</span><span class="o">=</span><span class="n">tidy_advice</span><span class="p">,</span>
-        <span class="n">thread_comments</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">thread_comments</span><span class="p">,</span>
-        <span class="n">no_lgtm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">no_lgtm</span><span class="p">,</span>
-        <span class="n">step_summary</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">step_summary</span><span class="p">,</span>
-        <span class="n">file_annotations</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">file_annotations</span><span class="p">,</span>
-        <span class="n">style</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
-        <span class="n">tidy_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tidy_review</span><span class="p">,</span>
-        <span class="n">format_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">rest_api_client</span><span class="o">.</span><span class="n">post_feedback</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
     <span class="n">end_log_group</span><span class="p">()</span></div>
 
 
