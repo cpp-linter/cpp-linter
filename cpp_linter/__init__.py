@@ -3,10 +3,11 @@ If executed from command-line, then `main()` is the entrypoint.
 """
 
 import os
-from .common_fs import list_source_files, CACHE_PATH
+from .common_fs import CACHE_PATH
+from .common_fs.file_filter import FileFilter
 from .loggers import start_log_group, end_log_group, logger
 from .clang_tools import capture_clang_tools_output
-from .cli import cli_arg_parser, parse_ignore_option
+from .cli import get_cli_parser, Args
 from .rest_api.github_api import GithubApiClient
 
 
@@ -14,7 +15,7 @@ def main():
     """The main script."""
 
     # The parsed CLI args
-    args = cli_arg_parser.parse_args()
+    args = get_cli_parser().parse_args(namespace=Args())
 
     #  force files-changed-only to reflect value of lines-changed-only
     if args.lines_changed_only:
@@ -23,35 +24,38 @@ def main():
     rest_api_client = GithubApiClient()
     logger.info("processing %s event", rest_api_client.event_name)
     is_pr_event = rest_api_client.event_name == "pull_request"
+    if not is_pr_event:
+        args.tidy_review = False
+        args.format_review = False
 
     # set logging verbosity
     logger.setLevel(10 if args.verbosity or rest_api_client.debug_enabled else 20)
 
     # prepare ignored paths list
-    ignored, not_ignored = parse_ignore_option(args.ignore, args.files)
+    global_file_filter = FileFilter(
+        extensions=args.extensions, ignore_value=args.ignore, not_ignored=args.files
+    )
+    global_file_filter.parse_submodules()
 
     # change working directory
     os.chdir(args.repo_root)
     CACHE_PATH.mkdir(exist_ok=True)
 
+    start_log_group("Get list of specified source files")
     if args.files_changed_only:
         files = rest_api_client.get_list_of_changed_files(
-            extensions=args.extensions,
-            ignored=ignored,
-            not_ignored=not_ignored,
+            file_filter=global_file_filter,
             lines_changed_only=args.lines_changed_only,
         )
         rest_api_client.verify_files_are_present(files)
     else:
-        files = list_source_files(args.extensions, ignored, not_ignored)
+        files = global_file_filter.list_source_files()
         # at this point, files have no info about git changes.
         # for PR reviews, we need this info
         if is_pr_event and (args.tidy_review or args.format_review):
             # get file changes from diff
             git_changes = rest_api_client.get_list_of_changed_files(
-                extensions=args.extensions,
-                ignored=ignored,
-                not_ignored=not_ignored,
+                file_filter=global_file_filter,
                 lines_changed_only=0,  # prevent filtering out unchanged files
             )
             # merge info from git changes into list of all files
@@ -71,32 +75,10 @@ def main():
         )
     end_log_group()
 
-    (format_advice, tidy_advice) = capture_clang_tools_output(
-        files=files,
-        version=args.version,
-        checks=args.tidy_checks,
-        style=args.style,
-        lines_changed_only=args.lines_changed_only,
-        database=args.database,
-        extra_args=args.extra_arg,
-        tidy_review=is_pr_event and args.tidy_review,
-        format_review=is_pr_event and args.format_review,
-        num_workers=args.jobs,
-    )
+    capture_clang_tools_output(files=files, args=args)
 
     start_log_group("Posting comment(s)")
-    rest_api_client.post_feedback(
-        files=files,
-        format_advice=format_advice,
-        tidy_advice=tidy_advice,
-        thread_comments=args.thread_comments,
-        no_lgtm=args.no_lgtm,
-        step_summary=args.step_summary,
-        file_annotations=args.file_annotations,
-        style=args.style,
-        tidy_review=args.tidy_review,
-        format_review=args.format_review,
-    )
+    rest_api_client.post_feedback(files=files, args=args)
     end_log_group()
 
 

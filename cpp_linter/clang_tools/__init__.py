@@ -1,15 +1,17 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
-from pathlib import Path, PurePath
+from pathlib import Path
 import subprocess
 from textwrap import indent
 from typing import Optional, List, Dict, Tuple
 import shutil
 
 from ..common_fs import FileObj
+from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
 from ..loggers import start_log_group, end_log_group, worker_log_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
+from ..cli import Args
 
 
 def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[str]:
@@ -35,73 +37,51 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
 def _run_on_single_file(
     file: FileObj,
     log_lvl: int,
-    tidy_cmd,
-    checks,
-    lines_changed_only,
-    database,
-    extra_args,
-    db_json,
-    tidy_review,
-    format_cmd,
-    style,
-    format_review,
-):
+    tidy_cmd: Optional[str],
+    db_json: Optional[List[Dict[str, str]]],
+    format_cmd: Optional[str],
+    format_filter: Optional[FormatFileFilter],
+    tidy_filter: Optional[TidyFileFilter],
+    args: Args,
+) -> Tuple[str, str, Optional[TidyAdvice], Optional[FormatAdvice]]:
     log_stream = worker_log_init(log_lvl)
 
     tidy_note = None
-    if tidy_cmd is not None:
+    if tidy_cmd is not None and (
+        tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
+    ):
         tidy_note = run_clang_tidy(
-            tidy_cmd,
-            file,
-            checks,
-            lines_changed_only,
-            database,
-            extra_args,
-            db_json,
-            tidy_review,
+            command=tidy_cmd,
+            file_obj=file,
+            checks=args.tidy_checks,
+            lines_changed_only=args.lines_changed_only,
+            database=args.database,
+            extra_args=args.extra_arg,
+            db_json=db_json,
+            tidy_review=args.tidy_review,
         )
 
     format_advice = None
-    if format_cmd is not None:
+    if format_cmd is not None and (
+        format_filter is None or format_filter.is_source_or_ignored(file.name)
+    ):
         format_advice = run_clang_format(
-            format_cmd, file, style, lines_changed_only, format_review
+            command=format_cmd,
+            file_obj=file,
+            style=args.style,
+            lines_changed_only=args.lines_changed_only,
+            format_review=args.format_review,
         )
 
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 
 
-def capture_clang_tools_output(
-    files: List[FileObj],
-    version: str,
-    checks: str,
-    style: str,
-    lines_changed_only: int,
-    database: str,
-    extra_args: List[str],
-    tidy_review: bool,
-    format_review: bool,
-    num_workers: Optional[int],
-) -> Tuple[List[FormatAdvice], List[TidyAdvice]]:
+def capture_clang_tools_output(files: List[FileObj], args: Args):
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
 
     :param files: A list of files to analyze.
-    :param version: The version of clang-tidy to run.
-    :param checks: The `str` of comma-separated regulate expressions that describe
-        the desired clang-tidy checks to be enabled/configured.
-    :param style: The clang-format style rules to adhere. Set this to 'file' to
-        use the relative-most .clang-format configuration file.
-    :param lines_changed_only: A flag that forces focus on only changes in the event's
-        diff info.
-    :param database: The path to the compilation database.
-    :param extra_args: A list of extra arguments used by clang-tidy as compiler
-        arguments.
-    :param tidy_review: A flag to enable/disable creating a diff suggestion for
-        PR review comments using clang-tidy.
-    :param format_review: A flag to enable/disable creating a diff suggestion for
-        PR review comments using clang-format.
-    :param num_workers: The number of workers to use for parallel processing. If
-        `None`, then the number of workers is set to the number of CPU cores.
+    :param args: A namespace of parsed args from the :doc:`CLI <../cli_args>`.
     """
 
     def show_tool_version_output(cmd: str):  # show version output for executable used
@@ -111,24 +91,35 @@ def capture_clang_tools_output(
         logger.info("%s --version\n%s", cmd, indent(version_out.stdout.decode(), "\t"))
 
     tidy_cmd, format_cmd = (None, None)
-    if style:  # if style is an empty value, then clang-format is skipped
-        format_cmd = assemble_version_exec("clang-format", version)
+    tidy_filter, format_filter = (None, None)
+    if args.style:  # if style is an empty value, then clang-format is skipped
+        format_cmd = assemble_version_exec("clang-format", args.version)
         assert format_cmd is not None, "clang-format executable was not found"
         show_tool_version_output(format_cmd)
-    if checks != "-*":  # if all checks are disabled, then clang-tidy is skipped
-        tidy_cmd = assemble_version_exec("clang-tidy", version)
+        tidy_filter = TidyFileFilter(
+            extensions=args.extensions,
+            ignore_value=args.ignore_tidy,
+        )
+    if args.tidy_checks != "-*":
+        # if all checks are disabled, then clang-tidy is skipped
+        tidy_cmd = assemble_version_exec("clang-tidy", args.version)
         assert tidy_cmd is not None, "clang-tidy executable was not found"
         show_tool_version_output(tidy_cmd)
+        format_filter = FormatFileFilter(
+            extensions=args.extensions,
+            ignore_value=args.ignore_format,
+        )
 
     db_json: Optional[List[Dict[str, str]]] = None
-    if database and not PurePath(database).is_absolute():
-        database = str(Path(database).resolve())
-    if database:
-        db_path = Path(database, "compile_commands.json")
+    if args.database:
+        db = Path(args.database)
+        if not db.is_absolute():
+            args.database = str(db.resolve())
+        db_path = (db / "compile_commands.json").resolve()
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
-    with ProcessPoolExecutor(num_workers) as executor:
+    with ProcessPoolExecutor(args.jobs) as executor:
         log_lvl = logger.getEffectiveLevel()
         futures = [
             executor.submit(
@@ -136,33 +127,30 @@ def capture_clang_tools_output(
                 file,
                 log_lvl=log_lvl,
                 tidy_cmd=tidy_cmd,
-                checks=checks,
-                lines_changed_only=lines_changed_only,
-                database=database,
-                extra_args=extra_args,
                 db_json=db_json,
-                tidy_review=tidy_review,
                 format_cmd=format_cmd,
-                style=style,
-                format_review=format_review,
+                format_filter=format_filter,
+                tidy_filter=tidy_filter,
+                args=args,
             )
             for file in files
         ]
 
         # temporary cache of parsed notifications for use in log commands
-        format_advice_map: Dict[str, Optional[FormatAdvice]] = {}
-        tidy_notes_map: Dict[str, Optional[TidyAdvice]] = {}
         for future in as_completed(futures):
-            file, logs, note, advice = future.result()
+            file_name, logs, tidy_advice, format_advice = future.result()
 
-            start_log_group(f"Performing checkup on {file}")
+            start_log_group(f"Performing checkup on {file_name}")
             print(logs, flush=True)
             end_log_group()
 
-            format_advice_map[file] = advice
-            tidy_notes_map[file] = note
-
-    format_advice = list(filter(None, (format_advice_map[file.name] for file in files)))
-    tidy_notes = list(filter(None, (tidy_notes_map[file.name] for file in files)))
-
-    return (format_advice, tidy_notes)
+            if tidy_advice or format_advice:
+                for file in files:
+                    if file.name == file_name:
+                        if tidy_advice:
+                            file.tidy_advice = tidy_advice
+                        if format_advice:
+                            file.format_advice = format_advice
+                        break
+                else:  # pragma: no cover
+                    raise ValueError(f"Failed to find {file_name} in list of files.")

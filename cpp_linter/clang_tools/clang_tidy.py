@@ -110,11 +110,13 @@ class TidyAdvice:
         return diagnostics
 
 
-def tally_tidy_advice(files: List[FileObj], tidy_advice: List[TidyAdvice]) -> int:
+def tally_tidy_advice(files: List[FileObj]) -> int:
     """Returns the sum of clang-format errors"""
     tidy_checks_failed = 0
-    for file_obj, concern in zip(files, tidy_advice):
-        for note in concern.notes:
+    for file_obj in files:
+        if not file_obj.tidy_advice:
+            continue
+        for note in file_obj.tidy_advice.notes:
             if file_obj.name == note.filename:
                 tidy_checks_failed += 1
             else:

@@ -30,7 +30,6 @@ repos:
           - types-docutils
           - rich
           - pytest
-          - meson
           - requests-mock
           - '.'
   - repo: https://github.com/codespell-project/codespell

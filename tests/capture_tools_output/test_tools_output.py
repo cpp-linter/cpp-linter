@@ -17,11 +17,13 @@ import requests_mock
 from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.git import parse_diff, get_diff
 from cpp_linter.clang_tools import capture_clang_tools_output
-from cpp_linter.clang_tools.clang_format import tally_format_advice, FormatAdvice
-from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice, TidyAdvice
+from cpp_linter.clang_tools.clang_format import tally_format_advice
+from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
-from cpp_linter.cli import cli_arg_parser
+from cpp_linter.cli import get_cli_parser, Args
+from cpp_linter.common_fs.file_filter import FileFilter
+
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
@@ -62,15 +64,11 @@ def _translate_lines_changed_only_value(value: int) -> str:
 
 def make_comment(
     files: List[FileObj],
-    format_advice: List[FormatAdvice],
-    tidy_advice: List[TidyAdvice],
 ):
-    format_checks_failed = tally_format_advice(format_advice=format_advice)
-    tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
+    format_checks_failed = tally_format_advice(files)
+    tidy_checks_failed = tally_tidy_advice(files)
     comment = GithubApiClient.make_comment(
         files=files,
-        format_advice=format_advice,
-        tidy_advice=tidy_advice,
         tidy_checks_failed=tidy_checks_failed,
         format_checks_failed=format_checks_failed,
     )
@@ -155,9 +153,7 @@ def prep_tmp_dir(
     monkeypatch.chdir(str(repo_cache))
     CACHE_PATH.mkdir(exist_ok=True)
     files = gh_client.get_list_of_changed_files(
-        extensions=["c", "h", "hpp", "cpp"],
-        ignored=[".github"],
-        not_ignored=[],
+        FileFilter(extensions=["c", "h", "hpp", "cpp"]),
         lines_changed_only=lines_changed_only,
     )
     gh_client.verify_files_are_present(files)
@@ -208,9 +204,7 @@ def test_lines_changed_only(
     CACHE_PATH.mkdir(exist_ok=True)
     gh_client = prep_api_client(monkeypatch, repo, commit)
     files = gh_client.get_list_of_changed_files(
-        extensions=extensions,
-        ignored=[".github"],
-        not_ignored=[],
+        FileFilter(extensions=extensions),
         lines_changed_only=lines_changed_only,
     )
     if files:
@@ -270,31 +264,30 @@ def test_format_annotations(
         lines_changed_only=lines_changed_only,
         copy_configs=True,
     )
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=CLANG_VERSION,
-        checks="-*",  # disable clang-tidy output
-        style=style,
-        lines_changed_only=lines_changed_only,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-    )
-    assert [note for note in format_advice]
-    assert not [note for concern in tidy_advice for note in concern.notes]
+
+    args = Args()
+    args.lines_changed_only = lines_changed_only
+    args.tidy_checks = "-*"  # disable clang-tidy output
+    args.version = CLANG_VERSION
+    args.style = style
+    args.extensions = ["c", "h", "cpp", "hpp"]
+
+    capture_clang_tools_output(files, args=args)
+    assert [file.format_advice for file in files if file.format_advice]
+    assert not [
+        note for file in files if file.tidy_advice for note in file.tidy_advice.notes
+    ]
 
     caplog.set_level(logging.INFO, logger=log_commander.name)
     log_commander.propagate = True
 
     # check thread comment
-    comment, format_checks_failed, _ = make_comment(files, format_advice, tidy_advice)
+    comment, format_checks_failed, _ = make_comment(files)
     if format_checks_failed:
         assert f"{format_checks_failed} file(s) not formatted</strong>" in comment
 
     # check annotations
-    gh_client.make_annotations(files, format_advice, tidy_advice, style)
+    gh_client.make_annotations(files, style)
     for message in [
         r.message
         for r in caplog.records
@@ -351,26 +344,23 @@ def test_tidy_annotations(
         lines_changed_only=lines_changed_only,
         copy_configs=False,
     )
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=CLANG_VERSION,
-        checks=checks,
-        style="",  # disable clang-format output
-        lines_changed_only=lines_changed_only,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-    )
-    assert [note for concern in tidy_advice for note in concern.notes]
-    assert not [note for note in format_advice]
+
+    args = Args()
+    args.lines_changed_only = lines_changed_only
+    args.tidy_checks = checks
+    args.version = CLANG_VERSION
+    args.style = ""  # disable clang-format output
+    args.extensions = ["c", "h", "cpp", "hpp"]
+
+    capture_clang_tools_output(files, args=args)
+    assert [
+        note for file in files if file.tidy_advice for note in file.tidy_advice.notes
+    ]
+    assert not [file.format_advice for file in files if file.format_advice]
     caplog.set_level(logging.DEBUG)
     log_commander.propagate = True
-    gh_client.make_annotations(files, format_advice, tidy_advice, style="")
-    _, format_checks_failed, tidy_checks_failed = make_comment(
-        files, format_advice, tidy_advice
-    )
+    gh_client.make_annotations(files, style="")
+    _, format_checks_failed, tidy_checks_failed = make_comment(files)
     assert not format_checks_failed
     messages = [
         r.message
@@ -405,22 +395,15 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     files: List[FileObj] = []  # no files to test means no concerns to note
 
+    args = Args()
+    args.tidy_checks = "-*"
+    args.version = CLANG_VERSION
+    args.style = ""  # disable clang-format output
+    args.extensions = ["cpp", "hpp"]
+
     # this call essentially does nothing with the file system
-    format_advice, tidy_advice = capture_clang_tools_output(
-        files,
-        version=CLANG_VERSION,
-        checks="-*",
-        style="",
-        lines_changed_only=0,
-        database="",
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-    )
-    comment, format_checks_failed, tidy_checks_failed = make_comment(
-        files, format_advice, tidy_advice
-    )
+    capture_clang_tools_output(files, args=args)
+    comment, format_checks_failed, tidy_checks_failed = make_comment(files)
     assert "No problems need attention." in comment
     assert not format_checks_failed
     assert not tidy_checks_failed
@@ -474,9 +457,7 @@ def test_parse_diff(
     Path(CACHE_PATH).mkdir()
     files = parse_diff(
         get_diff(),
-        extensions=["cpp", "hpp"],
-        ignored=[],
-        not_ignored=[],
+        FileFilter(extensions=["cpp", "hpp"]),
         lines_changed_only=0,
     )
     if sha == TEST_REPO_COMMIT_PAIRS[4]["commit"] or patch:
@@ -497,24 +478,19 @@ def test_tidy_extra_args(
 ):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
-    cli_in = []
+    cli_in = [
+        f"--version={CLANG_VERSION}",
+        "--tidy-checks=''",
+        "--style=''",
+        "--lines-changed-only=false",
+        "--extension=cpp,hpp",
+    ]
     for a in user_input:
         cli_in.append(f'--extra-arg="{a}"')
     logger.setLevel(logging.INFO)
-    args = cli_arg_parser.parse_args(cli_in)
+    args = get_cli_parser().parse_args(cli_in, namespace=Args())
     assert len(user_input) == len(args.extra_arg)
-    _, _ = capture_clang_tools_output(
-        files=[FileObj("tests/demo/demo.cpp")],
-        version=CLANG_VERSION,
-        checks="",  # use .clang-tidy config
-        style="",  # disable clang-format
-        lines_changed_only=0,
-        database="",
-        extra_args=args.extra_arg,
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-    )
+    capture_clang_tools_output(files=[FileObj("tests/demo/demo.cpp")], args=args)
     stdout = capsys.readouterr().out
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
     if msg_match is None:  # pragma: no cover

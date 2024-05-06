@@ -5,8 +5,8 @@ from pathlib import Path, PurePath
 import logging
 import os
 import re
-import sys
 import shutil
+import subprocess
 import pytest
 from cpp_linter.loggers import logger
 from cpp_linter.common_fs import FileObj, CACHE_PATH
@@ -14,7 +14,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
-from mesonbuild.mesonmain import main as meson  # type: ignore
+from cpp_linter.cli import Args
 
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
@@ -48,18 +48,15 @@ def test_db_detection(
     demo_src = "demo/demo.cpp"
     files = [FileObj(demo_src)]
 
-    _ = capture_clang_tools_output(
-        files,
-        version=os.getenv("CLANG_VERSION", "12"),
-        checks="",  # let clang-tidy use a .clang-tidy config file
-        style="",  # don't invoke clang-format
-        lines_changed_only=0,  # analyze complete file
-        database=database,
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-    )
+    args = Args()
+    args.database = database
+    args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
+    args.version = os.getenv("CLANG_VERSION", "12")
+    args.style = ""  # don't invoke clang-format
+    args.extensions = ["cpp", "hpp"]
+    args.lines_changed_only = 0  # analyze complete file
+
+    capture_clang_tools_output(files, args=args)
     stdout = capsys.readouterr().out
     assert "Error while trying to load a compilation database" not in stdout
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
@@ -83,32 +80,25 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     (tmp_path_demo / "build").mkdir(parents=True)
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path_demo))
-    monkeypatch.setattr(sys, "argv", ["meson", "init"])
-    meson()
-    monkeypatch.setattr(
-        sys, "argv", ["meson", "setup", "--backend=ninja", "build", "."]
-    )
-    meson()
+    subprocess.run(["meson", "init"])
+    subprocess.run(["meson", "setup", "--backend=ninja", "build", "."])
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
 
     logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]
 
+    args = Args()
+    args.database = "build"  # point to generated compile_commands.txt
+    args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
+    args.version = os.getenv("CLANG_VERSION", "12")
+    args.style = ""  # don't invoke clang-format
+    args.extensions = ["cpp", "hpp"]
+    args.lines_changed_only = 0  # analyze complete file
+
     # run clang-tidy and verify paths of project files were matched with database paths
-    (format_advice, tidy_advice) = capture_clang_tools_output(
-        files,
-        version=os.getenv("CLANG_VERSION", "12"),
-        checks="",  # let clang-tidy use a .clang-tidy config file
-        style="",  # don't invoke clang-format
-        lines_changed_only=0,  # analyze complete file
-        database="build",  # point to generated compile_commands.txt
-        extra_args=[],
-        tidy_review=False,
-        format_review=False,
-        num_workers=None,
-    )
+    capture_clang_tools_output(files, args=args)
     found_project_file = False
-    for concern in tidy_advice:
+    for concern in [a.tidy_advice for a in files if a.tidy_advice]:
         for note in concern.notes:
             if note.filename.endswith("demo.cpp") or note.filename.endswith("demo.hpp"):
                 assert not Path(note.filename).is_absolute()
@@ -116,12 +106,10 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     if not found_project_file:  # pragma: no cover
         pytest.fail("no project files raised concerns with clang-tidy")
 
-    format_checks_failed = tally_format_advice(format_advice=format_advice)
-    tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
+    format_checks_failed = tally_format_advice(files)
+    tidy_checks_failed = tally_tidy_advice(files)
     comment = GithubApiClient.make_comment(
         files=files,
-        format_advice=format_advice,
-        tidy_advice=tidy_advice,
         tidy_checks_failed=tidy_checks_failed,
         format_checks_failed=format_checks_failed,
     )

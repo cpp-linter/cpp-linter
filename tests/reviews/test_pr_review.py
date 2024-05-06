@@ -8,6 +8,8 @@ import pytest
 
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.cli import Args
+from cpp_linter.common_fs.file_filter import FileFilter
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
@@ -99,6 +101,7 @@ def test_post_review(
     demo_dir = Path(__file__).parent.parent / "demo"
     shutil.copyfile(str(demo_dir / "demo.cpp"), str(tmp_path / "src" / "demo.cpp"))
     shutil.copyfile(str(demo_dir / "demo.hpp"), str(tmp_path / "src" / "demo.hpp"))
+    shutil.copyfile(str(demo_dir / "demo.cpp"), str(tmp_path / "src" / "demo.c"))
     cache_path = Path(__file__).parent
     shutil.copyfile(
         str(cache_path / ".clang-format"), str(tmp_path / "src" / ".clang-format")
@@ -133,12 +136,10 @@ def test_post_review(
         mock.post(f"{base_url}/reviews")
         for review_id in [r["id"] for r in json.loads(reviews) if "id" in r]:
             mock.put(f"{base_url}/reviews/{review_id}/dismissals")
-
+        extensions = ["cpp", "hpp", "c"]
         # run the actual test
         files = gh_client.get_list_of_changed_files(
-            extensions=["cpp", "hpp"],
-            ignored=[],
-            not_ignored=[],
+            FileFilter(extensions=extensions),
             lines_changed_only=changes,
         )
         assert files
@@ -147,21 +148,27 @@ def test_post_review(
         if force_approved:
             files.clear()
 
-        format_advice, tidy_advice = capture_clang_tools_output(
-            files,
-            version=environ.get("CLANG_VERSION", "16"),
-            checks=DEFAULT_TIDY_CHECKS,
-            style="file",
-            lines_changed_only=changes,
-            database="",
-            extra_args=[],
-            tidy_review=tidy_review,
-            format_review=format_review,
-            num_workers=num_workers,
-        )
+        args = Args()
+        args.tidy_checks = DEFAULT_TIDY_CHECKS
+        args.version = environ.get("CLANG_VERSION", "16")
+        args.style = "file"
+        args.extensions = extensions
+        args.ignore_tidy = "*.c"
+        args.ignore_format = "*.c"
+        args.lines_changed_only = changes
+        args.tidy_review = tidy_review
+        args.format_review = format_review
+        args.jobs = num_workers
+        args.thread_comments = "false"
+        args.no_lgtm = no_lgtm
+        args.file_annotations = False
+
+        capture_clang_tools_output(files, args=args)
         if not force_approved:
-            assert [note for concern in tidy_advice for note in concern.notes]
-            assert [note for note in format_advice]
+            format_advice = list(filter(lambda x: x.format_advice is not None, files))
+            tidy_advice = list(filter(lambda x: x.tidy_advice is not None, files))
+            assert tidy_advice and len(tidy_advice) < len(files)
+            assert format_advice and len(format_advice) < len(files)
 
         # simulate draft PR by changing the request response
         cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(
@@ -180,18 +187,7 @@ def test_post_review(
             headers={"Accept": "application/vnd.github.text+json"},
             text=cache_pr_response,
         )
-        gh_client.post_feedback(
-            files,
-            format_advice,
-            tidy_advice,
-            thread_comments="false",
-            no_lgtm=no_lgtm,
-            step_summary=False,
-            file_annotations=False,
-            style="file",
-            tidy_review=tidy_review,
-            format_review=format_review,
-        )
+        gh_client.post_feedback(files, args)
 
         # inspect the review payload for correctness
         last_request = mock.last_request

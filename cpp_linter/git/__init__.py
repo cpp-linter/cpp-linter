@@ -20,7 +20,8 @@ from pygit2 import (  # type: ignore
     GitError,
 )
 from .. import CACHE_PATH
-from ..common_fs import FileObj, is_source_or_ignored, has_line_changes
+from ..common_fs import FileObj, has_line_changes
+from ..common_fs.file_filter import FileFilter
 from ..loggers import logger
 from .git_str import parse_diff as legacy_parse_diff
 
@@ -85,19 +86,15 @@ ADDITIVE_STATUS = (GIT_DELTA_RENAMED, GIT_DELTA_MODIFIED, GIT_DELTA_ADDED)
 
 def parse_diff(
     diff_obj: Union[Diff, str],
-    extensions: List[str],
-    ignored: List[str],
-    not_ignored: List[str],
+    file_filter: FileFilter,
     lines_changed_only: int,
 ) -> List[FileObj]:
     """Parse a given diff into file objects.
 
     :param diff_obj: The complete git diff object for an event.
-    :param extensions: A list of file extensions to focus on only.
-    :param ignored: A list of paths or files to ignore.
-    :param not_ignored: A list of paths or files to explicitly not ignore.
+    :param file_filter: A `FileFilter` object.
     :param lines_changed_only: A value that dictates what file changes to focus on.
-    :returns: A `list` of `dict` containing information about the files changed.
+    :returns: A `list` of `FileObj` describing information about the files changed.
 
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
@@ -107,15 +104,11 @@ def parse_diff(
             diff_obj = Diff.parse_diff(diff_obj)
         except GitError as exc:
             logger.warning(f"pygit2.Diff.parse_diff() threw {exc}")
-            return legacy_parse_diff(
-                diff_obj, extensions, ignored, not_ignored, lines_changed_only
-            )
+            return legacy_parse_diff(diff_obj, file_filter, lines_changed_only)
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
             continue
-        if not is_source_or_ignored(
-            patch.delta.new_file.path, extensions, ignored, not_ignored
-        ):
+        if not file_filter.is_source_or_ignored(patch.delta.new_file.path):
             continue
         diff_chunks, additions = parse_patch(patch.hunks)
         if has_line_changes(lines_changed_only, diff_chunks, additions):

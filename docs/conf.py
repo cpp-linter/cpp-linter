@@ -3,6 +3,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from io import StringIO
 from pathlib import Path
 import time
 from typing import Optional
@@ -11,7 +12,7 @@ import docutils
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxRole
 from sphinx_immaterial.inline_icons import load_svg_into_builder_env
-from cpp_linter.cli import cli_arg_parser
+from cpp_linter.cli import get_cli_parser
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -224,6 +225,7 @@ REQUIRED_VERSIONS = {
     "1.6.0": ["step_summary"],
     "1.4.7": ["extra_arg"],
     "1.8.1": ["jobs"],
+    "1.9.0": ["ignore_tidy", "ignore_format"],
 }
 
 PERMISSIONS = {
@@ -244,37 +246,61 @@ def setup(app: Sphinx):
     app.add_role("badge-permission", CliBadgePermission())
     app.add_role("badge-experimental", CliBadgeExperimental())
 
-    doc = "Command Line Interface Options\n==============================\n\n"
-    doc += ".. note::\n\n    These options have a direct relationship with the\n    "
-    doc += "`cpp-linter-action user inputs "
-    doc += "<https://cpp-linter.github.io/cpp-linter-action/inputs-outputs#inputs>`_. "
-    doc += "Although, some default values may differ.\n\n"
-
-    args = cli_arg_parser._optionals._actions
-    for arg in args:
-        aliases = arg.option_strings
-        if not aliases or arg.default == "==SUPPRESS==":
-            continue
-        doc += "\n.. std:option:: " + ", ".join(aliases) + "\n"
-        assert arg.help is not None
-        help = arg.help[: arg.help.find("Defaults to")]
-        for ver, names in REQUIRED_VERSIONS.items():
-            if arg.dest in names:
-                req_ver = ver
-                break
-        else:
-            req_ver = "1.4.6"
-        doc += f"\n    :badge-version:`{req_ver}` "
-        doc += f":badge-default:`'{arg.default or ''}'` "
-        if arg.dest in EXPERIMENTAL:
-            doc += ":badge-experimental:`experimental` "
-        for name, permission in PERMISSIONS.items():
-            if name == arg.dest:
-                link, spec = permission
-                doc += f":badge-permission:`{link} {spec}`"
-                break
-        doc += "\n\n    "
-        doc += "\n    ".join(help.splitlines()) + "\n"
     cli_doc = Path(app.srcdir, "cli_args.rst")
-    cli_doc.unlink(missing_ok=True)
-    cli_doc.write_text(doc)
+    with open(cli_doc, mode="w") as doc:
+        doc.write("Command Line Interface Options\n==============================\n\n")
+        doc.write(
+            ".. note::\n\n    These options have a direct relationship with the\n    "
+        )
+        doc.write("`cpp-linter-action user inputs ")
+        doc.write(
+            "<https://cpp-linter.github.io/cpp-linter-action/inputs-outputs#inputs>`_. "
+        )
+        doc.write("Although, some default values may differ.\n\n")
+        parser = get_cli_parser()
+        doc.write(".. code-block:: text\n    :caption: Usage\n    :class: no-copy\n\n")
+        parser.prog = "cpp-linter"
+        str_buf = StringIO()
+        parser.print_usage(str_buf)
+        usage = str_buf.getvalue()
+        start = usage.find(parser.prog)
+        for line in usage.splitlines():
+            doc.write(f"    {line[start:]}\n")
+
+        doc.write("\n\nPositional Arguments\n")
+        doc.write("--------------------\n\n")
+        args = parser._optionals._actions
+        for arg in args:
+            if arg.option_strings:
+                continue
+            assert arg.dest is not None
+            doc.write(f"\n.. std:option:: {arg.dest.lower()}\n\n")
+            assert arg.help is not None
+            doc.write("\n    ".join(arg.help.splitlines()))
+
+        doc.write("\n\nOptional Arguments")
+        doc.write("\n------------------\n\n")
+        for arg in args:
+            aliases = arg.option_strings
+            if not aliases or arg.default == "==SUPPRESS==":
+                continue
+            doc.write("\n.. std:option:: " + ", ".join(aliases) + "\n")
+            assert arg.help is not None
+            help = arg.help[: arg.help.find("Defaults to")]
+            for ver, names in REQUIRED_VERSIONS.items():
+                if arg.dest in names:
+                    req_ver = ver
+                    break
+            else:
+                req_ver = "1.4.6"
+            doc.write(f"\n    :badge-version:`{req_ver}` ")
+            doc.write(f":badge-default:`'{arg.default or ''}'` ")
+            if arg.dest in EXPERIMENTAL:
+                doc.write(":badge-experimental:`experimental` ")
+            for name, permission in PERMISSIONS.items():
+                if name == arg.dest:
+                    link, spec = permission
+                    doc.write(f":badge-permission:`{link} {spec}`")
+                    break
+            doc.write("\n\n    ")
+            doc.write("\n    ".join(help.splitlines()) + "\n")

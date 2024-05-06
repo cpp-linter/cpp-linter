@@ -1,9 +1,13 @@
 from os import environ
-from os.path import commonpath
-from pathlib import PurePath, Path
-from typing import List, Dict, Any, Union, Tuple, Optional
+from pathlib import Path
+from typing import List, Dict, Any, Union, Tuple, Optional, TYPE_CHECKING
 from pygit2 import DiffHunk  # type: ignore
-from .loggers import logger, start_log_group
+from ..loggers import logger
+
+if TYPE_CHECKING:  # pragma: no covers
+    # circular import
+    from ..clang_tools.clang_tidy import TidyAdvice
+    from ..clang_tools.clang_format import FormatAdvice
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
 CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
@@ -39,6 +43,10 @@ class FileObj:
         """A list of line numbers that define the beginning and ending of ranges that
         have added changes. This will be empty if not focusing on lines changed only.
         """
+        #: The results from clang-tidy
+        self.tidy_advice: Optional["TidyAdvice"] = None
+        #: The results from clang-format
+        self.format_advice: Optional["FormatAdvice"] = None
 
     @staticmethod
     def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
@@ -148,33 +156,6 @@ class FileObj:
         return None
 
 
-def is_file_in_list(paths: List[str], file_name: str, prompt: str) -> bool:
-    """Determine if a file is specified in a list of paths and/or filenames.
-
-    :param paths: A list of specified paths to compare with. This list can contain a
-        specified file, but the file's path must be included as part of the
-        filename.
-    :param file_name: The file's path & name being sought in the ``paths`` list.
-    :param prompt: A debugging prompt to use when the path is found in the list.
-
-    :returns:
-
-        - True if ``file_name`` is in the ``paths`` list.
-        - False if ``file_name`` is not in the ``paths`` list.
-    """
-    for path in paths:
-        result = commonpath([PurePath(path).as_posix(), PurePath(file_name).as_posix()])
-        if result.replace("\\", "/") == path:
-            logger.debug(
-                '"./%s" is %s as specified in the domain "./%s"',
-                file_name,
-                prompt,
-                path,
-            )
-            return True
-    return False
-
-
 def has_line_changes(
     lines_changed_only: int, diff_chunks: List[List[int]], additions: List[int]
 ) -> bool:
@@ -194,60 +175,6 @@ def has_line_changes(
         or (lines_changed_only == 2 and len(additions) > 0)
         or not lines_changed_only
     )
-
-
-def is_source_or_ignored(
-    file_name: str,
-    ext_list: List[str],
-    ignored: List[str],
-    not_ignored: List[str],
-):
-    """Exclude undesired files (specified by user input :std:option:`--extensions`).
-    This filtering is applied to the :attr:`~cpp_linter.Globals.FILES` attribute.
-
-    :param file_name: The name of file in question.
-    :param ext_list: A list of file extensions that are to be examined.
-    :param ignored: A list of paths to explicitly ignore.
-    :param not_ignored: A list of paths to explicitly not ignore.
-
-    :returns:
-        True if there are files to check. False will invoke a early exit (in
-        `main()`) when no files to be checked.
-    """
-    return PurePath(file_name).suffix.lstrip(".") in ext_list and (
-        is_file_in_list(not_ignored, file_name, "not ignored")
-        or not is_file_in_list(ignored, file_name, "ignored")
-    )
-
-
-def list_source_files(
-    extensions: List[str], ignored: List[str], not_ignored: List[str]
-) -> List[FileObj]:
-    """Make a list of source files to be checked.
-
-    :param extensions: A list of file extensions that should by attended.
-    :param ignored: A list of paths to explicitly ignore.
-    :param not_ignored: A list of paths to explicitly not ignore.
-
-    :returns: A list of `FileObj` objects.
-    """
-    start_log_group("Get list of specified source files")
-
-    root_path = Path(".")
-    files = []
-    for ext in extensions:
-        for rel_path in root_path.rglob(f"*.{ext}"):
-            for parent in rel_path.parts[:-1]:
-                if parent.startswith("."):
-                    break
-            else:
-                file_path = rel_path.as_posix()
-                logger.debug('"./%s" is a source code file', file_path)
-                if is_file_in_list(
-                    not_ignored, file_path, "not ignored"
-                ) or not is_file_in_list(ignored, file_path, "ignored"):
-                    files.append(FileObj(file_path))
-    return files
 
 
 def get_line_cnt_from_cols(file_path: str, offset: int) -> Tuple[int, int]:

@@ -4,7 +4,8 @@ binds to). The `parse_diff()` function here is only used when
 
 import re
 from typing import Optional, List, Tuple, cast
-from ..common_fs import FileObj, is_source_or_ignored, has_line_changes
+from ..common_fs import FileObj, has_line_changes
+from ..common_fs.file_filter import FileFilter
 from ..loggers import logger
 
 
@@ -38,17 +39,13 @@ def _get_filename_from_diff(front_matter: str) -> Optional[re.Match]:
 
 def parse_diff(
     full_diff: str,
-    extensions: List[str],
-    ignored: List[str],
-    not_ignored: List[str],
+    file_filter: FileFilter,
     lines_changed_only: int,
 ) -> List[FileObj]:
     """Parse a given diff into file objects.
 
     :param full_diff: The complete diff for an event.
-    :param extensions: A list of file extensions to focus on only.
-    :param ignored: A list of paths or files to ignore.
-    :param not_ignored: A list of paths or files to explicitly not ignore.
+    :param file_filter: A `FileFilter` object.
     :param lines_changed_only: A value that dictates what file changes to focus on.
     :returns: A `list` of `FileObj` instances containing information about the files
         changed.
@@ -68,7 +65,7 @@ def parse_diff(
         filename = cast(str, filename_match.groups(0)[0])
         if first_hunk is None:
             continue
-        if not is_source_or_ignored(filename, extensions, ignored, not_ignored):
+        if not file_filter.is_source_or_ignored(filename):
             continue
         diff_chunks, additions = _parse_patch(diff[first_hunk.start() :])
         if has_line_changes(lines_changed_only, diff_chunks, additions):

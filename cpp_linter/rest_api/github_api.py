@@ -15,17 +15,19 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Dict, List, Any, cast, Optional, Tuple, Union, Sequence
+from typing import Dict, List, Any, cast, Optional, Tuple, Union
 
 from pygit2 import Patch  # type: ignore
+from ..common_fs import FileObj, CACHE_PATH
+from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
     FormatAdvice,
     formalize_style_name,
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import TidyAdvice, tally_tidy_advice
-from ..common_fs import FileObj, CACHE_PATH
-from ..loggers import start_log_group, logger, log_commander
+from ..cli import Args
+from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
 
@@ -83,12 +85,9 @@ class GithubApiClient(RestApiClient):
 
     def get_list_of_changed_files(
         self,
-        extensions: List[str],
-        ignored: List[str],
-        not_ignored: List[str],
+        file_filter: FileFilter,
         lines_changed_only: int,
     ) -> List[FileObj]:
-        start_log_group("Get list of specified source files")
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
@@ -105,17 +104,9 @@ class GithubApiClient(RestApiClient):
             response = self.api_request(
                 url=files_link, headers=self.make_headers(use_diff=True)
             )
-            files = parse_diff(
-                response.text,
-                extensions,
-                ignored,
-                not_ignored,
-                lines_changed_only,
-            )
+            files = parse_diff(response.text, file_filter, lines_changed_only)
         else:
-            files = parse_diff(
-                get_diff(), extensions, ignored, not_ignored, lines_changed_only
-            )
+            files = parse_diff(get_diff(), file_filter, lines_changed_only)
         return files
 
     def verify_files_are_present(self, files: List[FileObj]) -> None:
@@ -155,26 +146,16 @@ class GithubApiClient(RestApiClient):
     def post_feedback(
         self,
         files: List[FileObj],
-        format_advice: List[FormatAdvice],
-        tidy_advice: List[TidyAdvice],
-        thread_comments: str,
-        no_lgtm: bool,
-        step_summary: bool,
-        file_annotations: bool,
-        style: str,
-        tidy_review: bool,
-        format_review: bool,
+        args: Args,
     ):
-        format_checks_failed = tally_format_advice(format_advice=format_advice)
-        tidy_checks_failed = tally_tidy_advice(files=files, tidy_advice=tidy_advice)
+        format_checks_failed = tally_format_advice(files)
+        tidy_checks_failed = tally_tidy_advice(files)
         checks_failed = format_checks_failed + tidy_checks_failed
         comment: Optional[str] = None
 
-        if step_summary and "GITHUB_STEP_SUMMARY" in environ:
+        if args.step_summary and "GITHUB_STEP_SUMMARY" in environ:
             comment = super().make_comment(
                 files=files,
-                format_advice=format_advice,
-                tidy_advice=tidy_advice,
                 format_checks_failed=format_checks_failed,
                 tidy_checks_failed=tidy_checks_failed,
                 len_limit=None,
@@ -182,12 +163,10 @@ class GithubApiClient(RestApiClient):
             with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
                 summary.write(f"\n{comment}\n")
 
-        if file_annotations:
+        if args.file_annotations:
             self.make_annotations(
                 files=files,
-                format_advice=format_advice,
-                tidy_advice=tidy_advice,
-                style=style,
+                style=args.style,
             )
 
         self.set_exit_code(
@@ -196,7 +175,7 @@ class GithubApiClient(RestApiClient):
             tidy_checks_failed=tidy_checks_failed,
         )
 
-        if thread_comments != "false":
+        if args.thread_comments != "false":
             if "GITHUB_TOKEN" not in environ:
                 logger.error("The GITHUB_TOKEN is required!")
                 sys.exit(1)
@@ -204,14 +183,12 @@ class GithubApiClient(RestApiClient):
             if comment is None or len(comment) >= 65535:
                 comment = super().make_comment(
                     files=files,
-                    format_advice=format_advice,
-                    tidy_advice=tidy_advice,
                     format_checks_failed=format_checks_failed,
                     tidy_checks_failed=tidy_checks_failed,
                     len_limit=65535,
                 )
 
-            update_only = thread_comments == "update"
+            update_only = args.thread_comments == "update"
             is_lgtm = not checks_failed
             comments_url = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
@@ -222,59 +199,57 @@ class GithubApiClient(RestApiClient):
             self.update_comment(
                 comment=comment,
                 comments_url=comments_url,
-                no_lgtm=no_lgtm,
+                no_lgtm=args.no_lgtm,
                 update_only=update_only,
                 is_lgtm=is_lgtm,
             )
 
-        if self.event_name == "pull_request" and (tidy_review or format_review):
+        if self.event_name == "pull_request" and (
+            args.tidy_review or args.format_review
+        ):
             self.post_review(
                 files=files,
-                tidy_advice=tidy_advice,
-                format_advice=format_advice,
-                tidy_review=tidy_review,
-                format_review=format_review,
-                no_lgtm=no_lgtm,
+                tidy_review=args.tidy_review,
+                format_review=args.format_review,
+                no_lgtm=args.no_lgtm,
             )
 
     def make_annotations(
         self,
         files: List[FileObj],
-        format_advice: List[FormatAdvice],
-        tidy_advice: List[TidyAdvice],
         style: str,
     ) -> None:
         """Use github log commands to make annotations from clang-format and
         clang-tidy output.
 
         :param files: A list of objects, each describing a file's information.
-        :param format_advice: A list of clang-format advice parallel to the list of
-            ``files``.
-        :param tidy_advice: A list of clang-tidy advice parallel to the list of
-            ``files``.
         :param style: The chosen code style guidelines. The value 'file' is replaced
             with 'custom style'.
         """
         style_guide = formalize_style_name(style)
-        for advice, file in zip(format_advice, files):
-            if advice.replaced_lines:
+        for file_obj in files:
+            if not file_obj.format_advice:
+                continue
+            if file_obj.format_advice.replaced_lines:
                 line_list = []
-                for fix in advice.replaced_lines:
+                for fix in file_obj.format_advice.replaced_lines:
                     line_list.append(str(fix.line))
                 output = "::notice file="
-                name = file.name
+                name = file_obj.name
                 output += f"{name},title=Run clang-format on {name}::File {name}"
                 output += f" does not conform to {style_guide} style guidelines. "
                 output += "(lines {lines})".format(lines=", ".join(line_list))
                 log_commander.info(output)
-        for concerns, file in zip(tidy_advice, files):
-            for note in concerns.notes:
-                if note.filename == file.name:
+        for file_obj in files:
+            if not file_obj.tidy_advice:
+                continue
+            for note in file_obj.tidy_advice.notes:
+                if note.filename == file_obj.name:
                     output = "::{} ".format(
                         "notice" if note.severity.startswith("note") else note.severity
                     )
                     output += "file={file},line={line},title={file}:{line}:".format(
-                        file=file.name, line=note.line
+                        file=file_obj.name, line=note.line
                     )
                     output += "{cols} [{diag}]::{info}".format(
                         cols=note.cols,
@@ -368,8 +343,6 @@ class GithubApiClient(RestApiClient):
     def post_review(
         self,
         files: List[FileObj],
-        tidy_advice: List[TidyAdvice],
-        format_advice: List[FormatAdvice],
         tidy_review: bool,
         format_review: bool,
         no_lgtm: bool,
@@ -392,14 +365,14 @@ class GithubApiClient(RestApiClient):
         summary_only = (
             environ.get("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "false") == "true"
         )
-        advice: Dict[str, Sequence[Union[TidyAdvice, FormatAdvice]]] = {}
+        advice: Dict[str, bool] = {}
         if format_review:
-            advice["clang-format"] = format_advice
+            advice["clang-format"] = False
         if tidy_review:
-            advice["clang-tidy"] = tidy_advice
-        for tool_name, tool_advice in advice.items():
+            advice["clang-tidy"] = True
+        for tool_name, tidy_tool in advice.items():
             comments, total, patch = self.create_review_comments(
-                files, tool_advice, summary_only
+                files, tidy_tool, summary_only
             )
             total_changes += total
             if not summary_only:
@@ -431,20 +404,27 @@ class GithubApiClient(RestApiClient):
     @staticmethod
     def create_review_comments(
         files: List[FileObj],
-        tool_advice: Sequence[Union[FormatAdvice, TidyAdvice]],
+        tidy_tool: bool,
         summary_only: bool,
     ) -> Tuple[List[Dict[str, Any]], int, str]:
         """Creates a batch of comments for a specific clang tool's PR review"""
         total = 0
         comments = []
         full_patch = ""
-        for file, advice in zip(files, tool_advice):
-            assert advice.patched, f"No suggested patch found for {file.name}"
+        for file_obj in files:
+            tool_advice: Optional[Union[TidyAdvice, FormatAdvice]]
+            if tidy_tool:
+                tool_advice = file_obj.tidy_advice
+            else:
+                tool_advice = file_obj.format_advice
+            if not tool_advice:
+                continue
+            assert tool_advice.patched, f"No suggested patch found for {file_obj.name}"
             patch = Patch.create_from(
-                old=Path(file.name).read_bytes(),
-                new=advice.patched,
-                old_as_path=file.name,
-                new_as_path=file.name,
+                old=Path(file_obj.name).read_bytes(),
+                new=tool_advice.patched,
+                old_as_path=file_obj.name,
+                new_as_path=file_obj.name,
                 context_lines=0,  # trim all unchanged lines from start/end of hunks
             )
             full_patch += patch.text
@@ -452,20 +432,22 @@ class GithubApiClient(RestApiClient):
                 total += 1
                 if summary_only:
                     continue
-                new_hunk_range = file.is_hunk_contained(hunk)
+                new_hunk_range = file_obj.is_hunk_contained(hunk)
                 if new_hunk_range is None:
                     continue
                 start_lines, end_lines = new_hunk_range
-                comment: Dict[str, Any] = {"path": file.name}
+                comment: Dict[str, Any] = {"path": file_obj.name}
                 body = ""
-                if isinstance(advice, TidyAdvice):
+                if tidy_tool and file_obj.tidy_advice:
                     body += "### clang-tidy "
-                    diagnostics = advice.diagnostics_in_range(start_lines, end_lines)
+                    diagnostics = file_obj.tidy_advice.diagnostics_in_range(
+                        start_lines, end_lines
+                    )
                     if diagnostics:
                         body += "diagnostics\n" + diagnostics
                     else:
                         body += "suggestions\n"
-                else:
+                elif not tidy_tool:
                     body += "### clang-format suggestions\n"
                 if start_lines < end_lines:
                     comment["start_line"] = start_lines
@@ -485,24 +467,24 @@ class GithubApiClient(RestApiClient):
                 comment["body"] = body
                 comments.append(comment)
 
-        if tool_advice and isinstance(tool_advice[0], TidyAdvice):
             # now check for clang-tidy warnings with no fixes applied
-            for file, tidy_advice in zip(files, tool_advice):
-                assert isinstance(tidy_advice, TidyAdvice)
-                for note in tidy_advice.notes:
+            if tidy_tool and file_obj.tidy_advice:
+                for note in file_obj.tidy_advice.notes:
                     if not note.applied_fixes:  # if no fix was applied
                         total += 1
                         line_numb = int(note.line)
-                        if file.is_range_contained(start=line_numb, end=line_numb + 1):
+                        if file_obj.is_range_contained(
+                            start=line_numb, end=line_numb + 1
+                        ):
                             diag: Dict[str, Any] = {
-                                "path": file.name,
+                                "path": file_obj.name,
                                 "line": note.line,
                             }
-                            body = f"### clang-tidy diagnostic\n**{file.name}:"
+                            body = f"### clang-tidy diagnostic\n**{file_obj.name}:"
                             body += f"{note.line}:{note.cols}:** {note.severity}: "
                             body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
                             if note.fixit_lines:
-                                body += f'```{Path(file.name).suffix.lstrip(".")}\n'
+                                body += f'```{Path(file_obj.name).suffix.lstrip(".")}\n'
                                 for line in note.fixit_lines:
                                     body += f"{line}\n"
                                 body += "```\n"
