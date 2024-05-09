@@ -82,6 +82,8 @@ class TidyNotification:
     @property
     def diagnostic_link(self) -> str:
         """Creates a markdown link to the diagnostic documentation."""
+        if self.diagnostic.startswith("clang-diagnostic-"):
+            return self.diagnostic
         link = f"[{self.diagnostic}](https://clang.llvm.org/extra/clang-tidy/checks/"
         return link + "{}/{}.html)".format(*self.diagnostic.split("-", maxsplit=1))
 
