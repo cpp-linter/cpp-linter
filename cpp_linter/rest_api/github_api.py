@@ -212,6 +212,7 @@ class GithubApiClient(RestApiClient):
                 tidy_review=args.tidy_review,
                 format_review=args.format_review,
                 no_lgtm=args.no_lgtm,
+                passive_reviews=args.passive_reviews,
             )
 
     def make_annotations(
@@ -346,6 +347,7 @@ class GithubApiClient(RestApiClient):
         tidy_review: bool,
         format_review: bool,
         no_lgtm: bool,
+        passive_reviews: bool,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}"
         response = self.api_request(url=url)
@@ -393,6 +395,8 @@ class GithubApiClient(RestApiClient):
                 return
             body += "\nGreat job! :tada:"
             event = "APPROVE"
+        if passive_reviews:
+            event = "COMMENT"
         body += USER_OUTREACH
         payload = {
             "body": body,
