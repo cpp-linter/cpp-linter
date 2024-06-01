@@ -226,12 +226,14 @@ REQUIRED_VERSIONS = {
     "1.4.7": ["extra_arg"],
     "1.8.1": ["jobs"],
     "1.9.0": ["ignore_tidy", "ignore_format"],
+    "1.10.0": ["passive_reviews"],
 }
 
 PERMISSIONS = {
     "thread_comments": ["thread-comments", "contents: write"],
     "tidy_review": ["pull-request-reviews", "pull-requests: write"],
     "format_review": ["pull-request-reviews", "pull-requests: write"],
+    "passive_reviews": ["pull-request-reviews", "pull-requests: write"],
     "files_changed_only": ["file-changes", "contents: read"],
     "lines_changed_only": ["file-changes", "contents: read"],
 }

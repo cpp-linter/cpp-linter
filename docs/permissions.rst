@@ -90,8 +90,8 @@ The :std:option:`--thread-comments` feature requires the following permissions:
 Pull Request Reviews
 ----------------------
 
-The :std:option:`--tidy-review` and :std:option:`--format-review` features require the following permissions:
-
+The :std:option:`--tidy-review`, :std:option:`--format-review`, and :std:option:`--passive-reviews`
+features require the following permissions:
 
 .. code-block:: yaml
 
