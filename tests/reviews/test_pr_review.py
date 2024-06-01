@@ -213,11 +213,11 @@ def test_post_review(
                 assert "clang-format" in json_payload["body"]
             else:  # pragma: no cover
                 raise RuntimeError("review payload is incorrect")
-            if force_approved:
-                assert json_payload["event"] == "APPROVE"
+            if is_passive:
+                assert json_payload["event"] == "COMMENT"
             else:
-                if is_passive:
-                    assert json_payload["event"] == "COMMENT"
+                if force_approved:
+                    assert json_payload["event"] == "APPROVE"
                 else:
                     assert json_payload["event"] == "REQUEST_CHANGES"
 
