@@ -442,7 +442,7 @@ def test_parse_diff(
         # reset index to specified commit
         strategy=pygit2.GIT_CHECKOUT_FORCE | pygit2.GIT_CHECKOUT_RECREATE_MISSING,
     )
-    repo.set_head(commit.oid)  # detach head
+    repo.set_head(commit.id)  # detach head
     if patch:
         diff = repo.diff()
         patch_to_stage = (Path(__file__).parent / repo_name / patch).read_text(
