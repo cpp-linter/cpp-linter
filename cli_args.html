@@ -453,6 +453,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cmdoption-R" class="md-nav__link">
+    <span title="-R (program option)" class="md-ellipsis">-<wbr>R, --<wbr>passive-<wbr>reviews</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cmdoption-j" class="md-nav__link">
     <span title="-j (program option)" class="md-ellipsis">-<wbr>j, --<wbr>jobs</span>
   </a>
@@ -903,6 +910,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#cmdoption-R" class="md-nav__link">
+    <span title="-R (program option)" class="md-ellipsis">-<wbr>R, --<wbr>passive-<wbr>reviews</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#cmdoption-j" class="md-nav__link">
     <span title="-j (program option)" class="md-ellipsis">-<wbr>j, --<wbr>jobs</span>
   </a>
@@ -943,7 +957,7 @@
            [-l LINES_CHANGED_ONLY] [-f FILES_CHANGED_ONLY] [-g NO_LGTM]
            [-t {true,false,update}] [-w STEP_SUMMARY]
            [-a FILE_ANNOTATIONS] [-x EXTRA_ARG] [-d TIDY_REVIEW]
-           [-m FORMAT_REVIEW] [-j JOBS]
+           [-m FORMAT_REVIEW] [-R PASSIVE_REVIEWS] [-j JOBS]
            [files ...]
 </code></pre></div>
 </div>
@@ -1234,6 +1248,14 @@ from clang-tidy.</p>
 <dd><p><span class="mdx-badge"><span class="mdx-badge__icon"><a href="https://github.com/cpp-linter/cpp-linter/releases/v1.7.0" title="Minimum Version"><span class="md-icon si-icon-inline material_tag-outline"></span></a></span><span class="mdx-badge__text"><a href="https://github.com/cpp-linter/cpp-linter/releases/v1.7.0" title="Minimum Version">1.7.0</a></span></span> <span class="mdx-badge"><span class="mdx-badge__icon">Default</span><span class="mdx-badge__text"><code class="code highlight yaml docutils literal notranslate"><span class="s"><span class="pre">'false'</span></span></code></span></span> <span class="mdx-badge"><span class="mdx-badge__icon"><a href="permissions.html#pull-request-reviews" title="Required Permission"><span class="md-icon si-icon-inline material_lock"></span></a></span><span class="mdx-badge__text"><a href="permissions.html#pull-request-reviews" title="Required Permission"><code class="code highlight yaml docutils literal notranslate"><span class="nt"><span class="pre">pull-requests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="l-Scalar-Plain"><span class="pre">write</span></span></code></a></span></span></p>
 <p>Set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to enable Pull Request reviews
 from clang-format.</p>
+</dd></dl>
+
+<dl class="std option objdesc">
+<dt class="sig sig-object highlight std" id="cmdoption-R">
+<span id="cmdoption-passive-reviews"></span><span class="sig-name descname"><span class="pre">-R</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--passive-reviews</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-R" title="Link to this definition">¶</a></dt>
+<dd><p><span class="mdx-badge"><span class="mdx-badge__icon"><a href="https://github.com/cpp-linter/cpp-linter/releases/v1.10.0" title="Minimum Version"><span class="md-icon si-icon-inline material_tag-outline"></span></a></span><span class="mdx-badge__text"><a href="https://github.com/cpp-linter/cpp-linter/releases/v1.10.0" title="Minimum Version">1.10.0</a></span></span> <span class="mdx-badge"><span class="mdx-badge__icon">Default</span><span class="mdx-badge__text"><code class="code highlight yaml docutils literal notranslate"><span class="s"><span class="pre">'false'</span></span></code></span></span> <span class="mdx-badge"><span class="mdx-badge__icon"><a href="permissions.html#pull-request-reviews" title="Required Permission"><span class="md-icon si-icon-inline material_lock"></span></a></span><span class="mdx-badge__text"><a href="permissions.html#pull-request-reviews" title="Required Permission"><code class="code highlight yaml docutils literal notranslate"><span class="nt"><span class="pre">pull-requests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="l-Scalar-Plain"><span class="pre">write</span></span></code></a></span></span></p>
+<p>Set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to prevent Pull Request
+reviews from requesting or approving changes</p>
 </dd></dl>
 
 <dl class="std option objdesc">

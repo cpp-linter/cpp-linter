@@ -609,7 +609,9 @@
     <span class="c1">#: See :std:option:`--ignore-tidy`.</span>
     <span class="n">ignore_tidy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="c1">#: See :std:option:`--ignore-format`.</span>
-    <span class="n">ignore_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span></div>
+    <span class="n">ignore_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="c1">#: See :std:option:`--passive-reviews`.</span>
+    <span class="n">passive_reviews</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 
 
@@ -886,6 +888,12 @@
 <span class="s2">from clang-format.</span>
 
 <span class="s2">Defaults to ``</span><span class="si">%(default)s</span><span class="s2">``.&quot;&quot;&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">_parser_args</span><span class="p">[(</span><span class="s2">&quot;-R&quot;</span><span class="p">,</span> <span class="s2">&quot;--passive-reviews&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">default</span><span class="o">=</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="k">lambda</span> <span class="nb">input</span><span class="p">:</span> <span class="nb">input</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Set to ``true`` to prevent Pull Request</span>
+<span class="s2">reviews from requesting or approving changes.&quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
 

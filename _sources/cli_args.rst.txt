@@ -16,7 +16,7 @@ Command Line Interface Options
                [-l LINES_CHANGED_ONLY] [-f FILES_CHANGED_ONLY] [-g NO_LGTM]
                [-t {true,false,update}] [-w STEP_SUMMARY]
                [-a FILE_ANNOTATIONS] [-x EXTRA_ARG] [-d TIDY_REVIEW]
-               [-m FORMAT_REVIEW] [-j JOBS]
+               [-m FORMAT_REVIEW] [-R PASSIVE_REVIEWS] [-j JOBS]
                [files ...]
 
 
@@ -305,6 +305,13 @@ Optional Arguments
     Set to ``true`` to enable Pull Request reviews
     from clang-format.
     
+
+.. std:option:: -R, --passive-reviews
+
+    :badge-version:`1.10.0` :badge-default:`'false'` :badge-permission:`pull-request-reviews pull-requests: write`
+
+    Set to ``true`` to prevent Pull Request
+    reviews from requesting or approving changes
 
 .. std:option:: -j, --jobs
 
