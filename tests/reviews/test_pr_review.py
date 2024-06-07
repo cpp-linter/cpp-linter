@@ -29,6 +29,7 @@ test_parameters = OrderedDict(
     summary_only=False,
     no_lgtm=False,
     num_workers=None,
+    is_passive=False,
 )
 
 
@@ -56,6 +57,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
         tuple(mk_param_set(tidy_review=True, changes=1).values()),
         tuple(mk_param_set(tidy_review=True, changes=0).values()),
         tuple(mk_param_set(tidy_review=True, changes=0, summary_only=True).values()),
+        tuple(mk_param_set(is_passive=True).values()),
     ],
     ids=[
         "draft",
@@ -68,6 +70,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
         "lines_added",
         "all_lines",
         "summary_only",
+        "passive",
     ],
 )
 def test_post_review(
@@ -83,6 +86,7 @@ def test_post_review(
     summary_only: bool,
     no_lgtm: bool,
     num_workers: int,
+    is_passive: bool,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -162,6 +166,7 @@ def test_post_review(
         args.thread_comments = "false"
         args.no_lgtm = no_lgtm
         args.file_annotations = False
+        args.passive_reviews = is_passive
 
         capture_clang_tools_output(files, args=args)
         if not force_approved:
@@ -208,10 +213,13 @@ def test_post_review(
                 assert "clang-format" in json_payload["body"]
             else:  # pragma: no cover
                 raise RuntimeError("review payload is incorrect")
-            if force_approved:
-                assert json_payload["event"] == "APPROVE"
+            if is_passive:
+                assert json_payload["event"] == "COMMENT"
             else:
-                assert json_payload["event"] == "REQUEST_CHANGES"
+                if force_approved:
+                    assert json_payload["event"] == "APPROVE"
+                else:
+                    assert json_payload["event"] == "REQUEST_CHANGES"
 
             # save the body of the review json for manual inspection
             assert hasattr(last_request, "text")

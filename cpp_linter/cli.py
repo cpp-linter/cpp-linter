@@ -67,6 +67,8 @@ class Args(UserDict):
     ignore_tidy: str = ""
     #: See :std:option:`--ignore-format`.
     ignore_format: str = ""
+    #: See :std:option:`--passive-reviews`.
+    passive_reviews: bool = False
 
 
 _parser_args: Dict[Sequence[str], Any] = {}
@@ -342,6 +344,12 @@ _parser_args[("-m", "--format-review")] = dict(
 from clang-format.
 
 Defaults to ``%(default)s``.""",
+)
+_parser_args[("-R", "--passive-reviews")] = dict(
+    default="false",
+    type=lambda input: input.lower() == "true",
+    help="""Set to ``true`` to prevent Pull Request
+reviews from requesting or approving changes.""",
 )
 
 
