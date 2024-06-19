@@ -18,6 +18,7 @@ import sys
 from typing import Dict, List, Any, cast, Optional, Tuple, Union
 
 from pygit2 import Patch  # type: ignore
+from pygit2.enums import DiffOption  # type: ignore
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
@@ -429,6 +430,7 @@ class GithubApiClient(RestApiClient):
                 new=tool_advice.patched,
                 old_as_path=file_obj.name,
                 new_as_path=file_obj.name,
+                flag=DiffOption.INDENT_HEURISTIC,
                 context_lines=0,  # trim all unchanged lines from start/end of hunks
             )
             full_patch += patch.text
