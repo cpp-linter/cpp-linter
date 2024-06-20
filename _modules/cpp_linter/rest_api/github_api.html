@@ -32,7 +32,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.b495398fcfe01f784.min.css?v=eaaeddfc" />
+        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.4fc41a14af31202c6.min.css?v=a741ea29" />
         <link rel="stylesheet" type="text/css" href="../../../_static/extra_css.css?v=ad05b187" />
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -572,6 +572,15 @@
 <span class="kn">from</span> <span class="nn">..git</span> <span class="kn">import</span> <span class="n">parse_diff</span><span class="p">,</span> <span class="n">get_diff</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">RestApiClient</span><span class="p">,</span> <span class="n">USER_OUTREACH</span><span class="p">,</span> <span class="n">COMMENT_MARKER</span><span class="p">,</span> <span class="n">RateLimitHeaders</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pygit2.enums</span> <span class="kn">import</span> <span class="n">DiffOption</span>  <span class="c1"># type: ignore</span>
+
+    <span class="n">INDENT_HEURISTIC</span> <span class="o">=</span> <span class="n">DiffOption</span><span class="o">.</span><span class="n">INDENT_HEURISTIC</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># if pygit2.__version__ &lt; 1.14</span>
+    <span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">GIT_DIFF_INDENT_HEURISTIC</span>  <span class="c1"># type: ignore</span>
+
+    <span class="n">INDENT_HEURISTIC</span> <span class="o">=</span> <span class="n">GIT_DIFF_INDENT_HEURISTIC</span>
+
 <span class="n">RATE_LIMIT_HEADERS</span> <span class="o">=</span> <span class="n">RateLimitHeaders</span><span class="p">(</span>
     <span class="n">reset</span><span class="o">=</span><span class="s2">&quot;x-ratelimit-reset&quot;</span><span class="p">,</span>
     <span class="n">remaining</span><span class="o">=</span><span class="s2">&quot;x-ratelimit-remaining&quot;</span><span class="p">,</span>
@@ -998,6 +1007,7 @@
                 <span class="n">new</span><span class="o">=</span><span class="n">tool_advice</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span>
                 <span class="n">old_as_path</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                 <span class="n">new_as_path</span><span class="o">=</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">flag</span><span class="o">=</span><span class="n">INDENT_HEURISTIC</span><span class="p">,</span>
                 <span class="n">context_lines</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># trim all unchanged lines from start/end of hunks</span>
             <span class="p">)</span>
             <span class="n">full_patch</span> <span class="o">+=</span> <span class="n">patch</span><span class="o">.</span><span class="n">text</span>
