@@ -31,6 +31,15 @@ from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
 
+try:
+    from pygit2.enums import DiffOption  # type: ignore
+
+    INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
+except ImportError:  # if pygit2.__version__ < 1.14
+    from pygit2 import GIT_DIFF_INDENT_HEURISTIC  # type: ignore
+
+    INDENT_HEURISTIC = GIT_DIFF_INDENT_HEURISTIC
+
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
     remaining="x-ratelimit-remaining",
@@ -429,6 +438,7 @@ class GithubApiClient(RestApiClient):
                 new=tool_advice.patched,
                 old_as_path=file_obj.name,
                 new_as_path=file_obj.name,
+                flag=INDENT_HEURISTIC,
                 context_lines=0,  # trim all unchanged lines from start/end of hunks
             )
             full_patch += patch.text
