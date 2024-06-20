@@ -18,7 +18,6 @@ import sys
 from typing import Dict, List, Any, cast, Optional, Tuple, Union
 
 from pygit2 import Patch  # type: ignore
-from pygit2.enums import DiffOption  # type: ignore
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
@@ -31,6 +30,15 @@ from ..cli import Args
 from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
+
+try:
+    from pygit2.enums import DiffOption  # type: ignore
+
+    INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
+except ImportError:  # if pygit2.__version__ < 1.14
+    from pygit2 import GIT_DIFF_INDENT_HEURISTIC  # type: ignore
+
+    INDENT_HEURISTIC = GIT_DIFF_INDENT_HEURISTIC
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -430,7 +438,7 @@ class GithubApiClient(RestApiClient):
                 new=tool_advice.patched,
                 old_as_path=file_obj.name,
                 new_as_path=file_obj.name,
-                flag=DiffOption.INDENT_HEURISTIC,
+                flag=INDENT_HEURISTIC,
                 context_lines=0,  # trim all unchanged lines from start/end of hunks
             )
             full_patch += patch.text
