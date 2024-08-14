@@ -4,6 +4,6 @@ on: [push, workflow_dispatch]
 
 jobs:
   build-docs:
-    uses: cpp-linter/.github/.github/workflows/sphinx.yml@main
+    uses: cpp-linter/.github/.github/workflows/sphinx.yml@sphinx-root
     with:
       path-to-doc: docs/_build/html
