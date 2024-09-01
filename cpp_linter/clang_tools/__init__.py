@@ -59,6 +59,7 @@ def _run_on_single_file(
             extra_args=args.extra_arg,
             db_json=db_json,
             tidy_review=args.tidy_review,
+            style=args.style,
         )
 
     format_advice = None
