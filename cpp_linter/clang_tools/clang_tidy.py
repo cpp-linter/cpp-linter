@@ -135,6 +135,7 @@ def run_clang_tidy(
     extra_args: List[str],
     db_json: Optional[List[Dict[str, str]]],
     tidy_review: bool,
+    style: str,
 ) -> TidyAdvice:
     """Run clang-tidy on a certain file.
 
@@ -179,6 +180,8 @@ def run_clang_tidy(
         "name": filename,
         "lines": file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     }
+    if style:
+        cmds.extend(["--format-style", style])
     if line_ranges["lines"]:
         # logger.info("line_filter = %s", json.dumps([line_ranges]))
         cmds.append(f"--line-filter={json.dumps([line_ranges])}")

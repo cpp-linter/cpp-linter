@@ -117,6 +117,13 @@ _parser_args[("-s", "--style")] = dict(
 
 See `clang-format docs <https://clang.llvm.org/docs/ClangFormat.html>`_ for more info.
 
+.. note::
+    If this is not a blank string, then it is also
+    passed to clang-tidy (if :std:option:`--tidy-checks`
+    is not ``-*``). This is done ensure a more consistent
+    output about suggested fixes between clang-tidy and
+    clang-format.
+
 Defaults to ``%(default)s``""",
 )
 _parser_args[("-c", "--tidy-checks")] = dict(
