@@ -1,7 +1,7 @@
 from os import environ
 from pathlib import Path
 from typing import List, Dict, Any, Union, Tuple, Optional, TYPE_CHECKING
-from pygit2 import DiffHunk  # type: ignore
+from unidiff import Hunk
 from ..loggers import logger
 
 if TYPE_CHECKING:  # pragma: no covers
@@ -47,6 +47,9 @@ class FileObj:
         self.tidy_advice: Optional["TidyAdvice"] = None
         #: The results from clang-format
         self.format_advice: Optional["FormatAdvice"] = None
+
+    def __repr__(self) -> str:
+        return f"<FileObj {self.name} added:{self.additions} chunks:{self.diff_chunks}>"
 
     @staticmethod
     def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
@@ -107,7 +110,7 @@ class FileObj:
             },
         }
 
-    def is_hunk_contained(self, hunk: DiffHunk) -> Optional[Tuple[int, int]]:
+    def is_hunk_contained(self, hunk: Hunk) -> Optional[Tuple[int, int]]:
         """Does a given ``hunk`` start and end within a single diff hunk?
 
         This also includes some compensations for hunk headers that are oddly formed.
@@ -119,13 +122,13 @@ class FileObj:
         :returns: The appropriate starting and ending line numbers of the given hunk.
             If hunk cannot fit in a single hunk, this returns `None`.
         """
-        if hunk.old_lines > 0:
-            start = hunk.old_start
+        if hunk.source_length > 0:
+            start = hunk.source_start
             # span of old_lines is an inclusive range
-            end = hunk.old_start + hunk.old_lines - 1
+            end = start + hunk.source_length - 1
         else:  # if number of old lines is 0
             # start hunk at new line number
-            start = hunk.new_start
+            start = hunk.target_start
             # make it span 1 line
             end = start
         return self.is_range_contained(start, end)

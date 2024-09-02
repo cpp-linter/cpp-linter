@@ -17,7 +17,6 @@ import urllib.parse
 import sys
 from typing import Dict, List, Any, cast, Optional, Tuple, Union
 
-from pygit2 import Patch  # type: ignore
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
@@ -432,54 +431,12 @@ class GithubApiClient(RestApiClient):
                 tool_advice = file_obj.format_advice
             if not tool_advice:
                 continue
-            assert tool_advice.patched, f"No suggested patch found for {file_obj.name}"
-            patch = Patch.create_from(
-                old=Path(file_obj.name).read_bytes(),
-                new=tool_advice.patched,
-                old_as_path=file_obj.name,
-                new_as_path=file_obj.name,
-                flag=INDENT_HEURISTIC,
-                context_lines=0,  # trim all unchanged lines from start/end of hunks
+            (patch, suggestions, hunk_total) = tool_advice.get_suggestions_from_patch(
+                file_obj, summary_only
             )
-            full_patch += patch.text
-            for hunk in patch.hunks:
-                total += 1
-                if summary_only:
-                    continue
-                new_hunk_range = file_obj.is_hunk_contained(hunk)
-                if new_hunk_range is None:
-                    continue
-                start_lines, end_lines = new_hunk_range
-                comment: Dict[str, Any] = {"path": file_obj.name}
-                body = ""
-                if tidy_tool and file_obj.tidy_advice:
-                    body += "### clang-tidy "
-                    diagnostics = file_obj.tidy_advice.diagnostics_in_range(
-                        start_lines, end_lines
-                    )
-                    if diagnostics:
-                        body += "diagnostics\n" + diagnostics
-                    else:
-                        body += "suggestions\n"
-                elif not tidy_tool:
-                    body += "### clang-format suggestions\n"
-                if start_lines < end_lines:
-                    comment["start_line"] = start_lines
-                comment["line"] = end_lines
-                suggestion = ""
-                removed = []
-                for line in hunk.lines:
-                    if line.origin in ["+", " "]:
-                        suggestion += line.content
-                    else:
-                        removed.append(line.old_lineno)
-                if not suggestion and removed:
-                    body += "\nPlease remove the line(s)\n- "
-                    body += "\n- ".join([str(x) for x in removed])
-                else:
-                    body += f"\n```suggestion\n{suggestion}```"
-                comment["body"] = body
-                comments.append(comment)
+            full_patch += patch
+            total += hunk_total
+            comments.extend(suggestions)
 
             # now check for clang-tidy warnings with no fixes applied
             if tidy_tool and file_obj.tidy_advice:
@@ -499,8 +456,8 @@ class GithubApiClient(RestApiClient):
                             body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
                             if note.fixit_lines:
                                 body += f'```{Path(file_obj.name).suffix.lstrip(".")}\n'
-                                for line in note.fixit_lines:
-                                    body += f"{line}\n"
+                                for fixit_line in note.fixit_lines:
+                                    body += f"{fixit_line}\n"
                                 body += "```\n"
                             diag["body"] = body
                             comments.append(diag)

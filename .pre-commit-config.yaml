@@ -28,6 +28,7 @@ repos:
         additional_dependencies:
           - types-requests
           - types-docutils
+          - types-unidiff
           - rich
           - pytest
           - requests-mock

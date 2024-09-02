@@ -1,13 +1,15 @@
 """Parse output from clang-format's XML suggestions."""
 
-from pathlib import PurePath
+from difflib import unified_diff
+from pathlib import PurePath, Path
 import subprocess
-from typing import List, cast, Optional
+from typing import List, cast
 
 import xml.etree.ElementTree as ET
 
 from ..common_fs import get_line_cnt_from_cols, FileObj
 from ..loggers import logger
+from .patcher import PatchMixin
 
 
 class FormatReplacement:
@@ -53,7 +55,7 @@ class FormatReplacementLine:
         )
 
 
-class FormatAdvice:
+class FormatAdvice(PatchMixin):
     """A single object to represent each suggestion.
 
     :param filename: The source file's name for which the contents of the xml
@@ -69,14 +71,16 @@ class FormatAdvice:
         """A list of `FormatReplacementLine` representing replacement(s)
         on a single line."""
 
-        #: A buffer of the applied fixes from clang-format
-        self.patched: Optional[bytes] = None
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
             f"<XMLFixit with {len(self.replaced_lines)} lines of "
             f"replacements for {self.filename}>"
         )
+
+    def get_suggestion_help(self, start, end) -> str:
+        return "### clang-format suggestion\n"
 
 
 def tally_format_advice(files: List[FileObj]) -> int:
@@ -197,5 +201,17 @@ def run_clang_format(
         # get formatted file from stdout
         formatted_output = subprocess.run(cmds, capture_output=True, check=True)
         # store formatted_output (for comparing later)
-        advice.patched = formatted_output.stdout
+        advice.patched = "".join(
+            unified_diff(
+                Path(file_obj.name)
+                .read_text(encoding="utf-8")
+                .splitlines(keepends=True),
+                formatted_output.stdout.decode(encoding="utf-8").splitlines(
+                    keepends=True
+                ),
+                fromfile=f"a/{file_obj.name}",
+                tofile=f"b/{file_obj.name}",
+                n=0,  # trim all unchanged lines from start/end of hunks
+            )
+        )
     return advice

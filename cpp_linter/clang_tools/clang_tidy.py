@@ -1,5 +1,6 @@
 """Parse output from clang-tidy's stdout"""
 
+from difflib import unified_diff
 import json
 import os
 from pathlib import Path, PurePath
@@ -8,6 +9,7 @@ import subprocess
 from typing import Tuple, Union, List, cast, Optional, Dict, Set
 from ..loggers import logger
 from ..common_fs import FileObj
+from .patcher import PatchMixin
 
 NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
 FIXED_NOTE = re.compile(r"^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$")
@@ -94,10 +96,10 @@ class TidyNotification:
         )
 
 
-class TidyAdvice:
+class TidyAdvice(PatchMixin):
     def __init__(self, notes: List[TidyNotification]) -> None:
         #: A buffer of the applied fixes from clang-tidy
-        self.patched: Optional[bytes] = None
+        super().__init__()
         self.notes = notes
 
     def diagnostics_in_range(self, start: int, end: int) -> str:
@@ -110,6 +112,12 @@ class TidyAdvice:
                     diagnostics += f"- {note.rationale} [{note.diagnostic_link}]\n"
                     break
         return diagnostics
+
+    def get_suggestion_help(self, start: int, end: int) -> str:
+        diagnostics = self.diagnostics_in_range(start, end)
+        if diagnostics:
+            return "### clang-tidy diagnostics\n" + diagnostics
+        return "### clang-tidy suggestion\n"
 
 
 def tally_tidy_advice(files: List[FileObj]) -> int:
@@ -208,7 +216,17 @@ def run_clang_tidy(
 
     if tidy_review:
         # store the modified output from clang-tidy
-        advice.patched = Path(file_obj.name).read_bytes()
+        advice.patched = "".join(
+            unified_diff(
+                original_buf.decode(encoding="utf-8").splitlines(keepends=True),
+                Path(file_obj.name)
+                .read_text(encoding="utf-8")
+                .splitlines(keepends=True),
+                fromfile=f"a/{file_obj.name}",
+                tofile=f"b/{file_obj.name}",
+                n=0,  # trim all unchanged lines from start/end of hunks
+            )
+        )
         # re-write original file contents
         Path(file_obj.name).write_bytes(original_buf)
 
