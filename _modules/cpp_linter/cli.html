@@ -661,6 +661,13 @@
 
 <span class="s2">See `clang-format docs &lt;https://clang.llvm.org/docs/ClangFormat.html&gt;`_ for more info.</span>
 
+<span class="s2">.. note::</span>
+<span class="s2">    If this is not a blank string, then it is also</span>
+<span class="s2">    passed to clang-tidy (if :std:option:`--tidy-checks`</span>
+<span class="s2">    is not ``-*``). This is done ensure a more consistent</span>
+<span class="s2">    output about suggested fixes between clang-tidy and</span>
+<span class="s2">    clang-format.</span>
+
 <span class="s2">Defaults to ``</span><span class="si">%(default)s</span><span class="s2">``&quot;&quot;&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">_parser_args</span><span class="p">[(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--tidy-checks&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>

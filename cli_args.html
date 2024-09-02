@@ -1024,6 +1024,14 @@ closest relative .clang-format file.</p></li>
 using clang-format entirely.</p></li>
 </ul>
 <p>See <a class="reference external" href="https://clang.llvm.org/docs/ClangFormat.html">clang-format docs</a> for more info.</p>
+<div class="note admonition">
+<p class="admonition-title">Note</p>
+<p>If this is not a blank string, then it is also
+passed to clang-tidy (if <a class="reference internal" href="#cmdoption-c"><code class="xref std std-option docutils literal notranslate"><span class="pre">--tidy-checks</span></code></a>
+is not <code class="docutils literal notranslate"><span class="pre">-*</span></code>). This is done ensure a more consistent
+output about suggested fixes between clang-tidy and
+clang-format.</p>
+</div>
 </dd></dl>
 
 <dl class="std option objdesc">
