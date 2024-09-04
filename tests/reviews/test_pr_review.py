@@ -123,7 +123,7 @@ def test_post_review(
         # load mock responses for pull_request event
         mock.get(
             base_url,
-            headers={"Accept": "application/vnd.github.diff"},
+            request_headers={"Accept": "application/vnd.github.diff"},
             text=(cache_path / f"pr_{TEST_PR}.diff").read_text(encoding="utf-8"),
         )
         reviews = (cache_path / "pr_reviews.json").read_text(encoding="utf-8")

@@ -16,8 +16,9 @@ from pathlib import Path
 import urllib.parse
 import sys
 from typing import Dict, List, Any, cast, Optional, Tuple, Union
+from unidiff import PatchSet, UnidiffParseError
 
-from ..common_fs import FileObj, CACHE_PATH
+from ..common_fs import FileObj, CACHE_PATH, has_line_changes
 from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
     FormatAdvice,
@@ -29,15 +30,6 @@ from ..cli import Args
 from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
-
-try:
-    from pygit2.enums import DiffOption  # type: ignore
-
-    INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
-except ImportError:  # if pygit2.__version__ < 1.14
-    from pygit2 import GIT_DIFF_INDENT_HEURISTIC  # type: ignore
-
-    INDENT_HEURISTIC = GIT_DIFF_INDENT_HEURISTIC
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -110,12 +102,61 @@ class GithubApiClient(RestApiClient):
                 files_link += f"commits/{self.sha}"
             logger.info("Fetching files list from url: %s", files_link)
             response = self.api_request(
-                url=files_link, headers=self.make_headers(use_diff=True)
+                url=files_link, headers=self.make_headers(use_diff=True), strict=False
             )
-            files = parse_diff(response.text, file_filter, lines_changed_only)
-        else:
-            files = parse_diff(get_diff(), file_filter, lines_changed_only)
-        return files
+            if response.status_code != 200:
+                logger.info(
+                    "Could not get raw diff of the %s event. "
+                    "Perhaps there are too many changes?",
+                    self.event_name,
+                )
+                url: Optional[str] = files_link
+                if self.event_name == "pull_request":
+                    url = files_link + "/files"
+                files = []
+                while url is not None:
+                    response = self.api_request(url)
+                    url = RestApiClient.has_more_pages(response)
+                    file_list: List[Dict[str, Any]]
+                    if self.event_name == "pull_request":
+                        file_list = response.json()
+                    else:
+                        file_list = response.json()["files"]
+                    for file in file_list:
+                        assert "filename" in file
+                        file_name = file["filename"]
+                        if not file_filter.is_source_or_ignored(file_name):
+                            continue
+                        assert "patch" in file
+                        file_diff = (
+                            f"diff --git a/{file_name} b/{file_name}\n"
+                            + f"--- a/{file_name}\n+++ b/{file_name}\n"
+                            + file["patch"]
+                        )
+                        try:
+                            patched_file = PatchSet(file_diff)[0]
+                        except UnidiffParseError:  # pragma: no cover
+                            logger.warning(
+                                "failed to parse patch for file %s:\n%s",
+                                file_name,
+                                file_diff,
+                            )
+                        additions, diff_chunks = ([], [])
+                        for hunk in patched_file:
+                            hunk_start = hunk.target_start
+                            diff_chunks.append(
+                                [hunk_start, hunk_start + hunk.target_length]
+                            )
+                            for line in hunk:
+                                if line.line_type == "+":
+                                    line_number = line.target_line_no
+                                    assert line_number is not None
+                                    additions.append(line_number)
+                        if has_line_changes(lines_changed_only, diff_chunks, additions):
+                            files.append(FileObj(file_name, additions, diff_chunks))
+                return files
+            return parse_diff(response.text, file_filter, lines_changed_only)
+        return parse_diff(get_diff(), file_filter, lines_changed_only)
 
     def verify_files_are_present(self, files: List[FileObj]) -> None:
         """Download the files if not present.

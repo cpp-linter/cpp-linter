@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "sha": "f93d0122ae2e3c1952c795837d71c432036b55eb",
+      "filename": "src/demo.hpp",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 8,
+      "changes": 11,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/635a9c57bdcca07b99ddef52c2640337c50280b1/src%2Fdemo.hpp",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/635a9c57bdcca07b99ddef52c2640337c50280b1/src%2Fdemo.hpp",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/src%2Fdemo.hpp?ref=635a9c57bdcca07b99ddef52c2640337c50280b1",
+      "patch": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}\n \n     public:\n-    void *not_usefull(char *str){\n-        useless = str;\n-        return 0;\n-    }\n+    void *not_useful(char *str){useless = str;}\n };\n \n \n@@ -28,14 +26,11 @@ class Dummy {\n \n \n \n-\n-\n-\n-\n \n \n struct LongDiff\n {\n+\n     long diff;\n \n };"
+    }
+  ]
+}
