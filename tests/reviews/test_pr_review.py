@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import json
+import logging
 from os import environ
 from pathlib import Path
 import shutil
@@ -10,6 +11,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.cli import Args
 from cpp_linter.common_fs.file_filter import FileFilter
+from cpp_linter.loggers import logger
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
@@ -75,6 +77,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
 )
 def test_post_review(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
     is_draft: bool,
     is_closed: bool,
@@ -89,6 +92,7 @@ def test_post_review(
     is_passive: bool,
 ):
     """A mock test of posting PR reviews"""
+    caplog.set_level(logging.DEBUG, logger=logger.name)
     # patch env vars
     event_payload = {"number": TEST_PR}
     event_payload_path = tmp_path / "event_payload.json"
