@@ -102,6 +102,7 @@ jobs:
         with:
           name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
           path: .coverage*
+          include-hidden-files: true
 
   coverage-report:
     needs: [test]
