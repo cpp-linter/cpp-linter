@@ -105,58 +105,65 @@ class GithubApiClient(RestApiClient):
                 url=files_link, headers=self.make_headers(use_diff=True), strict=False
             )
             if response.status_code != 200:
-                logger.info(
-                    "Could not get raw diff of the %s event. "
-                    "Perhaps there are too many changes?",
-                    self.event_name,
+                return self._get_changed_files_paginated(
+                    files_link, lines_changed_only, file_filter
                 )
-                url: Optional[str] = files_link
-                if self.event_name == "pull_request":
-                    url = files_link + "/files"
-                files = []
-                while url is not None:
-                    response = self.api_request(url)
-                    url = RestApiClient.has_more_pages(response)
-                    file_list: List[Dict[str, Any]]
-                    if self.event_name == "pull_request":
-                        file_list = response.json()
-                    else:
-                        file_list = response.json()["files"]
-                    for file in file_list:
-                        assert "filename" in file
-                        file_name = file["filename"]
-                        if not file_filter.is_source_or_ignored(file_name):
-                            continue
-                        assert "patch" in file
-                        file_diff = (
-                            f"diff --git a/{file_name} b/{file_name}\n"
-                            + f"--- a/{file_name}\n+++ b/{file_name}\n"
-                            + file["patch"]
-                        )
-                        try:
-                            patched_file = PatchSet(file_diff)[0]
-                        except UnidiffParseError:  # pragma: no cover
-                            logger.warning(
-                                "failed to parse patch for file %s:\n%s",
-                                file_name,
-                                file_diff,
-                            )
-                        additions, diff_chunks = ([], [])
-                        for hunk in patched_file:
-                            hunk_start = hunk.target_start
-                            diff_chunks.append(
-                                [hunk_start, hunk_start + hunk.target_length]
-                            )
-                            for line in hunk:
-                                if line.line_type == "+":
-                                    line_number = line.target_line_no
-                                    assert line_number is not None
-                                    additions.append(line_number)
-                        if has_line_changes(lines_changed_only, diff_chunks, additions):
-                            files.append(FileObj(file_name, additions, diff_chunks))
-                return files
             return parse_diff(response.text, file_filter, lines_changed_only)
         return parse_diff(get_diff(), file_filter, lines_changed_only)
+
+    def _get_changed_files_paginated(
+        self, url: Optional[str], lines_changed_only: int, file_filter: FileFilter
+    ) -> List[FileObj]:
+        """A fallback implementation of getting file changes using a paginated
+        REST API endpoint."""
+        logger.info(
+            "Could not get raw diff of the %s event. "
+            "Perhaps there are too many changes?",
+            self.event_name,
+        )
+        assert url is not None
+        if self.event_name == "pull_request":
+            url += "/files"
+        files = []
+        while url is not None:
+            response = self.api_request(url)
+            url = RestApiClient.has_more_pages(response)
+            file_list: List[Dict[str, Any]]
+            if self.event_name == "pull_request":
+                file_list = response.json()
+            else:
+                file_list = response.json()["files"]
+            for file in file_list:
+                assert "filename" in file
+                file_name = file["filename"]
+                if not file_filter.is_source_or_ignored(file_name):
+                    continue
+                assert "patch" in file
+                file_diff = (
+                    f"diff --git a/{file_name} b/{file_name}\n"
+                    + f"--- a/{file_name}\n+++ b/{file_name}\n"
+                    + file["patch"]
+                )
+                try:
+                    patched_file = PatchSet(file_diff)[0]
+                except UnidiffParseError:  # pragma: no cover
+                    logger.warning(
+                        "failed to parse patch for file %s:\n%s",
+                        file_name,
+                        file_diff,
+                    )
+                additions, diff_chunks = ([], [])
+                for hunk in patched_file:
+                    hunk_start = hunk.target_start
+                    diff_chunks.append([hunk_start, hunk_start + hunk.target_length])
+                    for line in hunk:
+                        if line.line_type == "+":
+                            line_number = line.target_line_no
+                            assert line_number is not None
+                            additions.append(line_number)
+                if has_line_changes(lines_changed_only, diff_chunks, additions):
+                    files.append(FileObj(file_name, additions, diff_chunks))
+        return files
 
     def verify_files_are_present(self, files: List[FileObj]) -> None:
         """Download the files if not present.
