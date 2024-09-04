@@ -1,0 +1,43 @@
+version: "0.2"
+language: en
+words:
+  - argnames
+  - argvalues
+  - automodule
+  - bugprone
+  - caplog
+  - codecov
+  - codespell
+  - consts
+  - cppcoreguidelines
+  - cstdio
+  - docutils
+  - endgroup
+  - Fixit
+  - gitmodules
+  - iomanip
+  - keepends
+  - libgit
+  - markdownlint
+  - maxsplit
+  - posix
+  - pybind
+  - pygit
+  - ratelimit
+  - revparse
+  - setenv
+  - tada
+  - toctree
+  - tofile
+  - tomli
+  - unidiff
+  - vararg
+  - venv
+ignorePaths:
+  - .env/**
+  - .venv/**
+  - env/**
+  - venv/**
+  - tests/**/*.json
+  - '**.clang-tidy'
+  - '**.clang-format'
