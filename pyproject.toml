@@ -12,11 +12,6 @@ authors = [
     { name = "Brendan Doherty", email = "2bndy5@gmail.com" },
     { name = "Peter Shen", email = "xianpeng.shen@gmail.com" },
 ]
-dependencies = [
-    "requests",
-    "pyyaml",
-    "pygit2",
-]
 classifiers = [
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     "Development Status :: 5 - Production/Stable",
@@ -31,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Build Tools",
 ]
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 
 [project.scripts]
 cpp-linter = "cpp_linter:main"
@@ -46,6 +41,9 @@ tracker = "https://github.com/cpp-linter/cpp-linter/issues"
 [tool.setuptools]
 zip-safe = false
 packages = ["cpp_linter"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools_scm]
 # It would be nice to include the commit hash in the version, but that
