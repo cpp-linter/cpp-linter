@@ -5,6 +5,7 @@ from abc import ABC
 from typing import Optional, Dict, Any
 from unidiff import PatchSet
 from ..common_fs import FileObj
+from ..loggers import logger
 
 
 class PatchMixin(ABC):
@@ -27,7 +28,11 @@ class PatchMixin(ABC):
     ):
         """Create a list of suggestions from the tool's `patched` output."""
 
-        assert self.patched, f"No suggested patch found for {file_obj.name}"
+        if not self.patched:
+            logger.debug(
+                "%s has no suggestions for %s", self.__class__.__name__, file_obj.name
+            )
+            return ("", [], 0)
         comments = []
         total = 0
         for hunk in PatchSet(self.patched)[0]:
