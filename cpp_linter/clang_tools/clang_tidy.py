@@ -156,8 +156,8 @@ class TidyAdvice(PatchMixin):
                             body += f"{fixit_line}\n"
                         body += "```\n"
                     suggestion.comment = body
+                    review_comments.tool_total["clang-tidy"] += 1
                     if not _has_related_suggestion(suggestion):
-                        review_comments.tool_total["clang-tidy"] += 1
                         review_comments.suggestions.append(suggestion)
 
 
