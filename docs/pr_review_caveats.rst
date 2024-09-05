@@ -65,8 +65,8 @@ GitHub REST API does not provide a way to hide comments or mark review suggestio
 .. tip::
 
     We do support an environment variable named ``CPP_LINTER_PR_REVIEW_SUMMARY_ONLY``.
-    If the variable is set to ``true``, then the review only contains a summary comment
-    with no suggestions posted in the diff.
+    If the variable is set either ``true``, ``on``, or ``1``, then the review only
+    contains a summary comment with no suggestions posted in the diff.
 
 Probable non-exhaustive reviews
 -------------------------------
