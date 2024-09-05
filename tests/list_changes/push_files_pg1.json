@@ -15,6 +15,7 @@
     {
       "sha": "1bf553e06e4b7c6c9a9be5da4845acbdeb04f6a5",
       "filename": "src/demo.cpp",
+      "previous_filename": "src/demo.c",
       "status": "modified",
       "additions": 11,
       "deletions": 10,
