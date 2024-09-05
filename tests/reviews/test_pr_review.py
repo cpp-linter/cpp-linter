@@ -53,6 +53,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
         tuple(mk_param_set(force_approved=True).values()),
         tuple(mk_param_set(force_approved=True, no_lgtm=True).values()),
         tuple(mk_param_set(tidy_review=True, format_review=False).values()),
+        tuple(mk_param_set(tidy_review=True, format_review=True).values()),
         tuple(mk_param_set(format_review=True).values()),
         tuple(mk_param_set(tidy_review=True, changes=1).values()),
         tuple(mk_param_set(tidy_review=True, changes=0).values()),
@@ -66,6 +67,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
         "approved",
         "no_lgtm",
         "tidy",  # changes == diff_chunks only
+        "tidy+format",  # changes == diff_chunks only
         "format",  # changes == diff_chunks only
         "lines_added",
         "all_lines",

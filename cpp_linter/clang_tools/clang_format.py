@@ -79,7 +79,10 @@ class FormatAdvice(PatchMixin):
         )
 
     def get_suggestion_help(self, start, end) -> str:
-        return "### clang-format suggestion\n"
+        return super().get_suggestion_help(start, end) + "suggestion\n"
+
+    def get_tool_name(self) -> str:
+        return "clang-format"
 
 
 def tally_format_advice(files: List[FileObj]) -> int:

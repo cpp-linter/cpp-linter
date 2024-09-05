@@ -403,7 +403,6 @@ class GithubApiClient(RestApiClient):
             return  # don't post reviews
         body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
-        total_changes = 0
         summary_only = environ.get(
             "CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "false"
         ).lower() in ("true", "on", "1")
@@ -412,20 +411,19 @@ class GithubApiClient(RestApiClient):
             advice.append("clang-format")
         if tidy_review:
             advice.append("clang-tidy")
+        review_comments = ReviewComments()
         for tool_name in advice:
-            review_comments = ReviewComments()
             self.create_review_comments(
                 files=files,
                 tidy_tool=tool_name == "clang-tidy",
                 summary_only=summary_only,
                 review_comments=review_comments,
             )
-            (summary, comments) = review_comments.serialize_to_github_payload(tool_name)
-            if not summary_only:
-                payload_comments.extend(comments)
-            body += summary
-            total_changes += review_comments.total
-        if total_changes:
+        (summary, comments) = review_comments.serialize_to_github_payload()
+        if not summary_only:
+            payload_comments.extend(comments)
+        body += summary
+        if sum(review_comments.tool_total.values()):
             event = "REQUEST_CHANGES"
         else:
             if no_lgtm:

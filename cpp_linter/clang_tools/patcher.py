@@ -50,23 +50,35 @@ class ReviewComments:
         #: The list of actual comments
         self.suggestions: List[Suggestion] = []
 
-        self.total: int = 0
-        """The total number of concerns.
+        self.tool_total: Dict[str, int] = {"clang-tidy": 0, "clang-format": 0}
+        """The total number of concerns about a specific clang tool.
 
-        This may not equate to the length of `suggestions` because there is no
-        guarantee that all suggestions will fit within the PR's diff."""
+        This may not equate to the length of `suggestions` because
+        1. There is no guarantee that all suggestions will fit within the PR's diff.
+        2. Suggestions are a combined result of advice from both tools.
+        """
 
-        self.full_patch: str = ""
+        self.full_patch: Dict[str, str] = {"clang-tidy": "", "clang-format": ""}
         """The full patch of all the suggestions (including those that will not
         fit within the diff)"""
 
-    def serialize_to_github_payload(
-        self, tool_name: str
-    ) -> Tuple[str, List[Dict[str, Any]]]:
+    def merge_similar_suggestion(self, suggestion: Suggestion) -> bool:
+        """Merge a given ``suggestion`` into a similar `Suggestion`
+
+        :returns: `True` if the suggestion was merged, otherwise `False`.
+        """
+        for known in self.suggestions:
+            if (
+                known.line_end == suggestion.line_end
+                and known.line_start == suggestion.line_start
+            ):
+                known.comment += f"\n{suggestion.comment}"
+                return True
+        return False
+
+    def serialize_to_github_payload(self) -> Tuple[str, List[Dict[str, Any]]]:
         """Serialize this object into a summary and list of comments compatible
         with Github's REST API.
-
-        :param tool_name: The clang tool's name that generated the suggestions.
 
         :returns: The returned tuple contains a brief summary (at index ``0``)
             that contains markdown text describing the summary of the review
@@ -75,21 +87,34 @@ class ReviewComments:
             The list of `suggestions` (at index ``1``) is the serialized JSON
             object.
         """
-        len_suggestions = len(self.suggestions)
         summary = ""
         comments = []
-        if len_suggestions:
-            comments = [x.serialize_to_github_payload() for x in self.suggestions]
-            if self.total and self.total != len_suggestions:
-                summary += f"Only {len_suggestions} out of {self.total} {tool_name} "
-                summary += "concerns fit within this pull request's diff.\n"
-        if self.full_patch:
-            summary += f"\n<details><summary>Click here for the full {tool_name} patch"
-            summary += (
-                f"</summary>\n\n\n```diff\n{self.full_patch}\n```\n\n\n</details>\n\n"
-            )
-        elif not self.total:
-            summary += f"No concerns from {tool_name}.\n"
+        posted_tool_advice = {"clang-tidy": 0, "clang-format": 0}
+        for comment in self.suggestions:
+            comments.append(comment.serialize_to_github_payload())
+            if "### clang-format" in comment.comment:
+                posted_tool_advice["clang-format"] += 1
+            if "### clang-tidy" in comment.comment:
+                posted_tool_advice["clang-tidy"] += 1
+
+        for tool_name in ("clang-tidy", "clang-format"):
+            if (
+                len(comments)
+                and posted_tool_advice[tool_name] != self.tool_total[tool_name]
+            ):
+                summary += (
+                    f"Only {posted_tool_advice[tool_name]} out of "
+                    + f"{self.tool_total[tool_name]} {tool_name}"
+                    + " concerns fit within this pull request's diff.\n"
+                )
+            if self.full_patch[tool_name]:
+                summary += (
+                    f"\n<details><summary>Click here for the full {tool_name} patch"
+                    + f"</summary>\n\n\n```diff\n{self.full_patch[tool_name]}\n"
+                    + "```\n\n\n</details>\n\n"
+                )
+            elif not self.tool_total[tool_name]:
+                summary += f"No concerns from {tool_name}.\n"
         result = (summary, comments)
         return result
 
@@ -109,7 +134,13 @@ class PatchMixin(ABC):
         original content) encapsulating the suggestion.
         """
 
-        raise NotImplementedError("derivative must implement this abstract method")
+        return f"### {self.get_tool_name()} "
+
+    def get_tool_name(self) -> str:
+        """A function that must be implemented by derivatives to
+        get the clang tool's name that generated the `patched` data."""
+
+        raise NotImplementedError("must be implemented by derivative")
 
     def get_suggestions_from_patch(
         self, file_obj: FileObj, summary_only: bool, review_comments: ReviewComments
@@ -118,7 +149,6 @@ class PatchMixin(ABC):
 
         Results are stored in the ``review_comments`` parameter (passed by reference).
         """
-
         assert (
             self.patched
         ), f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
@@ -130,9 +160,12 @@ class PatchMixin(ABC):
             context_lines=0,  # exclude any surrounding unchanged lines
             flag=INDENT_HEURISTIC,
         )
-        review_comments.full_patch += f"{patch.text}"
+        tool_name = self.get_tool_name()
+        assert tool_name in review_comments.full_patch
+        review_comments.full_patch[tool_name] += f"{patch.text}"
+        assert tool_name in review_comments.tool_total
         for hunk in patch.hunks:
-            review_comments.total += 1
+            review_comments.tool_total[tool_name] += 1
             if summary_only:
                 continue
             new_hunk_range = file_obj.is_hunk_contained(hunk)
@@ -158,4 +191,5 @@ class PatchMixin(ABC):
             else:
                 body += f"\n```suggestion\n{suggestion}```"
             comment.comment = body
-            review_comments.suggestions.append(comment)
+            if not review_comments.merge_similar_suggestion(comment):
+                review_comments.suggestions.append(comment)

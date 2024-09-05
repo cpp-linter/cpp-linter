@@ -118,18 +118,29 @@ class TidyAdvice(PatchMixin):
 
     def get_suggestion_help(self, start: int, end: int) -> str:
         diagnostics = self.diagnostics_in_range(start, end)
+        prefix = super().get_suggestion_help(start, end)
         if diagnostics:
-            return "### clang-tidy diagnostics\n" + diagnostics
-        return "### clang-tidy suggestion\n"
+            return prefix + "diagnostics\n" + diagnostics
+        return prefix + "suggestion\n"
+
+    def get_tool_name(self) -> str:
+        return "clang-tidy"
 
     def get_suggestions_from_patch(
         self, file_obj: FileObj, summary_only: bool, review_comments: ReviewComments
     ):
         super().get_suggestions_from_patch(file_obj, summary_only, review_comments)
+
+        def _has_related_suggestion(suggestion: Suggestion) -> bool:
+            for known in review_comments.suggestions:
+                if known.line_end >= suggestion.line_end >= known.line_start:
+                    known.comment += f"\n{suggestion.comment}"
+                    return True
+            return False
+
         # now check for clang-tidy warnings with no fixes applied
         for note in self.notes:
             if not note.applied_fixes:  # if no fix was applied
-                review_comments.total += 1
                 line_numb = int(note.line)
                 if not summary_only and file_obj.is_range_contained(
                     start=line_numb, end=line_numb + 1
@@ -145,7 +156,9 @@ class TidyAdvice(PatchMixin):
                             body += f"{fixit_line}\n"
                         body += "```\n"
                     suggestion.comment = body
-                    review_comments.suggestions.append(suggestion)
+                    if not _has_related_suggestion(suggestion):
+                        review_comments.tool_total["clang-tidy"] += 1
+                        review_comments.suggestions.append(suggestion)
 
 
 def tally_tidy_advice(files: List[FileObj]) -> int:
