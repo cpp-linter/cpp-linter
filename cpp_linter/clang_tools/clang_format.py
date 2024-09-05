@@ -2,12 +2,13 @@
 
 from pathlib import PurePath
 import subprocess
-from typing import List, cast, Optional
+from typing import List, cast
 
 import xml.etree.ElementTree as ET
 
 from ..common_fs import get_line_cnt_from_cols, FileObj
 from ..loggers import logger
+from .patcher import PatchMixin
 
 
 class FormatReplacement:
@@ -53,7 +54,7 @@ class FormatReplacementLine:
         )
 
 
-class FormatAdvice:
+class FormatAdvice(PatchMixin):
     """A single object to represent each suggestion.
 
     :param filename: The source file's name for which the contents of the xml
@@ -69,14 +70,16 @@ class FormatAdvice:
         """A list of `FormatReplacementLine` representing replacement(s)
         on a single line."""
 
-        #: A buffer of the applied fixes from clang-format
-        self.patched: Optional[bytes] = None
+        super().__init__()
 
     def __repr__(self) -> str:
         return (
             f"<XMLFixit with {len(self.replaced_lines)} lines of "
             f"replacements for {self.filename}>"
         )
+
+    def get_suggestion_help(self, start, end) -> str:
+        return "### clang-format suggestion\n"
 
 
 def tally_format_advice(files: List[FileObj]) -> int:
