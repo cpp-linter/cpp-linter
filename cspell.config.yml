@@ -4,8 +4,11 @@ words:
   - argnames
   - argvalues
   - automodule
+  - bndy
   - bugprone
+  - bysource
   - caplog
+  - capsys
   - codecov
   - codespell
   - consts
@@ -14,30 +17,48 @@ words:
   - docutils
   - endgroup
   - Fixit
+  - fontawesome
   - gitmodules
+  - gmtime
+  - intersphinx
   - iomanip
   - keepends
+  - levelno
   - libgit
+  - libvips
   - markdownlint
   - maxsplit
+  - mktime
+  - mypy
   - posix
   - pybind
   - pygit
+  - pypi
+  - pyproject
+  - pytest
   - ratelimit
   - revparse
+  - seealso
   - setenv
+  - shenxianpeng
+  - srcdir
+  - stddef
   - tada
   - toctree
   - tofile
   - tomli
-  - unidiff
+  - undoc
   - vararg
   - venv
+  - viewcode
 ignorePaths:
   - .env/**
   - .venv/**
   - env/**
   - venv/**
-  - tests/**/*.json
-  - '**.clang-tidy'
-  - '**.clang-format'
+  - tests/**/*.{json,h,c,cpp,hpp,patch,diff}
+  - "**.clang-tidy"
+  - "**.clang-format"
+  - pyproject.toml
+  - .gitignore
+  - "**/*.{yml,yaml,txt}"
