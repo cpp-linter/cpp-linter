@@ -183,7 +183,7 @@ class PatchMixin(ABC):
                 if line.origin in ("+", " "):
                     suggestion += f"{line.content}"
                 else:
-                    line_numb = line.new_lineno
+                    line_numb = line.old_lineno
                     removed.append(line_numb)
             if not suggestion and removed:
                 body += "\nPlease remove the line(s)\n- "
