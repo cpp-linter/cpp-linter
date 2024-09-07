@@ -85,6 +85,10 @@ class TidyNotification:
         if self.diagnostic.startswith("clang-diagnostic-"):
             return self.diagnostic
         link = f"[{self.diagnostic}](https://clang.llvm.org/extra/clang-tidy/checks/"
+        if self.diagnostic.startswith("clang-analyzer-"):
+            check_name_parts = self.diagnostic.split("-", maxsplit=2)
+            assert len(check_name_parts) > 2, "diagnostic name malformed"
+            return link + "clang-analyzer/{}.html)".format(check_name_parts[2])
         return link + "{}/{}.html)".format(*self.diagnostic.split("-", maxsplit=1))
 
     def __repr__(self) -> str:
