@@ -111,11 +111,52 @@ class GithubApiClient(RestApiClient):
                 files_link += f"commits/{self.sha}"
             logger.info("Fetching files list from url: %s", files_link)
             response = self.api_request(
-                url=files_link, headers=self.make_headers(use_diff=True)
+                url=files_link, headers=self.make_headers(use_diff=True), strict=False
             )
-            files = parse_diff(response.text, file_filter, lines_changed_only)
-        else:
-            files = parse_diff(get_diff(), file_filter, lines_changed_only)
+            if response.status_code != 200:
+                return self._get_changed_files_paginated(
+                    files_link, lines_changed_only, file_filter
+                )
+            return parse_diff(response.text, file_filter, lines_changed_only)
+        return parse_diff(get_diff(), file_filter, lines_changed_only)
+
+    def _get_changed_files_paginated(
+        self, url: Optional[str], lines_changed_only: int, file_filter: FileFilter
+    ) -> List[FileObj]:
+        """A fallback implementation of getting file changes using a paginated
+        REST API endpoint."""
+        logger.info(
+            "Could not get raw diff of the %s event. "
+            "Perhaps there are too many changes?",
+            self.event_name,
+        )
+        assert url is not None
+        if self.event_name == "pull_request":
+            url += "/files"
+        files = []
+        while url is not None:
+            response = self.api_request(url)
+            url = RestApiClient.has_more_pages(response)
+            file_list: List[Dict[str, Any]]
+            if self.event_name == "pull_request":
+                file_list = response.json()
+            else:
+                file_list = response.json()["files"]
+            for file in file_list:
+                assert "filename" in file
+                file_name = file["filename"]
+                if not file_filter.is_source_or_ignored(file_name):
+                    continue
+                old_name = file_name
+                if "previous_filename" in file:
+                    old_name = file["previous_filename"]
+                assert "patch" in file
+                file_diff = (
+                    f"diff --git a/{file_name} b/{old_name}\n"
+                    + f"--- a/{file_name}\n+++ b/{old_name}\n"
+                    + file["patch"]
+                )
+                files.extend(parse_diff(file_diff, file_filter, lines_changed_only))
         return files
 
     def verify_files_are_present(self, files: List[FileObj]) -> None:

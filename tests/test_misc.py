@@ -8,7 +8,6 @@ import shutil
 from typing import List, cast
 
 import pytest
-import requests_mock
 
 from cpp_linter.common_fs import get_line_cnt_from_cols, FileObj
 from cpp_linter.common_fs.file_filter import FileFilter
@@ -19,7 +18,6 @@ from cpp_linter.loggers import (
     start_log_group,
     end_log_group,
 )
-import cpp_linter.rest_api.github_api
 from cpp_linter.rest_api.github_api import GithubApiClient
 
 
@@ -80,70 +78,6 @@ def test_list_src_files(
     assert files
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions
-
-
-@pytest.mark.parametrize(
-    "pseudo,expected_url,fake_runner",
-    [
-        (
-            dict(
-                repo="cpp-linter/test-cpp-linter-action",
-                sha="708a1371f3a966a479b77f1f94ec3b7911dffd77",
-                event_name="unknown",  # let coverage include logged warning
-            ),
-            "{rest_api_url}/repos/{repo}/commits/{sha}",
-            True,
-        ),
-        (
-            dict(
-                repo="cpp-linter/test-cpp-linter-action",
-                event_name="pull_request",
-            ),
-            "{rest_api_url}/repos/{repo}/pulls/{number}",
-            True,
-        ),
-        ({}, "", False),
-    ],
-    ids=["push", "pull_request", "local_dev"],
-)
-def test_get_changed_files(
-    caplog: pytest.LogCaptureFixture,
-    monkeypatch: pytest.MonkeyPatch,
-    pseudo: dict,
-    expected_url: str,
-    fake_runner: bool,
-):
-    """test getting a list of changed files for an event.
-
-    This is expected to fail if a github token not supplied as an env var.
-    We don't need to supply one for this test because the tested code will
-    execute anyway.
-    """
-    caplog.set_level(logging.DEBUG, logger=logger.name)
-    # setup test to act as though executed in user's repo's CI
-    monkeypatch.setenv("CI", str(fake_runner).lower())
-    gh_client = GithubApiClient()
-    for name, value in pseudo.items():
-        setattr(gh_client, name, value)
-    if "event_name" in pseudo and pseudo["event_name"] == "pull_request":
-        gh_client.pull_request = 19
-    if not fake_runner:
-        # getting a diff in CI (on a shallow checkout) fails
-        # monkey patch the .git.get_diff() to return nothing
-        monkeypatch.setattr(
-            cpp_linter.rest_api.github_api, "get_diff", lambda *args: ""
-        )
-    monkeypatch.setenv("GITHUB_TOKEN", "123456")
-
-    with requests_mock.Mocker() as mock:
-        mock.get(
-            expected_url.format(number=19, rest_api_url=gh_client.api_url, **pseudo),
-            request_headers={"Authorization": "token 123456"},
-            text="",
-        )
-
-        files = gh_client.get_list_of_changed_files(FileFilter(), 0)
-        assert not files
 
 
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])

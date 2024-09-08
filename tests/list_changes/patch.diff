@@ -1,0 +1,142 @@
+diff --git a/.github/workflows/cpp-lint-package.yml b/.github/workflows/cpp-lint-package.yml
+index 0418957..3b8c454 100644
+--- a/.github/workflows/cpp-lint-package.yml
++++ b/.github/workflows/cpp-lint-package.yml
+@@ -7,6 +7,7 @@ on:
+         description: 'which branch to test'
+         default: 'main'
+         required: true
++  pull_request:
+ 
+ jobs:
+   cpp-linter:
+@@ -14,9 +15,9 @@ jobs:
+ 
+     strategy:
+       matrix:
+-        clang-version: ['7', '8', '9','10', '11', '12', '13', '14', '15', '16', '17']
++        clang-version: ['10', '11', '12', '13', '14', '15', '16', '17']
+         repo: ['cpp-linter/cpp-linter']
+-        branch: ['${{ inputs.branch }}']
++        branch: ['pr-review-suggestions']
+       fail-fast: false
+ 
+     steps:
+@@ -62,10 +63,12 @@ jobs:
+           -i=build 
+           -p=build 
+           -V=${{ runner.temp }}/llvm 
+-          -f=false 
+           --extra-arg="-std=c++14 -Wall" 
+-          --thread-comments=${{ matrix.clang-version == '12' }} 
+-          -a=${{ matrix.clang-version == '12' }}
++          --file-annotations=false
++          --lines-changed-only=true
++          --thread-comments=${{ matrix.clang-version == '16' }} 
++          --tidy-review=${{ matrix.clang-version == '16' }}
++          --format-review=${{ matrix.clang-version == '16' }}
+ 
+       - name: Fail fast?!
+         if: steps.linter.outputs.checks-failed > 0
+diff --git a/src/demo.cpp b/src/demo.cpp
+index 0c1db60..1bf553e 100644
+--- a/src/demo.cpp
++++ b/src/demo.cpp
+@@ -1,17 +1,18 @@
+ /** This is a very ugly test code (doomed to fail linting) */
+ #include "demo.hpp"
+-#include <cstdio>
+-#include <cstddef>
++#include <stdio.h>
+ 
+-// using size_t from cstddef
+-size_t dummyFunc(size_t i) { return i; }
+ 
+-int main()
+-{
+-    for (;;)
+-        break;
++
++
++int main(){
++
++    for (;;) break;
++
+ 
+     printf("Hello world!\n");
+ 
+-    return 0;
+-}
++
++
++
++    return 0;}
+diff --git a/src/demo.hpp b/src/demo.hpp
+index 2695731..f93d012 100644
+--- a/src/demo.hpp
++++ b/src/demo.hpp
+@@ -5,12 +5,10 @@
+ class Dummy {
+     char* useless;
+     int numb;
++    Dummy() :numb(0), useless("\0"){}
+ 
+     public:
+-    void *not_usefull(char *str){
+-        useless = str;
+-        return 0;
+-    }
++    void *not_useful(char *str){useless = str;}
+ };
+ 
+ 
+@@ -28,14 +26,11 @@ class Dummy {
+ 
+ 
+ 
+-
+-
+-
+-
+ 
+ 
+ struct LongDiff
+ {
++
+     long diff;
+ 
+ };
+
+diff --git a/src/demo.c b/src/demo.c
+index 0c1db60..1bf553e 100644
+--- a/src/demo.c
++++ b/src/demo.c
+@@ -1,17 +1,18 @@
+ /** This is a very ugly test code (doomed to fail linting) */
+ #include "demo.hpp"
+-#include <cstdio>
+-#include <cstddef>
++#include <stdio.h>
+ 
+-// using size_t from cstddef
+-size_t dummyFunc(size_t i) { return i; }
+ 
+-int main()
+-{
+-    for (;;)
+-        break;
++
++
++int main(){
++
++    for (;;) break;
++
+ 
+     printf("Hello world!\n");
+ 
+-    return 0;
+-}
++
++
++
++    return 0;}

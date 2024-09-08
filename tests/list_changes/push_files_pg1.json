@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "sha": "52501fa1dc96d6bc6f8a155816df041b1de975d9",
+      "filename": ".github/workflows/cpp-lint-package.yml",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 5,
+      "changes": 14,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/635a9c57bdcca07b99ddef52c2640337c50280b1/.github%2Fworkflows%2Fcpp-lint-package.yml",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/635a9c57bdcca07b99ddef52c2640337c50280b1/.github%2Fworkflows%2Fcpp-lint-package.yml",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/.github%2Fworkflows%2Fcpp-lint-package.yml?ref=635a9c57bdcca07b99ddef52c2640337c50280b1",
+      "patch": "@@ -7,16 +7,17 @@ on:\n         description: 'which branch to test'\n         default: 'main'\n         required: true\n+  pull_request:\n \n jobs:\n   cpp-linter:\n     runs-on: windows-latest\n \n     strategy:\n       matrix:\n-        clang-version: ['7', '8', '9','10', '11', '12', '13', '14', '15', '16', '17']\n+        clang-version: ['10', '11', '12', '13', '14', '15', '16', '17']\n         repo: ['cpp-linter/cpp-linter']\n-        branch: ['${{ inputs.branch }}']\n+        branch: ['pr-review-suggestions']\n       fail-fast: false\n \n     steps:\n@@ -62,10 +63,13 @@ jobs:\n           -i=build \n           -p=build \n           -V=${{ runner.temp }}/llvm \n-          -f=false \n           --extra-arg=\"-std=c++14 -Wall\" \n-          --thread-comments=${{ matrix.clang-version == '12' }} \n-          -a=${{ matrix.clang-version == '12' }}\n+          --file-annotations=false\n+          --lines-changed-only=false\n+          --extension=h,c\n+          --thread-comments=${{ matrix.clang-version == '16' }} \n+          --tidy-review=${{ matrix.clang-version == '16' }}\n+          --format-review=${{ matrix.clang-version == '16' }}\n \n       - name: Fail fast?!\n         if: steps.linter.outputs.checks-failed > 0"
+    },
+    {
+      "sha": "1bf553e06e4b7c6c9a9be5da4845acbdeb04f6a5",
+      "filename": "src/demo.cpp",
+      "previous_filename": "src/demo.c",
+      "status": "modified",
+      "additions": 11,
+      "deletions": 10,
+      "changes": 21,
+      "blob_url": "https://github.com/cpp-linter/test-cpp-linter-action/blob/635a9c57bdcca07b99ddef52c2640337c50280b1/src%2Fdemo.cpp",
+      "raw_url": "https://github.com/cpp-linter/test-cpp-linter-action/raw/635a9c57bdcca07b99ddef52c2640337c50280b1/src%2Fdemo.cpp",
+      "contents_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/contents/src%2Fdemo.cpp?ref=635a9c57bdcca07b99ddef52c2640337c50280b1",
+      "patch": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");\n \n-    return 0;\n-}\n+\n+\n+\n+    return 0;}"
+    }
+  ]
+}
