@@ -19,6 +19,7 @@ from cpp_linter.loggers import (
     end_log_group,
 )
 from cpp_linter.rest_api.github_api import GithubApiClient
+from cpp_linter.clang_tools.clang_tidy import TidyNotification
 
 
 def test_exit_output(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
@@ -118,3 +119,31 @@ def test_tool_exe_path(tool_name: str, version: str):
     exe_path = assemble_version_exec(tool_name, version)
     assert exe_path
     assert tool_name in exe_path
+
+
+def test_clang_analyzer_link():
+    """Ensures the hyper link for a diagnostic about clang-analyzer checks is
+    not malformed"""
+    file_name = "RF24.cpp"
+    line = "1504"
+    column = "9"
+    rationale = "Dereference of null pointer (loaded from variable 'pipe_num')"
+    severity = "warning"
+    diagnostic_name = "clang-analyzer-core.NullDereference"
+    note = TidyNotification(
+        (
+            file_name,
+            line,
+            column,
+            severity,
+            rationale,
+            diagnostic_name,
+        )
+    )
+    assert note.diagnostic_link == (
+        "[{}]({}/{}.html)".format(
+            diagnostic_name,
+            "https://clang.llvm.org/extra/clang-tidy/checks/clang-analyzer",
+            diagnostic_name.split("-", maxsplit=2)[2],
+        )
+    )
