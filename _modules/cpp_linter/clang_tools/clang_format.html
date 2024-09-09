@@ -373,6 +373,21 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../API-Reference/cpp_linter.clang_tools.patcher.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>patcher</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../API-Reference/cpp_linter.rest_api.html" class="md-nav__link">
         <span class="md-ellipsis">rest_<wbr>api</span>
       </a>
@@ -543,12 +558,13 @@
 
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">PurePath</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
 
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">get_line_cnt_from_cols</span><span class="p">,</span> <span class="n">FileObj</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">.patcher</span> <span class="kn">import</span> <span class="n">PatchMixin</span>
 
 
 <div class="viewcode-block" id="FormatReplacement">
@@ -602,7 +618,7 @@
 
 <div class="viewcode-block" id="FormatAdvice">
 <a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_format.html#cpp_linter.clang_tools.clang_format.FormatAdvice">[docs]</a>
-<span class="k">class</span> <span class="nc">FormatAdvice</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">FormatAdvice</span><span class="p">(</span><span class="n">PatchMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A single object to represent each suggestion.</span>
 
 <span class="sd">    :param filename: The source file&#39;s name for which the contents of the xml</span>
@@ -618,14 +634,25 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;A list of `FormatReplacementLine` representing replacement(s)</span>
 <span class="sd">        on a single line.&quot;&quot;&quot;</span>
 
-        <span class="c1">#: A buffer of the applied fixes from clang-format</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">patched</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&lt;XMLFixit with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replaced_lines</span><span class="p">)</span><span class="si">}</span><span class="s2"> lines of &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;replacements for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="FormatAdvice.get_suggestion_help">
+<a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_format.html#cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_suggestion_help</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_suggestion_help</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;suggestion</span><span class="se">\n</span><span class="s2">&quot;</span></div>
+
+
+<div class="viewcode-block" id="FormatAdvice.get_tool_name">
+<a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.clang_format.html#cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_tool_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;clang-format&quot;</span></div>
+</div>
 
 
 

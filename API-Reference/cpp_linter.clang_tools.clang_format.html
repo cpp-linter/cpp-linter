@@ -485,8 +485,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.patched" class="md-nav__link">
-    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.patched (Python attribute) — A buffer of the applied fixes from clang-format" class="md-ellipsis">patched</span>
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help (Python method) — Create helpful text about what the suggestion aims to fix." class="md-ellipsis">get_<wbr>suggestion_<wbr>help</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name (Python method) — A function that must be implemented by derivatives to get the clang tool&#39;s name that generated the patched data." class="md-ellipsis">get_<wbr>tool_<wbr>name</span>
   </a>
   
 </li>
@@ -561,6 +568,21 @@
     <li class="md-nav__item">
       <a href="cpp_linter.clang_tools.clang_tidy.html" class="md-nav__link">
         <span class="md-ellipsis">clang_<wbr>tools.<wbr>clang_<wbr>tidy</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cpp_linter.clang_tools.patcher.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>patcher</span>
       </a>
     </li>
   
@@ -838,8 +860,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.patched" class="md-nav__link">
-    <span aria-label="Python attribute" class="objinfo-icon objinfo-icon__alias" title="Python attribute">A</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.patched (Python attribute) — A buffer of the applied fixes from clang-format" class="md-ellipsis">patched</span>
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help (Python method) — Create helpful text about what the suggestion aims to fix." class="md-ellipsis">get_<wbr>suggestion_<wbr>help</span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name" class="md-nav__link">
+    <span aria-label="Python method" class="objinfo-icon objinfo-icon__procedure" title="Python method">M</span><span title="cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name (Python method) — A function that must be implemented by derivatives to get the clang tool&#39;s name that generated the patched data." class="md-ellipsis">get_<wbr>tool_<wbr>name</span>
   </a>
   
 </li>
@@ -995,15 +1024,24 @@ file exported by clang-tidy.</p>
 
 <dl class="py attribute objdesc">
 <dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines">
-<span class="sig-name descname"><span class="pre">replaced_lines</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line."><span class="pre">FormatReplacementLine</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">replaced_lines</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line."><span class="pre">FormatReplacementLine</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.replaced_lines" title="Link to this definition">¶</a></dt>
 <dd><p>A list of <a class="reference internal" href="#cpp_linter.clang_tools.clang_format.FormatReplacementLine" title="cpp_linter.clang_tools.clang_format.FormatReplacementLine (Python class) — An object that represents a replacement(s) for a single line."><code class="xref any py py-class docutils literal notranslate"><span class="pre">FormatReplacementLine</span></code></a> representing replacement(s)
 on a single line.</p>
 </dd></dl>
 
-<dl class="py attribute objdesc">
-<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.patched">
-<span class="sig-name descname"><span class="pre">patched</span></span><span class="p"> <span class="pre">:</span> </span><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.patched" title="Link to this definition">¶</a></dt>
-<dd><p>A buffer of the applied fixes from clang-format</p>
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help">
+<span class="sig-name descname"><span class="pre">get_suggestion_help</span></span><span class="sig-paren">(</span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help" title="cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help.start (Python parameter)"><span class="n"><span class="pre">start</span></span></a></em>, </span><span class="sig-param-decl"><em class="sig-param"><a class="n reference internal" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help" title="cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help.end (Python parameter)"><span class="n"><span class="pre">end</span></span></a></em></span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#FormatAdvice.get_suggestion_help"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_suggestion_help" title="Link to this definition">¶</a></dt>
+<dd><p>Create helpful text about what the suggestion aims to fix.</p>
+<p>The parameters <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> are the line numbers (relative to file’s
+original content) encapsulating the suggestion.</p>
+</dd></dl>
+
+<dl class="py method objdesc">
+<dt class="sig sig-object highlight py" id="cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name">
+<span class="sig-name descname"><span class="pre">get_tool_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="desctype"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></span></span><a class="reference internal" href="../_modules/cpp_linter/clang_tools/clang_format.html#FormatAdvice.get_tool_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cpp_linter.clang_tools.clang_format.FormatAdvice.get_tool_name" title="Link to this definition">¶</a></dt>
+<dd><p>A function that must be implemented by derivatives to
+get the clang tool’s name that generated the <a class="reference internal" href="cpp_linter.clang_tools.patcher.html#cpp_linter.clang_tools.patcher.PatchMixin.patched" title="cpp_linter.clang_tools.patcher.PatchMixin.patched (Python attribute) — A unified diff of the applied fixes from the clang tool's output"><code class="xref any py py-attr docutils literal notranslate"><span class="pre">patched</span></code></a> data.</p>
 </dd></dl>
 
 </dd></dl>

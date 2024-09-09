@@ -373,6 +373,21 @@
   
   
     <li class="md-nav__item">
+      <a href="../../API-Reference/cpp_linter.clang_tools.patcher.html" class="md-nav__link">
+        <span class="md-ellipsis">clang_<wbr>tools.<wbr>patcher</span>
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../API-Reference/cpp_linter.rest_api.html" class="md-nav__link">
         <span class="md-ellipsis">rest_<wbr>api</span>
       </a>
@@ -590,6 +605,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tidy_advice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TidyAdvice&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1">#: The results from clang-format</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">format_advice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;FormatAdvice&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;FileObj </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> added:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">additions</span><span class="si">}</span><span class="s2"> chunks:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">diff_chunks</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_consolidate_list_to_ranges</span><span class="p">(</span><span class="n">numbers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
