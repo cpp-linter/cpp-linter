@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "setuptools-scm"]
+requires = ["setuptools>=62.6", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,11 +11,6 @@ license = {text = "MIT License"}
 authors = [
     { name = "Brendan Doherty", email = "2bndy5@gmail.com" },
     { name = "Peter Shen", email = "xianpeng.shen@gmail.com" },
-]
-dependencies = [
-    "requests",
-    "pyyaml",
-    "pygit2",
 ]
 classifiers = [
     # https://pypi.org/pypi?%3Aaction=list_classifiers
@@ -31,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Build Tools",
 ]
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 
 [project.scripts]
 cpp-linter = "cpp_linter:main"
@@ -47,6 +42,9 @@ tracker = "https://github.com/cpp-linter/cpp-linter/issues"
 zip-safe = false
 packages = ["cpp_linter"]
 
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
 [tool.setuptools_scm]
 # It would be nice to include the commit hash in the version, but that
 # can't be done in a PEP 440-compatible way.
@@ -61,7 +59,7 @@ show_column_numbers = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-vv"
+addopts = "-vv --durations=8 --color=yes"
 testpaths = ["tests"]
 
 [tool.coverage]

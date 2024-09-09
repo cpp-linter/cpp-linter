@@ -8,6 +8,7 @@ import subprocess
 from typing import Tuple, Union, List, cast, Optional, Dict, Set
 from ..loggers import logger
 from ..common_fs import FileObj
+from .patcher import PatchMixin, ReviewComments, Suggestion
 
 NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
 FIXED_NOTE = re.compile(r"^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$")
@@ -98,10 +99,10 @@ class TidyNotification:
         )
 
 
-class TidyAdvice:
+class TidyAdvice(PatchMixin):
     def __init__(self, notes: List[TidyNotification]) -> None:
         #: A buffer of the applied fixes from clang-tidy
-        self.patched: Optional[bytes] = None
+        super().__init__()
         self.notes = notes
 
     def diagnostics_in_range(self, start: int, end: int) -> str:
@@ -114,6 +115,50 @@ class TidyAdvice:
                     diagnostics += f"- {note.rationale} [{note.diagnostic_link}]\n"
                     break
         return diagnostics
+
+    def get_suggestion_help(self, start: int, end: int) -> str:
+        diagnostics = self.diagnostics_in_range(start, end)
+        prefix = super().get_suggestion_help(start, end)
+        if diagnostics:
+            return prefix + "diagnostics\n" + diagnostics
+        return prefix + "suggestion\n"
+
+    def get_tool_name(self) -> str:
+        return "clang-tidy"
+
+    def get_suggestions_from_patch(
+        self, file_obj: FileObj, summary_only: bool, review_comments: ReviewComments
+    ):
+        super().get_suggestions_from_patch(file_obj, summary_only, review_comments)
+
+        def _has_related_suggestion(suggestion: Suggestion) -> bool:
+            for known in review_comments.suggestions:
+                if known.line_end >= suggestion.line_end >= known.line_start:
+                    known.comment += f"\n{suggestion.comment}"
+                    return True
+            return False
+
+        # now check for clang-tidy warnings with no fixes applied
+        for note in self.notes:
+            if not note.applied_fixes:  # if no fix was applied
+                line_numb = int(note.line)
+                if not summary_only and file_obj.is_range_contained(
+                    start=line_numb, end=line_numb + 1
+                ):
+                    suggestion = Suggestion(file_obj.name)
+                    suggestion.line_end = line_numb
+                    body = f"### clang-tidy diagnostic\n**{file_obj.name}:"
+                    body += f"{note.line}:{note.cols}:** {note.severity}: "
+                    body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
+                    if note.fixit_lines:
+                        body += f'```{Path(file_obj.name).suffix.lstrip(".")}\n'
+                        for fixit_line in note.fixit_lines:
+                            body += f"{fixit_line}\n"
+                        body += "```\n"
+                    suggestion.comment = body
+                    review_comments.tool_total["clang-tidy"] += 1
+                    if not _has_related_suggestion(suggestion):
+                        review_comments.suggestions.append(suggestion)
 
 
 def tally_tidy_advice(files: List[FileObj]) -> int:

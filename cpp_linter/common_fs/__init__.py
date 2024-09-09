@@ -48,6 +48,9 @@ class FileObj:
         #: The results from clang-format
         self.format_advice: Optional["FormatAdvice"] = None
 
+    def __repr__(self) -> str:
+        return f"<FileObj {self.name} added:{self.additions} chunks:{self.diff_chunks}>"
+
     @staticmethod
     def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
         """A helper function that is only used after parsing the lines from a diff that

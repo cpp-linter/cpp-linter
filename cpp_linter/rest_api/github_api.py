@@ -15,30 +15,20 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Dict, List, Any, cast, Optional, Tuple, Union
+from typing import Dict, List, Any, cast, Optional
 
-from pygit2 import Patch  # type: ignore
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
 from ..clang_tools.clang_format import (
-    FormatAdvice,
     formalize_style_name,
     tally_format_advice,
 )
-from ..clang_tools.clang_tidy import TidyAdvice, tally_tidy_advice
+from ..clang_tools.clang_tidy import tally_tidy_advice
+from ..clang_tools.patcher import ReviewComments, PatchMixin
 from ..cli import Args
 from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
 from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
-
-try:
-    from pygit2.enums import DiffOption  # type: ignore
-
-    INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
-except ImportError:  # if pygit2.__version__ < 1.14
-    from pygit2 import GIT_DIFF_INDENT_HEURISTIC  # type: ignore
-
-    INDENT_HEURISTIC = GIT_DIFF_INDENT_HEURISTIC
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -413,31 +403,27 @@ class GithubApiClient(RestApiClient):
             return  # don't post reviews
         body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
         payload_comments = []
-        total_changes = 0
-        summary_only = (
-            environ.get("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "false") == "true"
-        )
-        advice: Dict[str, bool] = {}
+        summary_only = environ.get(
+            "CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "false"
+        ).lower() in ("true", "on", "1")
+        advice = []
         if format_review:
-            advice["clang-format"] = False
+            advice.append("clang-format")
         if tidy_review:
-            advice["clang-tidy"] = True
-        for tool_name, tidy_tool in advice.items():
-            comments, total, patch = self.create_review_comments(
-                files, tidy_tool, summary_only
+            advice.append("clang-tidy")
+        review_comments = ReviewComments()
+        for tool_name in advice:
+            self.create_review_comments(
+                files=files,
+                tidy_tool=tool_name == "clang-tidy",
+                summary_only=summary_only,
+                review_comments=review_comments,
             )
-            total_changes += total
-            if not summary_only:
-                payload_comments.extend(comments)
-                if total and total != len(comments):
-                    body += f"Only {len(comments)} out of {total} {tool_name} "
-                    body += "concerns fit within this pull request's diff.\n"
-            if patch:
-                body += f"\n<details><summary>Click here for the full {tool_name} patch"
-                body += f"</summary>\n\n\n```diff\n{patch}\n```\n\n\n</details>\n\n"
-            elif not total:
-                body += f"No concerns from {tool_name}.\n"
-        if total_changes:
+        (summary, comments) = review_comments.serialize_to_github_payload()
+        if not summary_only:
+            payload_comments.extend(comments)
+        body += summary
+        if sum(review_comments.tool_total.values()):
             event = "REQUEST_CHANGES"
         else:
             if no_lgtm:
@@ -460,92 +446,28 @@ class GithubApiClient(RestApiClient):
         files: List[FileObj],
         tidy_tool: bool,
         summary_only: bool,
-    ) -> Tuple[List[Dict[str, Any]], int, str]:
-        """Creates a batch of comments for a specific clang tool's PR review"""
-        total = 0
-        comments = []
-        full_patch = ""
+        review_comments: ReviewComments,
+    ):
+        """Creates a batch of comments for a specific clang tool's PR review.
+
+        :param files: The list of files to traverse.
+        :param tidy_tool: A flag to indicate if the suggestions should originate
+            from clang-tidy.
+        :param summary_only: A flag to indicate if only the review summary is desired.
+        :param review_comments: An object (passed by reference) that is used to store
+            the results.
+        """
         for file_obj in files:
-            tool_advice: Optional[Union[TidyAdvice, FormatAdvice]]
+            tool_advice: Optional[PatchMixin]
             if tidy_tool:
                 tool_advice = file_obj.tidy_advice
             else:
                 tool_advice = file_obj.format_advice
             if not tool_advice:
                 continue
-            assert tool_advice.patched, f"No suggested patch found for {file_obj.name}"
-            patch = Patch.create_from(
-                old=Path(file_obj.name).read_bytes(),
-                new=tool_advice.patched,
-                old_as_path=file_obj.name,
-                new_as_path=file_obj.name,
-                flag=INDENT_HEURISTIC,
-                context_lines=0,  # trim all unchanged lines from start/end of hunks
+            tool_advice.get_suggestions_from_patch(
+                file_obj, summary_only, review_comments
             )
-            full_patch += patch.text
-            for hunk in patch.hunks:
-                total += 1
-                if summary_only:
-                    continue
-                new_hunk_range = file_obj.is_hunk_contained(hunk)
-                if new_hunk_range is None:
-                    continue
-                start_lines, end_lines = new_hunk_range
-                comment: Dict[str, Any] = {"path": file_obj.name}
-                body = ""
-                if tidy_tool and file_obj.tidy_advice:
-                    body += "### clang-tidy "
-                    diagnostics = file_obj.tidy_advice.diagnostics_in_range(
-                        start_lines, end_lines
-                    )
-                    if diagnostics:
-                        body += "diagnostics\n" + diagnostics
-                    else:
-                        body += "suggestions\n"
-                elif not tidy_tool:
-                    body += "### clang-format suggestions\n"
-                if start_lines < end_lines:
-                    comment["start_line"] = start_lines
-                comment["line"] = end_lines
-                suggestion = ""
-                removed = []
-                for line in hunk.lines:
-                    if line.origin in ["+", " "]:
-                        suggestion += line.content
-                    else:
-                        removed.append(line.old_lineno)
-                if not suggestion and removed:
-                    body += "\nPlease remove the line(s)\n- "
-                    body += "\n- ".join([str(x) for x in removed])
-                else:
-                    body += f"\n```suggestion\n{suggestion}```"
-                comment["body"] = body
-                comments.append(comment)
-
-            # now check for clang-tidy warnings with no fixes applied
-            if tidy_tool and file_obj.tidy_advice:
-                for note in file_obj.tidy_advice.notes:
-                    if not note.applied_fixes:  # if no fix was applied
-                        total += 1
-                        line_numb = int(note.line)
-                        if file_obj.is_range_contained(
-                            start=line_numb, end=line_numb + 1
-                        ):
-                            diag: Dict[str, Any] = {
-                                "path": file_obj.name,
-                                "line": note.line,
-                            }
-                            body = f"### clang-tidy diagnostic\n**{file_obj.name}:"
-                            body += f"{note.line}:{note.cols}:** {note.severity}: "
-                            body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
-                            if note.fixit_lines:
-                                body += f'```{Path(file_obj.name).suffix.lstrip(".")}\n'
-                                for line in note.fixit_lines:
-                                    body += f"{line}\n"
-                                body += "```\n"
-                            diag["body"] = body
-                            comments.append(diag)
-        return (comments, total, full_patch)
 
     def _dismiss_stale_reviews(self, url: str):
         """Dismiss all reviews that were previously created by cpp-linter"""

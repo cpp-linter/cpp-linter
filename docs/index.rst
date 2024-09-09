@@ -16,6 +16,7 @@
    API-Reference/cpp_linter.clang_tools
    API-Reference/cpp_linter.clang_tools.clang_format
    API-Reference/cpp_linter.clang_tools.clang_tidy
+   API-Reference/cpp_linter.clang_tools.patcher
    API-Reference/cpp_linter.rest_api
    API-Reference/cpp_linter.rest_api.github_api
    API-Reference/cpp_linter.git

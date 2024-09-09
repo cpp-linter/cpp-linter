@@ -41,5 +41,5 @@ def test_rate_limit(monkeypatch: pytest.MonkeyPatch, response_headers: Dict[str,
         # ensure function exits early
         with pytest.raises(SystemExit) as exc:
             gh_client.api_request(url)
-        assert exc.type == SystemExit
+        assert exc.type is SystemExit
         assert exc.value.code == 1
