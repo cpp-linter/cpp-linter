@@ -142,8 +142,8 @@ class GithubApiClient(RestApiClient):
                     old_name = file["previous_filename"]
                 assert "patch" in file
                 file_diff = (
-                    f"diff --git a/{file_name} b/{old_name}\n"
-                    + f"--- a/{file_name}\n+++ b/{old_name}\n"
+                    f"diff --git a/{old_name} b/{file_name}\n"
+                    + f"--- a/{old_name}\n+++ b/{file_name}\n"
                     + file["patch"]
                 )
                 files.extend(parse_diff(file_diff, file_filter, lines_changed_only))
