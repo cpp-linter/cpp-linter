@@ -25,6 +25,7 @@ from ..clang_tools.clang_format import (
 )
 from ..clang_tools.clang_tidy import tally_tidy_advice
 from ..clang_tools.patcher import ReviewComments, PatchMixin
+from ..clang_tools import ClangVersions
 from ..cli import Args
 from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
@@ -187,6 +188,7 @@ class GithubApiClient(RestApiClient):
         self,
         files: List[FileObj],
         args: Args,
+        clang_versions: ClangVersions,
     ):
         format_checks_failed = tally_format_advice(files)
         tidy_checks_failed = tally_tidy_advice(files)
@@ -198,6 +200,7 @@ class GithubApiClient(RestApiClient):
                 files=files,
                 format_checks_failed=format_checks_failed,
                 tidy_checks_failed=tidy_checks_failed,
+                clang_versions=clang_versions,
                 len_limit=None,
             )
             with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
@@ -225,6 +228,7 @@ class GithubApiClient(RestApiClient):
                     files=files,
                     format_checks_failed=format_checks_failed,
                     tidy_checks_failed=tidy_checks_failed,
+                    clang_versions=clang_versions,
                     len_limit=65535,
                 )
 

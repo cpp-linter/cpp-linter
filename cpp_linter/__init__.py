@@ -75,10 +75,10 @@ def main():
         )
     end_log_group()
 
-    capture_clang_tools_output(files=files, args=args)
+    clang_versions = capture_clang_tools_output(files=files, args=args)
 
     start_log_group("Posting comment(s)")
-    rest_api_client.post_feedback(files=files, args=args)
+    rest_api_client.post_feedback(files=files, args=args, clang_versions=clang_versions)
     end_log_group()
 
 

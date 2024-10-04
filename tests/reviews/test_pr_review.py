@@ -170,7 +170,7 @@ def test_post_review(
         args.file_annotations = False
         args.passive_reviews = is_passive
 
-        capture_clang_tools_output(files, args=args)
+        clang_versions = capture_clang_tools_output(files, args=args)
         if not force_approved:
             format_advice = list(filter(lambda x: x.format_advice is not None, files))
             tidy_advice = list(filter(lambda x: x.tidy_advice is not None, files))
@@ -194,7 +194,7 @@ def test_post_review(
             headers={"Accept": "application/vnd.github.text+json"},
             text=cache_pr_response,
         )
-        gh_client.post_feedback(files, args)
+        gh_client.post_feedback(files, args, clang_versions)
 
         # inspect the review payload for correctness
         last_request = mock.last_request

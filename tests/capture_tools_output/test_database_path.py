@@ -96,7 +96,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     args.lines_changed_only = 0  # analyze complete file
 
     # run clang-tidy and verify paths of project files were matched with database paths
-    capture_clang_tools_output(files, args=args)
+    clang_versions = capture_clang_tools_output(files, args=args)
     found_project_file = False
     for concern in [a.tidy_advice for a in files if a.tidy_advice]:
         for note in concern.notes:
@@ -112,6 +112,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
         files=files,
         tidy_checks_failed=tidy_checks_failed,
         format_checks_failed=format_checks_failed,
+        clang_versions=clang_versions,
     )
 
     assert tidy_checks_failed

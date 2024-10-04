@@ -16,7 +16,7 @@ import requests_mock
 
 from cpp_linter.common_fs import FileObj, CACHE_PATH
 from cpp_linter.git import parse_diff, get_diff
-from cpp_linter.clang_tools import capture_clang_tools_output
+from cpp_linter.clang_tools import capture_clang_tools_output, ClangVersions
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
 from cpp_linter.loggers import log_commander, logger
@@ -67,10 +67,14 @@ def make_comment(
 ):
     format_checks_failed = tally_format_advice(files)
     tidy_checks_failed = tally_tidy_advice(files)
+    clang_versions = ClangVersions()
+    clang_versions.format = "x.y.z"
+    clang_versions.tidy = "x.y.z"
     comment = GithubApiClient.make_comment(
         files=files,
         tidy_checks_failed=tidy_checks_failed,
         format_checks_failed=format_checks_failed,
+        clang_versions=clang_versions,
     )
     return comment, format_checks_failed, tidy_checks_failed
 
