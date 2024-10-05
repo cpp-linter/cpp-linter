@@ -293,6 +293,7 @@ class RestApiClient(ABC):
 
         :param files: A list of objects, each describing a file's information.
         :param args: A namespace of arguments parsed from the :doc:`CLI <../cli_args>`.
+        :param clang_versions: The version of the clang tools used.
         """
         raise NotImplementedError("Must be defined in the derivative")
 

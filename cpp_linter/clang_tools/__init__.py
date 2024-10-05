@@ -77,14 +77,15 @@ def _run_on_single_file(
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 
 
-VERSION_PATTERN = re.compile(r"version\s(\d+\.\d+\.\d+)", re.MULTILINE)
+VERSION_PATTERN = re.compile(r"version\s(\d+\.\d+\.\d+)")
 
 
 def _capture_tool_version(cmd: str) -> str:
     """Get version number from output for executable used."""
-    version_out = subprocess.run([cmd, "--version"], capture_output=True, check=True)
-    output = version_out.stdout.decode()
-    matched = VERSION_PATTERN.search(output)
+    version_out = subprocess.run(
+        [cmd, "--version"], capture_output=True, check=True, text=True
+    )
+    matched = VERSION_PATTERN.search(version_out.stdout)
     if matched is None:  # pragma: no cover
         raise RuntimeError(
             f"Failed to get version numbers from `{cmd} --version` output"
@@ -113,7 +114,8 @@ def capture_clang_tools_output(files: List[FileObj], args: Args) -> ClangVersion
     clang_versions = ClangVersions()
     if args.style:  # if style is an empty value, then clang-format is skipped
         format_cmd = assemble_version_exec("clang-format", args.version)
-        assert format_cmd is not None, "clang-format executable was not found"
+        if format_cmd is None:  # pragma: no cover
+            raise FileNotFoundError("clang-format executable was not found")
         clang_versions.format = _capture_tool_version(format_cmd)
         format_filter = FormatFileFilter(
             extensions=args.extensions,
@@ -122,7 +124,8 @@ def capture_clang_tools_output(files: List[FileObj], args: Args) -> ClangVersion
     if args.tidy_checks != "-*":
         # if all checks are disabled, then clang-tidy is skipped
         tidy_cmd = assemble_version_exec("clang-tidy", args.version)
-        assert tidy_cmd is not None, "clang-tidy executable was not found"
+        if tidy_cmd is None:  # pragma: no cover
+            raise FileNotFoundError("clang-tidy executable was not found")
         clang_versions.tidy = _capture_tool_version(tidy_cmd)
         tidy_filter = TidyFileFilter(
             extensions=args.extensions,

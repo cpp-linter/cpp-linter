@@ -467,10 +467,8 @@ class GithubApiClient(RestApiClient):
         :param review_comments: An object (passed by reference) that is used to store
             the results.
         """
-        if tidy_tool:
-            review_comments.tool_total["clang-tidy"] = 0
-        else:
-            review_comments.tool_total["clang-format"] = 0
+        tool_name = "clang-tidy" if tidy_tool else "clang-format"
+        review_comments.tool_total[tool_name] = 0
         for file_obj in files:
             tool_advice: Optional[PatchMixin]
             if tidy_tool:

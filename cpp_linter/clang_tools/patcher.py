@@ -91,8 +91,8 @@ class ReviewComments:
         """Serialize this object into a summary and list of comments compatible
         with Github's REST API.
 
-        :param tidy_versions: The version numbers of the clang-tidy used.
-        :param format_versions: The version numbers of the clang-format used.
+        :param tidy_version: The version numbers of the clang-tidy used.
+        :param format_version: The version numbers of the clang-format used.
 
         :returns: The returned tuple contains a brief summary (at index ``0``)
             that contains markdown text describing the summary of the review
