@@ -85,12 +85,12 @@ def _capture_tool_version(cmd: str) -> str:
     version_out = subprocess.run([cmd, "--version"], capture_output=True, check=True)
     output = version_out.stdout.decode()
     matched = VERSION_PATTERN.search(output)
-    if matched is None:
+    if matched is None:  # pragma: no cover
         raise RuntimeError(
             f"Failed to get version numbers from `{cmd} --version` output"
         )
     ver = cast(str, matched.group(1))
-    logger.info("%s --version\n%s", cmd, ver)
+    logger.info("`%s --version`: %s", cmd, ver)
     return ver
 
 
@@ -115,18 +115,18 @@ def capture_clang_tools_output(files: List[FileObj], args: Args) -> ClangVersion
         format_cmd = assemble_version_exec("clang-format", args.version)
         assert format_cmd is not None, "clang-format executable was not found"
         clang_versions.format = _capture_tool_version(format_cmd)
-        tidy_filter = TidyFileFilter(
+        format_filter = FormatFileFilter(
             extensions=args.extensions,
-            ignore_value=args.ignore_tidy,
+            ignore_value=args.ignore_format,
         )
     if args.tidy_checks != "-*":
         # if all checks are disabled, then clang-tidy is skipped
         tidy_cmd = assemble_version_exec("clang-tidy", args.version)
         assert tidy_cmd is not None, "clang-tidy executable was not found"
         clang_versions.tidy = _capture_tool_version(tidy_cmd)
-        format_filter = FormatFileFilter(
+        tidy_filter = TidyFileFilter(
             extensions=args.extensions,
-            ignore_value=args.ignore_format,
+            ignore_value=args.ignore_tidy,
         )
 
     db_json: Optional[List[Dict[str, str]]] = None

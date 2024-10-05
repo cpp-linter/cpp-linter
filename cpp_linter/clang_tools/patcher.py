@@ -69,16 +69,25 @@ class ReviewComments:
         """
         for known in self.suggestions:
             if (
-                known.line_end == suggestion.line_end
+                known.file_name == suggestion.file_name
+                and known.line_end == suggestion.line_end
                 and known.line_start == suggestion.line_start
             ):
                 known.comment += f"\n{suggestion.comment}"
                 return True
         return False
 
-    def serialize_to_github_payload(self) -> Tuple[str, List[Dict[str, Any]]]:
+    def serialize_to_github_payload(
+        # avoid circular imports by accepting primitive types (instead of ClangVersions)
+        self,
+        tidy_version: Optional[str],
+        format_version: Optional[str],
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Serialize this object into a summary and list of comments compatible
         with Github's REST API.
+
+        :param tidy_versions: The version numbers of the clang-tidy used.
+        :param format_versions: The version numbers of the clang-format used.
 
         :returns: The returned tuple contains a brief summary (at index ``0``)
             that contains markdown text describing the summary of the review
@@ -98,6 +107,12 @@ class ReviewComments:
                 posted_tool_advice["clang-tidy"] += 1
 
         for tool_name in ("clang-tidy", "clang-format"):
+            tool_version = tidy_version
+            if tool_name == "clang-format":
+                tool_version = format_version
+            if tool_version is None:  # if tool wasn't used
+                continue
+            summary += f"### Used {tool_name} v{tool_version}\n\n"
             if (
                 len(comments)
                 and posted_tool_advice[tool_name] != self.tool_total[tool_name]

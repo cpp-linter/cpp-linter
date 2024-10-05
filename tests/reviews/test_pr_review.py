@@ -13,10 +13,6 @@ from cpp_linter.common_fs.file_filter import FileFilter
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
-DEFAULT_TIDY_CHECKS = (
-    "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
-    "clang-analyzer-*,cppcoreguidelines-*"
-)
 
 test_parameters = OrderedDict(
     is_draft=False,
@@ -155,9 +151,10 @@ def test_post_review(
             files.clear()
 
         args = Args()
-        args.tidy_checks = DEFAULT_TIDY_CHECKS
+        if not tidy_review:
+            args.tidy_checks = "-*"
         args.version = environ.get("CLANG_VERSION", "16")
-        args.style = "file"
+        args.style = "file" if format_review else ""
         args.extensions = extensions
         args.ignore_tidy = "*.c"
         args.ignore_format = "*.c"
@@ -174,8 +171,14 @@ def test_post_review(
         if not force_approved:
             format_advice = list(filter(lambda x: x.format_advice is not None, files))
             tidy_advice = list(filter(lambda x: x.tidy_advice is not None, files))
-            assert tidy_advice and len(tidy_advice) < len(files)
-            assert format_advice and len(format_advice) < len(files)
+            if tidy_review:
+                assert tidy_advice and len(tidy_advice) <= len(files)
+            else:
+                assert not tidy_advice
+            if format_review:
+                assert format_advice and len(format_advice) <= len(files)
+            else:
+                assert not format_advice
 
         # simulate draft PR by changing the request response
         cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(

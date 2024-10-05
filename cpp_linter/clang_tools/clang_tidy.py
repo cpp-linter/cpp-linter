@@ -133,7 +133,10 @@ class TidyAdvice(PatchMixin):
 
         def _has_related_suggestion(suggestion: Suggestion) -> bool:
             for known in review_comments.suggestions:
-                if known.line_end >= suggestion.line_end >= known.line_start:
+                if (
+                    known.file_name == suggestion.file_name
+                    and known.line_end >= suggestion.line_end >= known.line_start
+                ):
                     known.comment += f"\n{suggestion.comment}"
                     return True
             return False

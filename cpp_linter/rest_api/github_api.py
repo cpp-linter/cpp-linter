@@ -257,6 +257,7 @@ class GithubApiClient(RestApiClient):
                 format_review=args.format_review,
                 no_lgtm=args.no_lgtm,
                 passive_reviews=args.passive_reviews,
+                clang_versions=clang_versions,
             )
 
     def make_annotations(
@@ -392,6 +393,7 @@ class GithubApiClient(RestApiClient):
         format_review: bool,
         no_lgtm: bool,
         passive_reviews: bool,
+        clang_versions: ClangVersions,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}"
         response = self.api_request(url=url)
@@ -423,7 +425,11 @@ class GithubApiClient(RestApiClient):
                 summary_only=summary_only,
                 review_comments=review_comments,
             )
-        (summary, comments) = review_comments.serialize_to_github_payload()
+        (summary, comments) = review_comments.serialize_to_github_payload(
+            # avoid circular imports by passing primitive types
+            tidy_version=clang_versions.tidy,
+            format_version=clang_versions.format,
+        )
         if not summary_only:
             payload_comments.extend(comments)
         body += summary
