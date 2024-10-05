@@ -705,12 +705,16 @@
 
         <span class="k">def</span> <span class="nf">_has_related_suggestion</span><span class="p">(</span><span class="n">suggestion</span><span class="p">:</span> <span class="n">Suggestion</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">known</span> <span class="ow">in</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">suggestions</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">known</span><span class="o">.</span><span class="n">line_start</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">known</span><span class="o">.</span><span class="n">file_name</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">file_name</span>
+                    <span class="ow">and</span> <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">known</span><span class="o">.</span><span class="n">line_start</span>
+                <span class="p">):</span>
                     <span class="n">known</span><span class="o">.</span><span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">suggestion</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="k">return</span> <span class="kc">True</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># now check for clang-tidy warnings with no fixes applied</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">note</span><span class="o">.</span><span class="n">applied_fixes</span><span class="p">:</span>  <span class="c1"># if no fix was applied</span>
                 <span class="n">line_numb</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">note</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>

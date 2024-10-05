@@ -568,6 +568,7 @@
 <span class="kn">from</span> <span class="nn">..common_fs.file_filter</span> <span class="kn">import</span> <span class="n">FileFilter</span>
 <span class="kn">from</span> <span class="nn">..cli</span> <span class="kn">import</span> <span class="n">Args</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_response_msg</span>
+<span class="kn">from</span> <span class="nn">..clang_tools</span> <span class="kn">import</span> <span class="n">ClangVersions</span>
 
 
 <span class="n">USER_OUTREACH</span> <span class="o">=</span> <span class="p">(</span>
@@ -743,6 +744,7 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">format_checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">tidy_checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">clang_versions</span><span class="p">:</span> <span class="n">ClangVersions</span><span class="p">,</span>
         <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make an MarkDown comment from the given advice. Also returns a count of</span>
@@ -751,6 +753,7 @@
 <span class="sd">        :param files: A list of objects, each describing a file&#39;s information.</span>
 <span class="sd">        :param format_checks_failed: The amount of clang-format checks that have failed.</span>
 <span class="sd">        :param tidy_checks_failed: The amount of clang-tidy checks that have failed.</span>
+<span class="sd">        :param clang_versions: The versions of the clang tools used.</span>
 <span class="sd">        :param len_limit: The length limit of the comment generated.</span>
 
 <span class="sd">        :Returns: The markdown comment as a `str`</span>
@@ -774,12 +777,14 @@
                     <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
                     <span class="n">checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
                     <span class="n">len_limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span>
+                    <span class="n">version</span><span class="o">=</span><span class="n">clang_versions</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">if</span> <span class="n">tidy_checks_failed</span><span class="p">:</span>
                 <span class="n">comment</span> <span class="o">+=</span> <span class="n">RestApiClient</span><span class="o">.</span><span class="n">_make_tidy_comment</span><span class="p">(</span>
                     <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
                     <span class="n">checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
                     <span class="n">len_limit</span><span class="o">=</span><span class="n">adjust_limit</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="n">len_limit</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">comment</span><span class="p">),</span>
+                    <span class="n">version</span><span class="o">=</span><span class="n">clang_versions</span><span class="o">.</span><span class="n">tidy</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;:heavy_check_mark:</span><span class="se">\n</span><span class="s2">No problems need attention.&quot;</span>
@@ -791,9 +796,12 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;make a comment describing clang-format errors&quot;&quot;&quot;</span>
-        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-format reports: &lt;strong&gt;&quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-format</span><span class="si">{}</span><span class="s2"> reports: &lt;strong&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot; (v</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
         <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checks_failed</span><span class="si">}</span><span class="s2"> file(s) not formatted&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
         <span class="n">closer</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
         <span class="n">checks_failed</span> <span class="o">=</span> <span class="mi">0</span>
@@ -814,9 +822,12 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">checks_failed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">len_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;make a comment describing clang-tidy errors&quot;&quot;&quot;</span>
-        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-tidy reports: &lt;strong&gt;&quot;</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;details&gt;&lt;summary&gt;clang-tidy</span><span class="si">{}</span><span class="s2"> reports: &lt;strong&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot; (v</span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
         <span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">checks_failed</span><span class="si">}</span><span class="s2"> concern(s)&lt;/strong&gt;&lt;/summary&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
         <span class="n">closer</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/details&gt;&quot;</span>
         <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
@@ -854,11 +865,13 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">,</span>
+        <span class="n">clang_versions</span><span class="p">:</span> <span class="n">ClangVersions</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Post action&#39;s results using REST API.</span>
 
 <span class="sd">        :param files: A list of objects, each describing a file&#39;s information.</span>
 <span class="sd">        :param args: A namespace of arguments parsed from the :doc:`CLI &lt;../cli_args&gt;`.</span>
+<span class="sd">        :param clang_versions: The version of the clang tools used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be defined in the derivative&quot;</span><span class="p">)</span></div>
 

@@ -581,6 +581,7 @@
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.clang_tidy</span> <span class="kn">import</span> <span class="n">tally_tidy_advice</span>
 <span class="kn">from</span> <span class="nn">..clang_tools.patcher</span> <span class="kn">import</span> <span class="n">ReviewComments</span><span class="p">,</span> <span class="n">PatchMixin</span>
+<span class="kn">from</span> <span class="nn">..clang_tools</span> <span class="kn">import</span> <span class="n">ClangVersions</span>
 <span class="kn">from</span> <span class="nn">..cli</span> <span class="kn">import</span> <span class="n">Args</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">log_commander</span>
 <span class="kn">from</span> <span class="nn">..git</span> <span class="kn">import</span> <span class="n">parse_diff</span><span class="p">,</span> <span class="n">get_diff</span>
@@ -759,6 +760,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span>
         <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">,</span>
+        <span class="n">clang_versions</span><span class="p">:</span> <span class="n">ClangVersions</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">format_checks_failed</span> <span class="o">=</span> <span class="n">tally_format_advice</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
         <span class="n">tidy_checks_failed</span> <span class="o">=</span> <span class="n">tally_tidy_advice</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
@@ -770,6 +772,7 @@
                 <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
                 <span class="n">format_checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
                 <span class="n">tidy_checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
+                <span class="n">clang_versions</span><span class="o">=</span><span class="n">clang_versions</span><span class="p">,</span>
                 <span class="n">len_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;GITHUB_STEP_SUMMARY&quot;</span><span class="p">],</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">summary</span><span class="p">:</span>
@@ -797,6 +800,7 @@
                     <span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span>
                     <span class="n">format_checks_failed</span><span class="o">=</span><span class="n">format_checks_failed</span><span class="p">,</span>
                     <span class="n">tidy_checks_failed</span><span class="o">=</span><span class="n">tidy_checks_failed</span><span class="p">,</span>
+                    <span class="n">clang_versions</span><span class="o">=</span><span class="n">clang_versions</span><span class="p">,</span>
                     <span class="n">len_limit</span><span class="o">=</span><span class="mi">65535</span><span class="p">,</span>
                 <span class="p">)</span>
 
@@ -825,6 +829,7 @@
                 <span class="n">format_review</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format_review</span><span class="p">,</span>
                 <span class="n">no_lgtm</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">no_lgtm</span><span class="p">,</span>
                 <span class="n">passive_reviews</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">passive_reviews</span><span class="p">,</span>
+                <span class="n">clang_versions</span><span class="o">=</span><span class="n">clang_versions</span><span class="p">,</span>
             <span class="p">)</span></div>
 
 
@@ -970,6 +975,7 @@
         <span class="n">format_review</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">no_lgtm</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">passive_reviews</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">clang_versions</span><span class="p">:</span> <span class="n">ClangVersions</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">api_url</span><span class="si">}</span><span class="s2">/repos/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">repo</span><span class="si">}</span><span class="s2">/pulls/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pull_request</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_request</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
@@ -1001,11 +1007,15 @@
                 <span class="n">summary_only</span><span class="o">=</span><span class="n">summary_only</span><span class="p">,</span>
                 <span class="n">review_comments</span><span class="o">=</span><span class="n">review_comments</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">comments</span><span class="p">)</span> <span class="o">=</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">serialize_to_github_payload</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">comments</span><span class="p">)</span> <span class="o">=</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">serialize_to_github_payload</span><span class="p">(</span>
+            <span class="c1"># avoid circular imports by passing primitive types</span>
+            <span class="n">tidy_version</span><span class="o">=</span><span class="n">clang_versions</span><span class="o">.</span><span class="n">tidy</span><span class="p">,</span>
+            <span class="n">format_version</span><span class="o">=</span><span class="n">clang_versions</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">summary_only</span><span class="p">:</span>
             <span class="n">payload_comments</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
         <span class="n">body</span> <span class="o">+=</span> <span class="n">summary</span>
-        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">)]):</span>
             <span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;REQUEST_CHANGES&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">no_lgtm</span><span class="p">:</span>
@@ -1041,6 +1051,8 @@
 <span class="sd">        :param review_comments: An object (passed by reference) that is used to store</span>
 <span class="sd">            the results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tool_name</span> <span class="o">=</span> <span class="s2">&quot;clang-tidy&quot;</span> <span class="k">if</span> <span class="n">tidy_tool</span> <span class="k">else</span> <span class="s2">&quot;clang-format&quot;</span>
+        <span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">file_obj</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
             <span class="n">tool_advice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PatchMixin</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">tidy_tool</span><span class="p">:</span>

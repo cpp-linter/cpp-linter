@@ -614,12 +614,17 @@
         <span class="c1">#: The list of actual comments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">suggestions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Suggestion</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">tool_total</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;clang-format&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tool_total</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;clang-tidy&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;clang-format&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The total number of concerns about a specific clang tool.</span>
 
 <span class="sd">        This may not equate to the length of `suggestions` because</span>
 <span class="sd">        1. There is no guarantee that all suggestions will fit within the PR&#39;s diff.</span>
 <span class="sd">        2. Suggestions are a combined result of advice from both tools.</span>
+
+<span class="sd">        A `None` value means a review was not requested from the corresponding tool.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">full_patch</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;clang-format&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
@@ -635,7 +640,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">known</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">suggestions</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span>
+                <span class="n">known</span><span class="o">.</span><span class="n">file_name</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">file_name</span>
+                <span class="ow">and</span> <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span>
                 <span class="ow">and</span> <span class="n">known</span><span class="o">.</span><span class="n">line_start</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_start</span>
             <span class="p">):</span>
                 <span class="n">known</span><span class="o">.</span><span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">suggestion</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -645,9 +651,17 @@
 
 <div class="viewcode-block" id="ReviewComments.serialize_to_github_payload">
 <a class="viewcode-back" href="../../../API-Reference/cpp_linter.clang_tools.patcher.html#cpp_linter.clang_tools.patcher.ReviewComments.serialize_to_github_payload">[docs]</a>
-    <span class="k">def</span> <span class="nf">serialize_to_github_payload</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+    <span class="k">def</span> <span class="nf">serialize_to_github_payload</span><span class="p">(</span>
+        <span class="c1"># avoid circular imports by accepting primitive types (instead of ClangVersions)</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">tidy_version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">format_version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize this object into a summary and list of comments compatible</span>
 <span class="sd">        with Github&#39;s REST API.</span>
+
+<span class="sd">        :param tidy_version: The version numbers of the clang-tidy used.</span>
+<span class="sd">        :param format_version: The version numbers of the clang-format used.</span>
 
 <span class="sd">        :returns: The returned tuple contains a brief summary (at index ``0``)</span>
 <span class="sd">            that contains markdown text describing the summary of the review</span>
@@ -667,6 +681,12 @@
                 <span class="n">posted_tool_advice</span><span class="p">[</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">for</span> <span class="n">tool_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">,</span> <span class="s2">&quot;clang-format&quot;</span><span class="p">):</span>
+            <span class="n">tool_version</span> <span class="o">=</span> <span class="n">tidy_version</span>
+            <span class="k">if</span> <span class="n">tool_name</span> <span class="o">==</span> <span class="s2">&quot;clang-format&quot;</span><span class="p">:</span>
+                <span class="n">tool_version</span> <span class="o">=</span> <span class="n">format_version</span>
+            <span class="k">if</span> <span class="n">tool_version</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># if tool wasn&#39;t used</span>
+            <span class="n">summary</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;### Used </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2"> v</span><span class="si">{</span><span class="n">tool_version</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="nb">len</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="n">posted_tool_advice</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span>
@@ -684,8 +704,7 @@
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]:</span>
                 <span class="n">summary</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;No concerns from </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">comments</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">comments</span><span class="p">)</span></div>
 </div>
 
 
@@ -745,8 +764,9 @@
         <span class="k">assert</span> <span class="n">tool_name</span> <span class="ow">in</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">full_patch</span>
         <span class="n">review_comments</span><span class="o">.</span><span class="n">full_patch</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">patch</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">assert</span> <span class="n">tool_name</span> <span class="ow">in</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span>
+        <span class="n">tool_total</span> <span class="o">=</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="ow">or</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">hunk</span> <span class="ow">in</span> <span class="n">patch</span><span class="o">.</span><span class="n">hunks</span><span class="p">:</span>
-            <span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">tool_total</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">summary_only</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">new_hunk_range</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">is_hunk_contained</span><span class="p">(</span><span class="n">hunk</span><span class="p">)</span>
@@ -773,7 +793,9 @@
                 <span class="n">body</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">```suggestion</span><span class="se">\n</span><span class="si">{</span><span class="n">suggestion</span><span class="si">}</span><span class="s2">```&quot;</span>
             <span class="n">comment</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">body</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">merge_similar_suggestion</span><span class="p">(</span><span class="n">comment</span><span class="p">):</span>
-                <span class="n">review_comments</span><span class="o">.</span><span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span></div>
+                <span class="n">review_comments</span><span class="o">.</span><span class="n">suggestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+
+        <span class="n">review_comments</span><span class="o">.</span><span class="n">tool_total</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tool_total</span></div>
 </div>
 
 </code></pre></div>

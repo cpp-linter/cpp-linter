@@ -557,9 +557,9 @@
 <span></span><code><span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">indent</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
@@ -636,9 +636,33 @@
     <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">log_stream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="n">tidy_note</span><span class="p">,</span> <span class="n">format_advice</span>
 
 
+<span class="n">VERSION_PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;version\s(\d+\.\d+\.\d+)&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_capture_tool_version</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get version number from output for executable used.&quot;&quot;&quot;</span>
+    <span class="n">version_out</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">cmd</span><span class="p">,</span> <span class="s2">&quot;--version&quot;</span><span class="p">],</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">matched</span> <span class="o">=</span> <span class="n">VERSION_PATTERN</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">version_out</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">matched</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Failed to get version numbers from `</span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s2"> --version` output&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ver</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">matched</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;`</span><span class="si">%s</span><span class="s2"> --version`: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">ver</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ver</span>
+
+
+<span class="k">class</span> <span class="nc">ClangVersions</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tidy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
 <div class="viewcode-block" id="capture_clang_tools_output">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.clang_tools.html#cpp_linter.clang_tools.capture_clang_tools_output">[docs]</a>
-<span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span><span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span> <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">capture_clang_tools_output</span><span class="p">(</span><span class="n">files</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">FileObj</span><span class="p">],</span> <span class="n">args</span><span class="p">:</span> <span class="n">Args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClangVersions</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute and capture all output from clang-tidy and clang-format. This aggregates</span>
 <span class="sd">    results in the :attr:`~cpp_linter.Globals.OUTPUT`.</span>
 
@@ -646,30 +670,27 @@
 <span class="sd">    :param args: A namespace of parsed args from the :doc:`CLI &lt;../cli_args&gt;`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">show_tool_version_output</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># show version output for executable used</span>
-        <span class="n">version_out</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">cmd</span><span class="p">,</span> <span class="s2">&quot;--version&quot;</span><span class="p">],</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> --version</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">indent</span><span class="p">(</span><span class="n">version_out</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">))</span>
-
     <span class="n">tidy_cmd</span><span class="p">,</span> <span class="n">format_cmd</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">tidy_filter</span><span class="p">,</span> <span class="n">format_filter</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">clang_versions</span> <span class="o">=</span> <span class="n">ClangVersions</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">style</span><span class="p">:</span>  <span class="c1"># if style is an empty value, then clang-format is skipped</span>
         <span class="n">format_cmd</span> <span class="o">=</span> <span class="n">assemble_version_exec</span><span class="p">(</span><span class="s2">&quot;clang-format&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;clang-format executable was not found&quot;</span>
-        <span class="n">show_tool_version_output</span><span class="p">(</span><span class="n">format_cmd</span><span class="p">)</span>
-        <span class="n">tidy_filter</span> <span class="o">=</span> <span class="n">TidyFileFilter</span><span class="p">(</span>
+        <span class="k">if</span> <span class="n">format_cmd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;clang-format executable was not found&quot;</span><span class="p">)</span>
+        <span class="n">clang_versions</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">_capture_tool_version</span><span class="p">(</span><span class="n">format_cmd</span><span class="p">)</span>
+        <span class="n">format_filter</span> <span class="o">=</span> <span class="n">FormatFileFilter</span><span class="p">(</span>
             <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
-            <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore_tidy</span><span class="p">,</span>
+            <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore_format</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tidy_checks</span> <span class="o">!=</span> <span class="s2">&quot;-*&quot;</span><span class="p">:</span>
         <span class="c1"># if all checks are disabled, then clang-tidy is skipped</span>
         <span class="n">tidy_cmd</span> <span class="o">=</span> <span class="n">assemble_version_exec</span><span class="p">(</span><span class="s2">&quot;clang-tidy&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;clang-tidy executable was not found&quot;</span>
-        <span class="n">show_tool_version_output</span><span class="p">(</span><span class="n">tidy_cmd</span><span class="p">)</span>
-        <span class="n">format_filter</span> <span class="o">=</span> <span class="n">FormatFileFilter</span><span class="p">(</span>
+        <span class="k">if</span> <span class="n">tidy_cmd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;clang-tidy executable was not found&quot;</span><span class="p">)</span>
+        <span class="n">clang_versions</span><span class="o">.</span><span class="n">tidy</span> <span class="o">=</span> <span class="n">_capture_tool_version</span><span class="p">(</span><span class="n">tidy_cmd</span><span class="p">)</span>
+        <span class="n">tidy_filter</span> <span class="o">=</span> <span class="n">TidyFileFilter</span><span class="p">(</span>
             <span class="n">extensions</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">extensions</span><span class="p">,</span>
-            <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore_format</span><span class="p">,</span>
+            <span class="n">ignore_value</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">ignore_tidy</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="n">db_json</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -715,7 +736,8 @@
                             <span class="n">file</span><span class="o">.</span><span class="n">format_advice</span> <span class="o">=</span> <span class="n">format_advice</span>
                         <span class="k">break</span>
                 <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to find </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"> in list of files.&quot;</span><span class="p">)</span></div>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to find </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"> in list of files.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">clang_versions</span></div>
 
 </code></pre></div>
 

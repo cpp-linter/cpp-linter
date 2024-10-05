@@ -633,10 +633,10 @@
         <span class="p">)</span>
     <span class="n">end_log_group</span><span class="p">()</span>
 
-    <span class="n">capture_clang_tools_output</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">clang_versions</span> <span class="o">=</span> <span class="n">capture_clang_tools_output</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
 
     <span class="n">start_log_group</span><span class="p">(</span><span class="s2">&quot;Posting comment(s)&quot;</span><span class="p">)</span>
-    <span class="n">rest_api_client</span><span class="o">.</span><span class="n">post_feedback</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">rest_api_client</span><span class="o">.</span><span class="n">post_feedback</span><span class="p">(</span><span class="n">files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">clang_versions</span><span class="o">=</span><span class="n">clang_versions</span><span class="p">)</span>
     <span class="n">end_log_group</span><span class="p">()</span></div>
 
 
