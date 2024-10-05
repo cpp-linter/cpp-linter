@@ -50,12 +50,17 @@ class ReviewComments:
         #: The list of actual comments
         self.suggestions: List[Suggestion] = []
 
-        self.tool_total: Dict[str, int] = {"clang-tidy": 0, "clang-format": 0}
+        self.tool_total: Dict[str, Optional[int]] = {
+            "clang-tidy": None,
+            "clang-format": None,
+        }
         """The total number of concerns about a specific clang tool.
 
         This may not equate to the length of `suggestions` because
         1. There is no guarantee that all suggestions will fit within the PR's diff.
         2. Suggestions are a combined result of advice from both tools.
+
+        A `None` value means a review was not requested from the corresponding tool.
         """
 
         self.full_patch: Dict[str, str] = {"clang-tidy": "", "clang-format": ""}
@@ -69,16 +74,25 @@ class ReviewComments:
         """
         for known in self.suggestions:
             if (
-                known.line_end == suggestion.line_end
+                known.file_name == suggestion.file_name
+                and known.line_end == suggestion.line_end
                 and known.line_start == suggestion.line_start
             ):
                 known.comment += f"\n{suggestion.comment}"
                 return True
         return False
 
-    def serialize_to_github_payload(self) -> Tuple[str, List[Dict[str, Any]]]:
+    def serialize_to_github_payload(
+        # avoid circular imports by accepting primitive types (instead of ClangVersions)
+        self,
+        tidy_version: Optional[str],
+        format_version: Optional[str],
+    ) -> Tuple[str, List[Dict[str, Any]]]:
         """Serialize this object into a summary and list of comments compatible
         with Github's REST API.
+
+        :param tidy_version: The version numbers of the clang-tidy used.
+        :param format_version: The version numbers of the clang-format used.
 
         :returns: The returned tuple contains a brief summary (at index ``0``)
             that contains markdown text describing the summary of the review
@@ -98,6 +112,12 @@ class ReviewComments:
                 posted_tool_advice["clang-tidy"] += 1
 
         for tool_name in ("clang-tidy", "clang-format"):
+            tool_version = tidy_version
+            if tool_name == "clang-format":
+                tool_version = format_version
+            if tool_version is None or self.tool_total[tool_name] is None:
+                continue  # if tool wasn't used
+            summary += f"### Used {tool_name} v{tool_version}\n\n"
             if (
                 len(comments)
                 and posted_tool_advice[tool_name] != self.tool_total[tool_name]
@@ -115,8 +135,7 @@ class ReviewComments:
                 )
             elif not self.tool_total[tool_name]:
                 summary += f"No concerns from {tool_name}.\n"
-        result = (summary, comments)
-        return result
+        return (summary, comments)
 
 
 class PatchMixin(ABC):
@@ -164,8 +183,9 @@ class PatchMixin(ABC):
         assert tool_name in review_comments.full_patch
         review_comments.full_patch[tool_name] += f"{patch.text}"
         assert tool_name in review_comments.tool_total
+        tool_total = review_comments.tool_total[tool_name] or 0
         for hunk in patch.hunks:
-            review_comments.tool_total[tool_name] += 1
+            tool_total += 1
             if summary_only:
                 continue
             new_hunk_range = file_obj.is_hunk_contained(hunk)
@@ -193,3 +213,5 @@ class PatchMixin(ABC):
             comment.comment = body
             if not review_comments.merge_similar_suggestion(comment):
                 review_comments.suggestions.append(comment)
+
+        review_comments.tool_total[tool_name] = tool_total

@@ -25,6 +25,7 @@ from ..clang_tools.clang_format import (
 )
 from ..clang_tools.clang_tidy import tally_tidy_advice
 from ..clang_tools.patcher import ReviewComments, PatchMixin
+from ..clang_tools import ClangVersions
 from ..cli import Args
 from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
@@ -187,6 +188,7 @@ class GithubApiClient(RestApiClient):
         self,
         files: List[FileObj],
         args: Args,
+        clang_versions: ClangVersions,
     ):
         format_checks_failed = tally_format_advice(files)
         tidy_checks_failed = tally_tidy_advice(files)
@@ -198,6 +200,7 @@ class GithubApiClient(RestApiClient):
                 files=files,
                 format_checks_failed=format_checks_failed,
                 tidy_checks_failed=tidy_checks_failed,
+                clang_versions=clang_versions,
                 len_limit=None,
             )
             with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
@@ -225,6 +228,7 @@ class GithubApiClient(RestApiClient):
                     files=files,
                     format_checks_failed=format_checks_failed,
                     tidy_checks_failed=tidy_checks_failed,
+                    clang_versions=clang_versions,
                     len_limit=65535,
                 )
 
@@ -253,6 +257,7 @@ class GithubApiClient(RestApiClient):
                 format_review=args.format_review,
                 no_lgtm=args.no_lgtm,
                 passive_reviews=args.passive_reviews,
+                clang_versions=clang_versions,
             )
 
     def make_annotations(
@@ -388,6 +393,7 @@ class GithubApiClient(RestApiClient):
         format_review: bool,
         no_lgtm: bool,
         passive_reviews: bool,
+        clang_versions: ClangVersions,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}"
         response = self.api_request(url=url)
@@ -419,11 +425,15 @@ class GithubApiClient(RestApiClient):
                 summary_only=summary_only,
                 review_comments=review_comments,
             )
-        (summary, comments) = review_comments.serialize_to_github_payload()
+        (summary, comments) = review_comments.serialize_to_github_payload(
+            # avoid circular imports by passing primitive types
+            tidy_version=clang_versions.tidy,
+            format_version=clang_versions.format,
+        )
         if not summary_only:
             payload_comments.extend(comments)
         body += summary
-        if sum(review_comments.tool_total.values()):
+        if sum([x for x in review_comments.tool_total.values() if isinstance(x, int)]):
             event = "REQUEST_CHANGES"
         else:
             if no_lgtm:
@@ -457,6 +467,8 @@ class GithubApiClient(RestApiClient):
         :param review_comments: An object (passed by reference) that is used to store
             the results.
         """
+        tool_name = "clang-tidy" if tidy_tool else "clang-format"
+        review_comments.tool_total[tool_name] = 0
         for file_obj in files:
             tool_advice: Optional[PatchMixin]
             if tidy_tool:

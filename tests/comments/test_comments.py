@@ -66,7 +66,7 @@ def test_post_feedback(
     args.thread_comments = thread_comments
     args.step_summary = thread_comments == "update" and not no_lgtm
     args.file_annotations = thread_comments == "update" and no_lgtm
-    capture_clang_tools_output(files, args=args)
+    clang_versions = capture_clang_tools_output(files, args=args)
     # add a non project file to tidy_advice to intentionally cover a log.debug()
     for file in files:
         if file.tidy_advice:
@@ -169,4 +169,4 @@ def test_post_feedback(
         # to get debug files saved to test workspace folders: enable logger verbosity
         caplog.set_level(logging.DEBUG, logger=logger.name)
 
-        gh_client.post_feedback(files, args)
+        gh_client.post_feedback(files, args, clang_versions)

@@ -133,12 +133,16 @@ class TidyAdvice(PatchMixin):
 
         def _has_related_suggestion(suggestion: Suggestion) -> bool:
             for known in review_comments.suggestions:
-                if known.line_end >= suggestion.line_end >= known.line_start:
+                if (
+                    known.file_name == suggestion.file_name
+                    and known.line_end >= suggestion.line_end >= known.line_start
+                ):
                     known.comment += f"\n{suggestion.comment}"
                     return True
             return False
 
         # now check for clang-tidy warnings with no fixes applied
+        assert isinstance(review_comments.tool_total["clang-tidy"], int)
         for note in self.notes:
             if not note.applied_fixes:  # if no fix was applied
                 line_numb = int(note.line)

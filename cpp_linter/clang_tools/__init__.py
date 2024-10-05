@@ -1,9 +1,9 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 from pathlib import Path
+import re
 import subprocess
-from textwrap import indent
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, cast
 import shutil
 
 from ..common_fs import FileObj
@@ -77,7 +77,31 @@ def _run_on_single_file(
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 
 
-def capture_clang_tools_output(files: List[FileObj], args: Args):
+VERSION_PATTERN = re.compile(r"version\s(\d+\.\d+\.\d+)")
+
+
+def _capture_tool_version(cmd: str) -> str:
+    """Get version number from output for executable used."""
+    version_out = subprocess.run(
+        [cmd, "--version"], capture_output=True, check=True, text=True
+    )
+    matched = VERSION_PATTERN.search(version_out.stdout)
+    if matched is None:  # pragma: no cover
+        raise RuntimeError(
+            f"Failed to get version numbers from `{cmd} --version` output"
+        )
+    ver = cast(str, matched.group(1))
+    logger.info("`%s --version`: %s", cmd, ver)
+    return ver
+
+
+class ClangVersions:
+    def __init__(self) -> None:
+        self.tidy: Optional[str] = None
+        self.format: Optional[str] = None
+
+
+def capture_clang_tools_output(files: List[FileObj], args: Args) -> ClangVersions:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
 
@@ -85,30 +109,27 @@ def capture_clang_tools_output(files: List[FileObj], args: Args):
     :param args: A namespace of parsed args from the :doc:`CLI <../cli_args>`.
     """
 
-    def show_tool_version_output(cmd: str):  # show version output for executable used
-        version_out = subprocess.run(
-            [cmd, "--version"], capture_output=True, check=True
-        )
-        logger.info("%s --version\n%s", cmd, indent(version_out.stdout.decode(), "\t"))
-
     tidy_cmd, format_cmd = (None, None)
     tidy_filter, format_filter = (None, None)
+    clang_versions = ClangVersions()
     if args.style:  # if style is an empty value, then clang-format is skipped
         format_cmd = assemble_version_exec("clang-format", args.version)
-        assert format_cmd is not None, "clang-format executable was not found"
-        show_tool_version_output(format_cmd)
-        tidy_filter = TidyFileFilter(
+        if format_cmd is None:  # pragma: no cover
+            raise FileNotFoundError("clang-format executable was not found")
+        clang_versions.format = _capture_tool_version(format_cmd)
+        format_filter = FormatFileFilter(
             extensions=args.extensions,
-            ignore_value=args.ignore_tidy,
+            ignore_value=args.ignore_format,
         )
     if args.tidy_checks != "-*":
         # if all checks are disabled, then clang-tidy is skipped
         tidy_cmd = assemble_version_exec("clang-tidy", args.version)
-        assert tidy_cmd is not None, "clang-tidy executable was not found"
-        show_tool_version_output(tidy_cmd)
-        format_filter = FormatFileFilter(
+        if tidy_cmd is None:  # pragma: no cover
+            raise FileNotFoundError("clang-tidy executable was not found")
+        clang_versions.tidy = _capture_tool_version(tidy_cmd)
+        tidy_filter = TidyFileFilter(
             extensions=args.extensions,
-            ignore_value=args.ignore_format,
+            ignore_value=args.ignore_tidy,
         )
 
     db_json: Optional[List[Dict[str, str]]] = None
@@ -155,3 +176,4 @@ def capture_clang_tools_output(files: List[FileObj], args: Args):
                         break
                 else:  # pragma: no cover
                     raise ValueError(f"Failed to find {file_name} in list of files.")
+    return clang_versions

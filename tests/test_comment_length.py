@@ -3,6 +3,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.rest_api import USER_OUTREACH
 from cpp_linter.clang_tools.clang_format import FormatAdvice, FormatReplacementLine
 from cpp_linter.common_fs import FileObj
+from cpp_linter.clang_tools import ClangVersions
 
 
 def test_comment_length_limit(tmp_path: Path):
@@ -15,11 +16,14 @@ def test_comment_length_limit(tmp_path: Path):
     dummy_advice = FormatAdvice(file_name)
     dummy_advice.replaced_lines = [FormatReplacementLine(line_numb=1)]
     file.format_advice = dummy_advice
+    clang_versions = ClangVersions()
+    clang_versions.format = "x.y.z"
     files = [file] * format_checks_failed
     thread_comment = GithubApiClient.make_comment(
         files=files,
         format_checks_failed=format_checks_failed,
         tidy_checks_failed=0,
+        clang_versions=clang_versions,
         len_limit=abs_limit,
     )
     assert len(thread_comment) < abs_limit
@@ -28,6 +32,7 @@ def test_comment_length_limit(tmp_path: Path):
         files=files,
         format_checks_failed=format_checks_failed,
         tidy_checks_failed=0,
+        clang_versions=clang_versions,
         len_limit=None,
     )
     assert len(step_summary) != len(thread_comment)

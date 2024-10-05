@@ -12,6 +12,7 @@ from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
 from ..cli import Args
 from ..loggers import logger, log_response_msg
+from ..clang_tools import ClangVersions
 
 
 USER_OUTREACH = (
@@ -168,6 +169,7 @@ class RestApiClient(ABC):
         files: List[FileObj],
         format_checks_failed: int,
         tidy_checks_failed: int,
+        clang_versions: ClangVersions,
         len_limit: Optional[int] = None,
     ) -> str:
         """Make an MarkDown comment from the given advice. Also returns a count of
@@ -176,6 +178,7 @@ class RestApiClient(ABC):
         :param files: A list of objects, each describing a file's information.
         :param format_checks_failed: The amount of clang-format checks that have failed.
         :param tidy_checks_failed: The amount of clang-tidy checks that have failed.
+        :param clang_versions: The versions of the clang tools used.
         :param len_limit: The length limit of the comment generated.
 
         :Returns: The markdown comment as a `str`
@@ -199,12 +202,14 @@ class RestApiClient(ABC):
                     files=files,
                     checks_failed=format_checks_failed,
                     len_limit=len_limit,
+                    version=clang_versions.format,
                 )
             if tidy_checks_failed:
                 comment += RestApiClient._make_tidy_comment(
                     files=files,
                     checks_failed=tidy_checks_failed,
                     len_limit=adjust_limit(limit=len_limit, text=comment),
+                    version=clang_versions.tidy,
                 )
         else:
             prefix = ":heavy_check_mark:\nNo problems need attention."
@@ -215,9 +220,12 @@ class RestApiClient(ABC):
         files: List[FileObj],
         checks_failed: int,
         len_limit: Optional[int] = None,
+        version: Optional[str] = None,
     ) -> str:
         """make a comment describing clang-format errors"""
-        comment = "\n<details><summary>clang-format reports: <strong>"
+        comment = "\n<details><summary>clang-format{} reports: <strong>".format(
+            "" if version is None else f" (v{version})"
+        )
         comment += f"{checks_failed} file(s) not formatted</strong></summary>\n\n"
         closer = "\n</details>"
         checks_failed = 0
@@ -238,9 +246,12 @@ class RestApiClient(ABC):
         files: List[FileObj],
         checks_failed: int,
         len_limit: Optional[int] = None,
+        version: Optional[str] = None,
     ) -> str:
         """make a comment describing clang-tidy errors"""
-        comment = "\n<details><summary>clang-tidy reports: <strong>"
+        comment = "\n<details><summary>clang-tidy{} reports: <strong>".format(
+            "" if version is None else f" (v{version})"
+        )
         comment += f"{checks_failed} concern(s)</strong></summary>\n\n"
         closer = "\n</details>"
         for file_obj in files:
@@ -276,11 +287,13 @@ class RestApiClient(ABC):
         self,
         files: List[FileObj],
         args: Args,
+        clang_versions: ClangVersions,
     ):
         """Post action's results using REST API.
 
         :param files: A list of objects, each describing a file's information.
         :param args: A namespace of arguments parsed from the :doc:`CLI <../cli_args>`.
+        :param clang_versions: The version of the clang tools used.
         """
         raise NotImplementedError("Must be defined in the derivative")
 
