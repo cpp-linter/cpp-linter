@@ -50,12 +50,17 @@ class ReviewComments:
         #: The list of actual comments
         self.suggestions: List[Suggestion] = []
 
-        self.tool_total: Dict[str, int] = {"clang-tidy": 0, "clang-format": 0}
+        self.tool_total: Dict[str, Optional[int]] = {
+            "clang-tidy": None,
+            "clang-format": None,
+        }
         """The total number of concerns about a specific clang tool.
 
         This may not equate to the length of `suggestions` because
         1. There is no guarantee that all suggestions will fit within the PR's diff.
         2. Suggestions are a combined result of advice from both tools.
+
+        A `None` value means a review was not requested from the corresponding tool.
         """
 
         self.full_patch: Dict[str, str] = {"clang-tidy": "", "clang-format": ""}
@@ -110,8 +115,8 @@ class ReviewComments:
             tool_version = tidy_version
             if tool_name == "clang-format":
                 tool_version = format_version
-            if tool_version is None:  # if tool wasn't used
-                continue
+            if tool_version is None or self.tool_total[tool_name] is None:
+                continue  # if tool wasn't used
             summary += f"### Used {tool_name} v{tool_version}\n\n"
             if (
                 len(comments)
@@ -130,8 +135,7 @@ class ReviewComments:
                 )
             elif not self.tool_total[tool_name]:
                 summary += f"No concerns from {tool_name}.\n"
-        result = (summary, comments)
-        return result
+        return (summary, comments)
 
 
 class PatchMixin(ABC):
@@ -179,8 +183,9 @@ class PatchMixin(ABC):
         assert tool_name in review_comments.full_patch
         review_comments.full_patch[tool_name] += f"{patch.text}"
         assert tool_name in review_comments.tool_total
+        tool_total = review_comments.tool_total[tool_name] or 0
         for hunk in patch.hunks:
-            review_comments.tool_total[tool_name] += 1
+            tool_total += 1
             if summary_only:
                 continue
             new_hunk_range = file_obj.is_hunk_contained(hunk)
@@ -208,3 +213,5 @@ class PatchMixin(ABC):
             comment.comment = body
             if not review_comments.merge_similar_suggestion(comment):
                 review_comments.suggestions.append(comment)
+
+        review_comments.tool_total[tool_name] = tool_total

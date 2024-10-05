@@ -433,7 +433,7 @@ class GithubApiClient(RestApiClient):
         if not summary_only:
             payload_comments.extend(comments)
         body += summary
-        if sum(review_comments.tool_total.values()):
+        if sum([x for x in review_comments.tool_total.values() if isinstance(x, int)]):
             event = "REQUEST_CHANGES"
         else:
             if no_lgtm:
@@ -467,6 +467,10 @@ class GithubApiClient(RestApiClient):
         :param review_comments: An object (passed by reference) that is used to store
             the results.
         """
+        if tidy_tool:
+            review_comments.tool_total["clang-tidy"] = 0
+        else:
+            review_comments.tool_total["clang-format"] = 0
         for file_obj in files:
             tool_advice: Optional[PatchMixin]
             if tidy_tool:

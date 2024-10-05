@@ -154,7 +154,7 @@ def test_post_review(
         if not tidy_review:
             args.tidy_checks = "-*"
         args.version = environ.get("CLANG_VERSION", "16")
-        args.style = "file" if format_review else ""
+        args.style = "file"
         args.extensions = extensions
         args.ignore_tidy = "*.c"
         args.ignore_format = "*.c"
@@ -175,10 +175,7 @@ def test_post_review(
                 assert tidy_advice and len(tidy_advice) <= len(files)
             else:
                 assert not tidy_advice
-            if format_review:
-                assert format_advice and len(format_advice) <= len(files)
-            else:
-                assert not format_advice
+            assert format_advice and len(format_advice) <= len(files)
 
         # simulate draft PR by changing the request response
         cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(

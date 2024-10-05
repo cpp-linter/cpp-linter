@@ -142,6 +142,7 @@ class TidyAdvice(PatchMixin):
             return False
 
         # now check for clang-tidy warnings with no fixes applied
+        assert isinstance(review_comments.tool_total["clang-tidy"], int)
         for note in self.notes:
             if not note.applied_fixes:  # if no fix was applied
                 line_numb = int(note.line)
