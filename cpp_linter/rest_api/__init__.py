@@ -40,6 +40,9 @@ class RestApiClient(ABC):
     def __init__(self, rate_limit_headers: RateLimitHeaders) -> None:
         self.session = requests.Session()
 
+        #: The brand name of the git server that provides the REST API.
+        self._name: str = "Generic"
+
         # The remain API requests allowed under the given token (if any).
         self._rate_limit_remaining = -1  # -1 means unknown
         # a counter for avoiding secondary rate limits
@@ -53,7 +56,8 @@ class RestApiClient(ABC):
         logger.error("RATE LIMIT EXCEEDED!")
         if self._rate_limit_reset is not None:
             logger.error(
-                "Gitlab REST API rate limit resets on %s",
+                "%s REST API rate limit resets on %s",
+                self._name,
                 time.strftime("%d %B %Y %H:%M +0000", self._rate_limit_reset),
             )
         sys.exit(1)

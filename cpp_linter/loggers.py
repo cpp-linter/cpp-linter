@@ -12,7 +12,7 @@ try:  # pragma: no cover
 
     logging.basicConfig(
         format="%(name)s: %(message)s",
-        handlers=[RichHandler(show_time=False)],
+        handlers=[RichHandler(show_time=False, show_path=False)],
     )
 
 except ImportError:  # pragma: no cover
