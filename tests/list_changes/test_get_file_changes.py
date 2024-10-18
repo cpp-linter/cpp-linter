@@ -16,40 +16,60 @@ TEST_DIFF = (TEST_ASSETS / "patch.diff").read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(
-    "event_name,paginated,fake_runner",
+    "event_name,paginated,fake_runner,lines_changed_only",
     [
         # push event (full diff)
         (
             "unknown",  # let coverage include logged warning about unknown event
             False,
             True,
+            1,
         ),
         # pull request event (full diff)
         (
             "pull_request",
             False,
             True,
+            1,
         ),
         # push event (paginated diff)
         (
             "push",  # let coverage include logged warning about unknown event
             True,
             True,
+            1,
         ),
         # pull request event (paginated diff)
         (
             "pull_request",
             True,
             True,
+            1,
+        ),
+        # push event (paginated diff with all lines)
+        (
+            "push",  # let coverage include logged warning about unknown event
+            True,
+            True,
+            0,
+        ),
+        # pull request event (paginated diff with all lines)
+        (
+            "pull_request",
+            True,
+            True,
+            0,
         ),
         # local dev env
-        ("", False, False),
+        ("", False, False, 1),
     ],
     ids=[
         "push",
         "pull_request",
         "push(paginated)",
         "pull_request(paginated)",
+        "push(all-lines,paginated)",
+        "pull_request(all-lines,paginated)",
         "local_dev",
     ],
 )
@@ -60,6 +80,7 @@ def test_get_changed_files(
     event_name: str,
     paginated: bool,
     fake_runner: bool,
+    lines_changed_only: int,
 ):
     """test getting a list of changed files for an event."""
     caplog.set_level(logging.DEBUG, logger=logger.name)
@@ -121,8 +142,11 @@ def test_get_changed_files(
                 )
 
         files = gh_client.get_list_of_changed_files(
-            FileFilter(extensions=["cpp", "hpp"]), lines_changed_only=1
+            FileFilter(extensions=["cpp", "hpp"]), lines_changed_only=lines_changed_only
         )
         assert files
         for file in files:
-            assert file.name in ("src/demo.cpp", "src/demo.hpp")
+            expected = ["src/demo.cpp", "src/demo.hpp"]
+            if lines_changed_only == 0:
+                expected.append("include/test/tree.hpp")
+            assert file.name in expected
