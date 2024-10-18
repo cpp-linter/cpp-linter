@@ -32,7 +32,7 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
-        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.6bf5b0c96e0d977c2.min.css?v=1a731229" />
+        <link rel="stylesheet" type="text/css" href="../../../_static/sphinx_immaterial_theme.a82c6991202dc3154.min.css?v=86d83f2c" />
         <link rel="stylesheet" type="text/css" href="../../../_static/extra_css.css?v=ad05b187" />
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -604,6 +604,8 @@
         <span class="c1"># create default headers to be used for all HTTP requests</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">make_headers</span><span class="p">())</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;GitHub&quot;</span>
+
         <span class="c1">#: The base domain for the REST API</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_url</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GITHUB_API_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;https://api.github.com&quot;</span><span class="p">)</span>
         <span class="c1">#: The ``owner``/``repository`` name.</span>
@@ -698,18 +700,37 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">file_list</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;files&quot;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">file_list</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="s2">&quot;filename&quot;</span> <span class="ow">in</span> <span class="n">file</span>
-                <span class="n">file_name</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">file_name</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;filename&quot;</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Missing &#39;filename&#39; key in file:</span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">file</span><span class="p">,</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">exc</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">file_filter</span><span class="o">.</span><span class="n">is_source_or_ignored</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
                     <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">lines_changed_only</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;changes&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>  <span class="c1"># also prevents KeyError below when patch is not provided</span>
                 <span class="n">old_name</span> <span class="o">=</span> <span class="n">file_name</span>
                 <span class="k">if</span> <span class="s2">&quot;previous_filename&quot;</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
                     <span class="n">old_name</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;previous_filename&quot;</span><span class="p">]</span>
-                <span class="k">assert</span> <span class="s2">&quot;patch&quot;</span> <span class="ow">in</span> <span class="n">file</span>
+                <span class="k">if</span> <span class="s2">&quot;patch&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">lines_changed_only</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># diff info is needed for further operations</span>
+                        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>  <span class="c1"># pragma: no cover</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2"> has no patch info:</span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">file</span><span class="p">,</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">elif</span> <span class="p">(</span>
+                        <span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;changes&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+                    <span class="p">):</span>  <span class="c1"># in case files-changed-only is true</span>
+                        <span class="c1"># file was likely renamed without source changes</span>
+                        <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FileObj</span><span class="p">(</span><span class="n">file_name</span><span class="p">))</span>  <span class="c1"># scan entire file instead</span>
+                        <span class="k">continue</span>
                 <span class="n">file_diff</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;diff --git a/</span><span class="si">{</span><span class="n">old_name</span><span class="si">}</span><span class="s2"> b/</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;--- a/</span><span class="si">{</span><span class="n">old_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">+++ b/</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="o">+</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;patch&quot;</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">parse_diff</span><span class="p">(</span><span class="n">file_diff</span><span class="p">,</span> <span class="n">file_filter</span><span class="p">,</span> <span class="n">lines_changed_only</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">files</span>
@@ -1129,7 +1150,7 @@
   
     Created using
     <a href="https://www.sphinx-doc.org/" target="_blank" rel="noopener">Sphinx</a>
-    8.0.2.
+    8.1.3.
      and
     <a href="https://github.com/jbms/sphinx-immaterial/" target="_blank" rel="noopener">Sphinx-Immaterial</a>
   
