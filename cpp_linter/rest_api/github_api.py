@@ -139,7 +139,9 @@ class GithubApiClient(RestApiClient):
                 try:
                     file_name = file["filename"]
                 except KeyError as exc:  # pragma: no cover
-                    logger.critical("file name unknown")
+                    logger.error(
+                        f"Missing 'filename' key in file:\n{json.dumps(file, indent=2)}"
+                    )
                     raise exc
                 if not file_filter.is_source_or_ignored(file_name):
                     continue
@@ -151,9 +153,9 @@ class GithubApiClient(RestApiClient):
                 if "patch" not in file:
                     if lines_changed_only > 0:
                         # diff info is needed for further operations
-                        raise KeyError(
-                            f"{file_name} has no patch info"
-                        )  # pragma: no cover
+                        raise KeyError(  # pragma: no cover
+                            f"{file_name} has no patch info:\n{json.dumps(file, indent=2)}"
+                        )
                     elif (
                         cast(int, file.get("changes", 0)) == 0
                     ):  # in case files-changed-only is true
