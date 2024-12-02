@@ -69,6 +69,10 @@ class Args(UserDict):
     ignore_format: str = ""
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
+    #: See :std:option:`--delete-comments`.
+    delete_comments: bool = True
+    #: See :std:option:`--reuse-comments`.
+    reuse_comments: bool = True
 
 
 _parser_args: Dict[Sequence[str], Any] = {}
@@ -357,6 +361,22 @@ _parser_args[("-R", "--passive-reviews")] = dict(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
+)
+_parser_args[("-C", "--delete-comments")] = dict(
+    default="true",
+    type=lambda input: input.lower() == "true",
+    help="""Set to ``true`` to delete existing outdated/unused
+review comments, ``false`` to just set them to resolved.
+
+Defaults to ``%(default)s``.""",
+)
+_parser_args[("-U", "--reuse-comments")] = dict(
+    default="true",
+    type=lambda input: input.lower() == "true",
+    help="""Set to ``true`` to reuse existing review
+comments if nothing has changed instead of making new ones.
+
+Defaults to ``%(default)s``.""",
 )
 
 
