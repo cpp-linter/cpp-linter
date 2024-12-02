@@ -280,6 +280,8 @@ class GithubApiClient(RestApiClient):
                 no_lgtm=args.no_lgtm,
                 passive_reviews=args.passive_reviews,
                 clang_versions=clang_versions,
+                delete_comments=args.delete_comments,
+                reuse_comments=args.reuse_comments,
             )
 
     def make_annotations(
