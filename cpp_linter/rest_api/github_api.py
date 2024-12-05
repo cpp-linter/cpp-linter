@@ -9,7 +9,6 @@ designed around GitHub's REST API.
     - `github rest API reference for issues <https://docs.github.com/en/rest/issues>`_
 """
 
-import copy
 import json
 import logging
 from os import environ
@@ -25,7 +24,7 @@ from ..clang_tools.clang_format import (
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import tally_tidy_advice
-from ..clang_tools.patcher import Suggestion, ReviewComments, PatchMixin
+from ..clang_tools.patcher import ReviewComments, PatchMixin
 from ..clang_tools import ClangVersions
 from ..cli import Args
 from ..loggers import logger, log_commander
