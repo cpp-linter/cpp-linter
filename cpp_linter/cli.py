@@ -362,19 +362,23 @@ _parser_args[("-R", "--passive-reviews")] = dict(
     help="""Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
 )
-_parser_args[("-C", "--delete-comments")] = dict(
+_parser_args[("-C", "--delete-review-comments")] = dict(
     default="true",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to delete existing outdated/unused
-review comments, ``false`` to just set them to resolved.
+Pull request review comments, ``false`` to just set them to resolved.
+This only effects review comments made when either
+:std:option:`--tidy-review` or :std:option:`--format-review` is enabled.
 
 Defaults to ``%(default)s``.""",
 )
-_parser_args[("-U", "--reuse-comments")] = dict(
+_parser_args[("-U", "--reuse-review-comments")] = dict(
     default="true",
     type=lambda input: input.lower() == "true",
-    help="""Set to ``true`` to reuse existing review
-comments if nothing has changed instead of making new ones.
+    help="""Set to ``true`` to reuse existing Pull request
+review comments if nothing has changed instead of making new ones.
+This only effects review comments made when either
+:std:option:`--tidy-review` or :std:option:`--format-review` is enabled.
 
 Defaults to ``%(default)s``.""",
 )
