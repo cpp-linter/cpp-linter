@@ -46,6 +46,18 @@ def _run_on_single_file(
 ) -> Tuple[str, str, Optional[TidyAdvice], Optional[FormatAdvice]]:
     log_stream = worker_log_init(log_lvl)
 
+    format_advice = None
+    if format_cmd is not None and (
+        format_filter is None or format_filter.is_source_or_ignored(file.name)
+    ):
+        format_advice = run_clang_format(
+            command=format_cmd,
+            file_obj=file,
+            style=args.style,
+            lines_changed_only=args.lines_changed_only,
+            format_review=args.format_review,
+        )
+
     tidy_note = None
     if tidy_cmd is not None and (
         tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
@@ -60,18 +72,6 @@ def _run_on_single_file(
             db_json=db_json,
             tidy_review=args.tidy_review,
             style=args.style,
-        )
-
-    format_advice = None
-    if format_cmd is not None and (
-        format_filter is None or format_filter.is_source_or_ignored(file.name)
-    ):
-        format_advice = run_clang_format(
-            command=format_cmd,
-            file_obj=file,
-            style=args.style,
-            lines_changed_only=args.lines_changed_only,
-            format_review=args.format_review,
         )
 
     return file.name, log_stream.getvalue(), tidy_note, format_advice
