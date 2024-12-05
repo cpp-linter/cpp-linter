@@ -287,7 +287,7 @@ def run_clang_tidy(
                 else:
                     break
         if not success:
-            logger.logError("Failed to write back contents of file: %s", filename)
+            logger.error("Failed to write back contents of file: %s", filename)
 
     return advice
 
