@@ -5,6 +5,7 @@ import os
 from pathlib import Path, PurePath
 import re
 import subprocess
+import time
 from typing import Tuple, Union, List, cast, Optional, Dict, Set
 from ..loggers import logger
 from ..common_fs import FileObj
@@ -246,7 +247,7 @@ def run_clang_tidy(
     if tidy_review:
         # clang-tidy overwrites the file contents when applying fixes.
         # create a cache of original contents
-        original_buf = Path(file_obj.name).read_bytes()
+        original_buf = Path(filename).read_bytes()
         cmds.append("--fix-errors")  # include compiler-suggested fixes
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
@@ -260,10 +261,33 @@ def run_clang_tidy(
     advice = parse_tidy_output(results.stdout.decode(), database=db_json)
 
     if tidy_review:
-        # store the modified output from clang-tidy
-        advice.patched = Path(file_obj.name).read_bytes()
-        # re-write original file contents
-        Path(file_obj.name).write_bytes(original_buf)
+        timeout = time.monotonic_ns() + 1000000
+        # wait 1s for file to become accessible
+        success = False
+        while time.monotonic_ns() < timeout:
+            try:
+                src = open(filename, "r+b")
+                # wait 1s for file to become readable
+                read_timeout = time.monotonic_ns() + 1000000
+                while not src.readable() and time.monotonic_ns() < read_timeout:
+                    pass
+                advice.patched = b"".join(src.readlines())
+                src.seek(os.SEEK_SET)  # back to start of file
+                # wait 1s for file to become writable
+                write_timeout = time.monotonic_ns() + 1000000
+                while not src.writable() and time.monotonic_ns() < write_timeout:
+                    pass
+                src.writelines([original_buf])
+                src.close()
+                success = True
+                break
+            except OSError:
+                if time.monotonic_ns() < timeout:
+                    pass
+                else:
+                    break
+        if not success:
+            logger.logError("Failed to write back contents of file: %s", filename)
 
     return advice
 
