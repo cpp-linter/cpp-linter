@@ -77,7 +77,7 @@ class Args(UserDict):
     command: str | None = None
     #: See :std:option:`--delete-comments`.
     delete_comments: bool = True
-    #: See :std:option:`--reuse-comments`.
+    #: See :std:option:`--reuse-review-comments`.
     reuse_comments: bool = True
 
 
@@ -391,7 +391,7 @@ _parser_args[("-R", "--passive-reviews")] = dict(
 reviews from requesting or approving changes.""",
 )
 _parser_args[("-C", "--delete-review-comments")] = dict(
-    default="true",
+    default="false",
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to delete existing outdated/unused
 Pull request review comments, ``false`` to just set them to resolved.
