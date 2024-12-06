@@ -70,7 +70,7 @@ class Args(UserDict):
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
     #: See :std:option:`--delete-review-comments`.
-    delete_comments: bool = True
+    delete_comments: bool = False
     #: See :std:option:`--reuse-review-comments`.
     reuse_comments: bool = True
 
