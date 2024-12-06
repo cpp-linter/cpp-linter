@@ -154,7 +154,7 @@ def test_post_review(
                 # resolve review
                 id_pos = request.data.find('threadId:"') + 10
                 id_end_pos = request.data.find('"', id_pos + 1)
-                id = request.data[id_pos, id_end_pos]
+                id_tag = request.data[id_pos, id_end_pos]
                 return (
                     """{
   "data": {
@@ -165,13 +165,13 @@ def test_post_review(
     }
   }
 }"""
-                    % id
+                    % id_tag
                 )
             elif request.data.find("deletePullRequestReviewComment") is not -1:
                 # delete PR or minimizeComment
                 id_pos = request.data.find('id:"') + 4
                 id_end_pos = request.data.find('"', id_pos + 1)
-                id = request.data[id_pos, id_end_pos]
+                id_tag = request.data[id_pos, id_end_pos]
                 return (
                     """{
   "data": {
@@ -182,7 +182,7 @@ def test_post_review(
     }
   }
 }"""
-                    % id
+                    % id_tag
                 )
             elif request.data.find("minimizeComment") is not -1:
                 # minimizeComment
