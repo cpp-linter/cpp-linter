@@ -37,6 +37,69 @@ RATE_LIMIT_HEADERS = RateLimitHeaders(
     retry="retry-after",
 )
 
+QUERY_REVIEW_COMMENTS = """
+query {
+    repository(owner:"%s", name:"%s") {
+        pullRequest(number: %d) {
+            id
+            reviewThreads(last: 100) {
+                nodes {
+                    id
+                    isResolved
+                    isCollapsed
+                    comments(first: 10) {
+                        nodes {
+                            id
+                            body
+                            path
+                            line
+                            startLine
+                            originalLine
+                            originalStartLine
+                            author {
+                                login
+                            }
+                            pullRequestReview {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+        
+RESOLVE_REVIEW_COMMENT = """
+mutation {
+    resolveReviewThread(input: {threadId:"%s", clientMutationId:"github-actions"}) {
+        thread {
+            id
+        }
+    }
+}
+"""
+
+DELETE_REVIEW_COMMENT = """
+mutation {
+    deletePullRequestReviewComment(input: {id:"%s", clientMutationId:"github-actions"}) {
+        pullRequestReviewComment {
+            id
+        }
+    }
+}
+"""
+
+HIDE_REVIEW_COMMENT = """
+mutation {
+    minimizeComment(input: {classifier:OUTDATED, subjectId:"%s", clientMutationId:"github-actions"}) {
+        minimizedComment {
+            isMinimized
+        }
+    }
+}
+"""
 
 class GithubApiClient(RestApiClient):
     """A class that describes the API used to interact with Github's REST API."""
@@ -599,39 +662,7 @@ class GithubApiClient(RestApiClient):
         :param no_dismissed: `True` to ignore any already dismissed comments.
         """
         repo_owner, repo_name = self.repo.split("/")
-        query = """
-        query {
-            repository(owner:"%s", name:"%s") {
-                pullRequest(number: %d) {
-                    id
-                    reviewThreads(last: 100) {
-                        nodes {
-                            id
-                            isResolved
-                            isCollapsed
-                            comments(first: 10) {
-                                nodes {
-                                    id
-                                    body
-                                    path
-                                    line
-                                    startLine
-                                    originalLine
-                                    originalStartLine
-                                    author {
-                                        login
-                                    }
-                                    pullRequestReview {
-                                        id
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        """ % (
+        query = QUERY_REVIEW_COMMENTS % (
             repo_owner,
             repo_name,
             self.pull_request,
@@ -679,25 +710,9 @@ class GithubApiClient(RestApiClient):
         :param comment_id: The comment ID of the comment within the requested thread to close (only used when ``delete``==`True`).
         :param delete: `True` to delete the review comment, `False` to set it as resolved.
         """
-        mutation = """
-        mutation {
-            resolveReviewThread(input: {threadId:"%s", clientMutationId:"github-actions"}) {
-                thread {
-                    id
-                }
-            }
-        }
-        """ % (thread_id)
+        mutation = RESOLVE_REVIEW_COMMENT % (thread_id)
         if delete:
-            mutation = """
-            mutation {
-                deletePullRequestReviewComment(input: {id:"%s", clientMutationId:"github-actions"}) {
-                    pullRequestReviewComment {
-                        id
-                    }
-                }
-            }
-            """ % (comment_id)
+            mutation = DELETE_REVIEW_COMMENT % (comment_id)
         response = self.api_request(
             url="https://api.github.com/graphql",
             method="POST",
@@ -734,15 +749,7 @@ class GithubApiClient(RestApiClient):
                     and cast(str, review["body"]).startswith(COMMENT_MARKER)
                     and review["node_id"] not in ignored_reviews
                 ):
-                    mutation = """
-                    mutation {
-                        minimizeComment(input: {classifier:OUTDATED, subjectId:"%s", clientMutationId:"github-actions"}) {
-                            minimizedComment {
-                                isMinimized
-                            }
-                        }
-                    }
-                    """ % (review["node_id"])
+                    mutation = HIDE_REVIEW_COMMENT % (review["node_id"])
                     response = self.api_request(
                         url="https://api.github.com/graphql",
                         method="POST",
