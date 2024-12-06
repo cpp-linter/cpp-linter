@@ -1,0 +1,115 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "id": "PR_kwDOFY2uzM5jZGgl",
+        "reviewThreads": {
+          "nodes": [
+            {
+              "id": "PRRT_kwDOFY2uzM42_-w5",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WD6gj",
+                    "body": "### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 13,
+                    "startLine": 4,
+                    "originalLine": 13,
+                    "originalStartLine": 4,
+                    "author": {
+                      "login": "github-actions"
+                    },
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rveb6"
+                    }
+                  },
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WEqkw",
+                    "body": "The `printf()`seems to be getting dropped in this suggestion.",
+                    "path": "src/demo.cpp",
+                    "line": 13,
+                    "startLine": 4,
+                    "originalLine": 13,
+                    "originalStartLine": 4,
+                    "author": {
+                      "login": "2bndy5"
+                    },
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwcy4"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM42_-w6",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WD6gk",
+                    "body": "### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 13,
+                    "startLine": 2,
+                    "originalLine": 13,
+                    "originalStartLine": 2,
+                    "author": {
+                      "login": "github-actions"
+                    },
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rveb6"
+                    }
+                  },
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WEqlw",
+                    "body": "Again, the `printf()` call is getting dropped in this suggestion.",
+                    "path": "src/demo.cpp",
+                    "line": 13,
+                    "startLine": 2,
+                    "originalLine": 13,
+                    "originalStartLine": 2,
+                    "author": {
+                      "login": "2bndy5"
+                    },
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwc0g"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM42_-w7",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WD6gm",
+                    "body": "### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 13,
+                    "startLine": 10,
+                    "originalLine": 13,
+                    "originalStartLine": 10,
+                    "author": {
+                      "login": "github-actions"
+                    },
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rveb6"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
