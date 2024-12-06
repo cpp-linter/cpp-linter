@@ -418,7 +418,7 @@ class GithubApiClient(RestApiClient):
         passive_reviews: bool,
         clang_versions: ClangVersions,
         delete_comments: bool = True,
-        reuse_comments: bool = True
+        reuse_comments: bool = True,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}"
         response = self.api_request(url=url)
@@ -453,7 +453,8 @@ class GithubApiClient(RestApiClient):
         ignored_reviews = []
         if not summary_only:
             found_threads = self._get_existing_review_comments(
-                no_dismissed=reuse_comments and not delete_comments)
+                no_dismissed=reuse_comments and not delete_comments
+            )
             if found_threads:
                 if reuse_comments:
                     # Keep already posted comments if they match new ones
@@ -471,17 +472,31 @@ class GithubApiClient(RestApiClient):
                                 )
                                 line_end = comment.get("line", line_end)
                             for suggestion in review_comments_suggestions:
-                                if (suggestion.file_name == comment["path"] and suggestion.line_start == line_start and suggestion.line_end == line_end and suggestion.comment == comment["body"] and suggestion not in existing_review_comments and thread["isResolved"] is False and thread["isCollapsed"] is False):
+                                if (
+                                    suggestion.file_name == comment["path"]
+                                    and suggestion.line_start == line_start
+                                    and suggestion.line_end == line_end
+                                    and suggestion.comment == comment["body"]
+                                    and suggestion not in existing_review_comments
+                                    and thread["isResolved"] is False
+                                    and thread["isCollapsed"] is False
+                                ):
                                     found = True
                                     logger.info(
-                                        "Using existing review comment: path='%s', line_start='%s', line_end='%s'", comment["path"], line_start, line_end)
+                                        "Using existing review comment: path='%s', line_start='%s', line_end='%s'",
+                                        comment["path"],
+                                        line_start,
+                                        line_end,
+                                    )
                                     ignored_reviews.append(
-                                        comment["pullRequestReview"]["id"])
+                                        comment["pullRequestReview"]["id"]
+                                    )
                                     existing_review_comments.append(suggestion)
                                     break
-                            if (not found):
+                            if not found:
                                 self._close_review_comment(
-                                    thread["id"], comment["id"], delete_comments)
+                                    thread["id"], comment["id"], delete_comments
+                                )
                     for suggestion in review_comments_suggestions:
                         if suggestion not in existing_review_comments:
                             review_comments.suggestions.append(suggestion)
@@ -490,7 +505,8 @@ class GithubApiClient(RestApiClient):
                     for thread in found_threads:
                         for comment in thread["comments"]["nodes"]:
                             self._close_review_comment(
-                                thread["id"], comment["id"], delete_comments)
+                                thread["id"], comment["id"], delete_comments
+                            )
         self._hide_stale_reviews(ignored_reviews=ignored_reviews)
         if len(review_comments.suggestions) == 0 and len(ignored_reviews) > 0:
             logger.info("Using previous review as nothing new was found")
@@ -623,14 +639,13 @@ class GithubApiClient(RestApiClient):
         response = self.api_request(
             url=f"{self.api_url}/graphql",
             method="POST",
-            data=json.dumps(
-                {"query": query}
-            ),
-            strict=False
+            data=json.dumps({"query": query}),
+            strict=False,
         )
         if response.status_code != 200:
             logger.error(
-                "Could not get existing review comments: %d", response.status_code)
+                "Could not get existing review comments: %d", response.status_code
+            )
             return
         data = response.json()
         found_threads = []
@@ -638,15 +653,26 @@ class GithubApiClient(RestApiClient):
             for comment in thread["comments"]["nodes"]:
                 if (
                     comment["id"]
-                    and (not no_dismissed or (thread["isResolved"] is False and thread["isCollapsed"] is False))
+                    and (
+                        not no_dismissed
+                        or (
+                            thread["isResolved"] is False
+                            and thread["isCollapsed"] is False
+                        )
+                    )
                     and comment["author"]["login"] == "github-actions"
-                    and (comment["body"].strip().startswith("### clang-format") or comment["body"].strip().startswith("### clang-tidy"))
+                    and (
+                        comment["body"].strip().startswith("### clang-format")
+                        or comment["body"].strip().startswith("### clang-tidy")
+                    )
                 ):
                     found_threads.append(thread)
                     break
         return found_threads
 
-    def _close_review_comment(self, thread_id: str, comment_id: str, delete: bool = True):
+    def _close_review_comment(
+        self, thread_id: str, comment_id: str, delete: bool = True
+    ):
         """Resolve or Delete an existing review comment.
 
         :param thread_id: Thread ID for the conversation to close (only used when ``delete``==`False`).
@@ -661,9 +687,7 @@ class GithubApiClient(RestApiClient):
                 }
             }
         }
-        """ % (
-            thread_id
-        )
+        """ % (thread_id)
         if delete:
             mutation = """
             mutation {
@@ -673,25 +697,21 @@ class GithubApiClient(RestApiClient):
                     }
                 }
             }
-            """ % (
-                comment_id
-            )
+            """ % (comment_id)
         response = self.api_request(
             url="https://api.github.com/graphql",
             method="POST",
-            data=json.dumps(
-                {"query": mutation}
-            ),
-            strict=False
+            data=json.dumps({"query": mutation}),
+            strict=False,
         )
         if response.status_code != 200:
-            logger.error("Failed to close review comment: %d",
-                         response.status_code)
+            logger.error("Failed to close review comment: %d", response.status_code)
         elif "errors" in response.json():
             error_msg = response.json()["errors"][0]["message"]
             if "Resource not accessible by integration" in error_msg:
                 logger.error(
-                    "Closing review comments requires `contents: write` permission.")
+                    "Closing review comments requires `contents: write` permission."
+                )
             else:
                 logger.error("Closing review comment failed: %s", error_msg)
         else:
@@ -722,28 +742,24 @@ class GithubApiClient(RestApiClient):
                             }
                         }
                     }
-                    """ % (
-                        review["node_id"]
-                    )
+                    """ % (review["node_id"])
                     response = self.api_request(
                         url="https://api.github.com/graphql",
                         method="POST",
-                        data=json.dumps(
-                            {"query": mutation}
-                        ),
-                        strict=False
+                        data=json.dumps({"query": mutation}),
+                        strict=False,
                     )
                     if response.status_code != 200:
                         logger.error(
-                            "Failed to hide review comment: %d", response.status_code)
+                            "Failed to hide review comment: %d", response.status_code
+                        )
                     elif "errors" in response.json():
                         error_msg = response.json()["errors"][0]["message"]
                         if "Resource not accessible by integration" in error_msg:
                             logger.error(
-                                "Hiding review comments requires `contents: write` permission.")
+                                "Hiding review comments requires `contents: write` permission."
+                            )
                         else:
-                            logger.error(
-                                "Hiding review comment failed: %s", error_msg)
+                            logger.error("Hiding review comment failed: %s", error_msg)
                     else:
-                        logger.debug(
-                            "Review comment minimized: %s", review["node_id"])
+                        logger.debug("Review comment minimized: %s", review["node_id"])
