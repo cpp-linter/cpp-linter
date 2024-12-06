@@ -531,10 +531,8 @@ class GithubApiClient(RestApiClient):
                             assert (
                                 "originalLine" in comment
                             ), "GraphQL response malformed"
-                            line_end = comment.get("line", comment["originalLine"])
-                            line_start = comment.get(
-                                "startLine", comment.get("originalStartLine", -1)
-                            )
+                            line_start = comment.get("startLine", None) or comment.get("originalStartLine", None) or -1
+                            line_end = comment.get("line", None) or comment["originalLine"]
                             for suggestion in review_comments_suggestions:
                                 if (
                                     suggestion.file_name == comment["path"]
