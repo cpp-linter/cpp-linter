@@ -101,6 +101,7 @@ mutation {
 }
 """
 
+
 class GithubApiClient(RestApiClient):
     """A class that describes the API used to interact with Github's REST API."""
 
@@ -527,13 +528,13 @@ class GithubApiClient(RestApiClient):
                     for thread in found_threads:
                         for comment in thread["comments"]["nodes"]:
                             found = False
-                            line_start = comment.get("originalStartLine", -1)
-                            line_end = comment["originalLine"]
-                            if comment["startLine"] is not None:
-                                line_start = comment.get(
-                                    "startLine", comment.get("line", line_start)
-                                )
-                                line_end = comment.get("line", line_end)
+                            assert (
+                                "originalLine" in comment
+                            ), "GraphQL response malformed"
+                            line_end = comment.get("line", comment["originalLine"])
+                            line_start = comment.get(
+                                "startLine", comment.get("originalStartLine", -1)
+                            )
                             for suggestion in review_comments_suggestions:
                                 if (
                                     suggestion.file_name == comment["path"]
@@ -680,7 +681,8 @@ class GithubApiClient(RestApiClient):
             return
         data = response.json()
         found_threads = []
-        for thread in data["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]:
+        nodes = data["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
+        for thread in nodes:
             for comment in thread["comments"]["nodes"]:
                 if (
                     comment["id"]
