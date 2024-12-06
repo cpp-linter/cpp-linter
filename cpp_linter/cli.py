@@ -75,10 +75,10 @@ class Args(UserDict):
     passive_reviews: bool = False
     #: A subcommand if provided
     command: str | None = None
-    #: See :std:option:`--delete-comments`.
-    delete_comments: bool = True
+    #: See :std:option:`--delete-review-comments`.
+    delete_review_comments: bool = False
     #: See :std:option:`--reuse-review-comments`.
-    reuse_comments: bool = True
+    reuse_review_comments: bool = True
 
 
 _parser_args: dict[Sequence[str], Any] = {}
