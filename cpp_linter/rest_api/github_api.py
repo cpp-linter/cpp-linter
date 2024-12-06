@@ -70,7 +70,7 @@ query {
     }
 }
 """
-        
+
 RESOLVE_REVIEW_COMMENT = """
 mutation {
     resolveReviewThread(input: {threadId:"%s", clientMutationId:"github-actions"}) {
@@ -722,7 +722,7 @@ class GithubApiClient(RestApiClient):
         if delete:
             mutation = DELETE_REVIEW_COMMENT % (comment_id)
         response = self.api_request(
-            url="https://api.github.com/graphql",
+            url=f"{self.api_url}/graphql",
             method="POST",
             data=json.dumps({"query": mutation}),
             strict=False,
@@ -759,7 +759,7 @@ class GithubApiClient(RestApiClient):
                 ):
                     mutation = HIDE_REVIEW_COMMENT % (review["node_id"])
                     response = self.api_request(
-                        url="https://api.github.com/graphql",
+                        url=f"{self.api_url}/graphql",
                         method="POST",
                         data=json.dumps({"query": mutation}),
                         strict=False,
