@@ -656,7 +656,7 @@ class GithubApiClient(RestApiClient):
                     )
 
     def _get_existing_review_comments(self, no_dismissed: bool = True):
-        """Creates the list existing conversation threads to close.
+        """Creates the list existing review thread comments to close.
 
         :param no_dismissed: `True` to ignore any already dismissed comments.
         """
@@ -674,7 +674,7 @@ class GithubApiClient(RestApiClient):
         )
         if response.status_code != 200:
             logger.error(
-                "Could not get existing review comments: %d", response.status_code
+                "Could not get existing review thread comments: %d", response.status_code
             )
             return
         data = response.json()
@@ -704,15 +704,17 @@ class GithubApiClient(RestApiClient):
     def _close_review_comment(
         self, thread_id: str, comment_id: str, delete: bool = True
     ):
-        """Resolve or Delete an existing review comment.
+        """Resolve or Delete an existing review thread comment.
 
         :param thread_id: Thread ID for the conversation to close (only used when ``delete``==`False`).
         :param comment_id: The comment ID of the comment within the requested thread to close (only used when ``delete``==`True`).
         :param delete: `True` to delete the review comment, `False` to set it as resolved.
         """
         mutation = RESOLVE_REVIEW_COMMENT % (thread_id)
+        operation = "resolve"
         if delete:
             mutation = DELETE_REVIEW_COMMENT % (comment_id)
+            operation = "delete"
         response = self.api_request(
             url=f"{self.api_url}/graphql",
             method="POST",
@@ -720,17 +722,17 @@ class GithubApiClient(RestApiClient):
             strict=False,
         )
         if response.status_code != 200:
-            logger.error("Failed to close review comment: %d", response.status_code)
+            logger.error("Failed to %s review thread comment: %d", operation, response.status_code)
         elif "errors" in response.json():
             error_msg = response.json()["errors"][0]["message"]
             if "Resource not accessible by integration" in error_msg:
                 logger.error(
-                    "Closing review comments requires `contents: write` permission."
+                    "Changing review thread comments requires `contents: write` permission."
                 )
             else:
-                logger.error("Closing review comment failed: %s", error_msg)
+                logger.error("Failed to %s review thread comment: %s", operation, error_msg)
         else:
-            logger.debug("Review comment closed: %s", thread_id)
+            logger.debug("Review comment thread %sd: %s", operation, thread_id)
 
     def _hide_stale_reviews(self, ignored_reviews: List[str]):
         """Hide all review comments that were previously created by cpp-linter
