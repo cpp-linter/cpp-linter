@@ -620,7 +620,7 @@ class GithubApiClient(RestApiClient):
             self.pull_request,
         )
         response = self.api_request(
-            url="https://api.github.com/graphql",
+            url=f"{self.api_url}/graphql",
             method="POST",
             data=json.dumps(
                 {"query": query}
