@@ -463,12 +463,13 @@ class GithubApiClient(RestApiClient):
                     for thread in found_threads:
                         for comment in thread["comments"]["nodes"]:
                             found = False
-                            line_start = comment["originalStartLine"] if comment["originalStartLine"] is not None else -1
+                            line_start = comment.get("originalStartLine", -1)
                             line_end = comment["originalLine"]
                             if comment["startLine"] is not None:
-                                line_start = comment["startLine"] if comment["startLine"] is not None else (
-                                    comment["line"] if comment["line"] is not None else line_start)
-                                line_end = comment["line"] if comment["line"] is not None else line_end
+                                line_start = comment.get(
+                                    "startLine", comment.get("line", line_start)
+                                )
+                                line_end = comment.get("line", line_end)
                             for suggestion in review_comments_suggestions:
                                 if (suggestion.file_name == comment["path"] and suggestion.line_start == line_start and suggestion.line_end == line_end and suggestion.comment == comment["body"] and suggestion not in existing_review_comments and thread["isResolved"] is False and thread["isCollapsed"] is False):
                                     found = True
