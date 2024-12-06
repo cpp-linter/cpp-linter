@@ -342,8 +342,8 @@ class GithubApiClient(RestApiClient):
                 no_lgtm=args.no_lgtm,
                 passive_reviews=args.passive_reviews,
                 clang_versions=clang_versions,
-                delete_comments=args.delete_comments,
-                reuse_comments=args.reuse_comments,
+                delete_review_comments=args.delete_review_comments,
+                reuse_review_comments=args.reuse_review_comments,
             )
 
     def make_annotations(
@@ -480,8 +480,8 @@ class GithubApiClient(RestApiClient):
         no_lgtm: bool,
         passive_reviews: bool,
         clang_versions: ClangVersions,
-        delete_comments: bool = True,
-        reuse_comments: bool = True,
+        delete_review_comments: bool = True,
+        reuse_review_comments: bool = True,
     ):
         url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}"
         response = self.api_request(url=url)
@@ -516,10 +516,10 @@ class GithubApiClient(RestApiClient):
         ignored_reviews = []
         if not summary_only:
             found_threads = self._get_existing_review_comments(
-                no_dismissed=reuse_comments and not delete_comments
+                no_dismissed=reuse_review_comments and not delete_review_comments
             )
             if found_threads:
-                if reuse_comments:
+                if reuse_review_comments:
                     # Keep already posted comments if they match new ones
                     review_comments_suggestions = review_comments.suggestions
                     review_comments.suggestions = []
@@ -558,7 +558,7 @@ class GithubApiClient(RestApiClient):
                                     break
                             if not found:
                                 self._close_review_comment(
-                                    thread["id"], comment["id"], delete_comments
+                                    thread["id"], comment["id"], delete_review_comments
                                 )
                     for suggestion in review_comments_suggestions:
                         if suggestion not in existing_review_comments:
@@ -568,7 +568,7 @@ class GithubApiClient(RestApiClient):
                     for thread in found_threads:
                         for comment in thread["comments"]["nodes"]:
                             self._close_review_comment(
-                                thread["id"], comment["id"], delete_comments
+                                thread["id"], comment["id"], delete_review_comments
                             )
         self._hide_stale_reviews(ignored_reviews=ignored_reviews)
         if len(review_comments.suggestions) == 0 and len(ignored_reviews) > 0:
