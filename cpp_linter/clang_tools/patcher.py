@@ -37,7 +37,13 @@ class Suggestion:
     def serialize_to_github_payload(self) -> Dict[str, Any]:
         """Serialize this object into a JSON compatible with Github's REST API."""
         assert self.line_end > 0, "ending line number unknown"
-        result = {"path": self.file_name, "body": self.comment, "line": self.line_end}
+        from ..rest_api import COMMENT_MARKER  # workaround circular import
+
+        result = {
+            "path": self.file_name,
+            "body": f"{COMMENT_MARKER}{self.comment}",
+            "line": self.line_end,
+        }
         if self.line_start != self.line_end and self.line_start > 0:
             result["start_line"] = self.line_start
         return result
