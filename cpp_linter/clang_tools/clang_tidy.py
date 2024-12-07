@@ -262,6 +262,43 @@ def run_clang_tidy(
 
     if tidy_review:
         timeout = time.monotonic_ns() + 1000000
+        exception = None
+        success = False
+        while not success and time.monotonic_ns() < timeout:
+            try:
+                with open(filename, "r+b") as src:
+                    # wait 1s for file to become readable
+                    read_timeout = time.monotonic_ns() + 1000000
+                    while not src.readable() and time.monotonic_ns() < read_timeout:
+                        pass  # pragma: no cover
+                    if src.readable():
+                        advice.patched = b"".join(src.readlines())
+                        src.seek(os.SEEK_SET)  # back to start of file
+                    else:  # pragma: no cover
+                        continue  # we need those changes before overwriting them
+
+                    # wait 1s for file to become writable
+                    write_timeout = time.monotonic_ns() + 1000000
+                    while not src.writable() and time.monotonic_ns() < write_timeout:
+                        pass  # pragma: no cover
+                    if src.writable():
+                        src.writelines([original_buf])
+                        success = True
+                break
+
+            except OSError as exc:  # pragma: no cover
+                exception = exc
+        if not success:  # pragma: no cover
+            logger.error(
+                "Failed to write back contents of file: %s.%s)",
+                filename,
+                " timeout."
+                if not exception
+                else " {}: {}".format(
+                    exception.__class__.__name__, ", ".join(exception.args)
+                ),
+            )
+
         # wait 1s for file to become accessible
         success = False
         while time.monotonic_ns() < timeout:
