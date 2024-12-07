@@ -145,12 +145,12 @@ def test_post_review(
 
         def graphql_callback(request, context):
             context.status_code = 200
-            if request.data.find("query") is not -1:
+            if request.data.startswith("query"):
                 # get existing review comments
                 return (cache_path / "pr_reviews_graphql.json").read_text(
                     encoding="utf-8"
                 )
-            elif request.data.find("resolveReviewThread") is not -1:
+            elif "resolveReviewThread" in request.data:
                 # resolve review
                 id_pos = request.data.find('threadId:"') + 10
                 id_end_pos = request.data.find('"', id_pos + 1)
@@ -167,7 +167,7 @@ def test_post_review(
 }"""
                     % id_tag
                 )
-            elif request.data.find("deletePullRequestReviewComment") is not -1:
+            elif "deletePullRequestReviewComment" in request.data:
                 # delete PR or minimizeComment
                 id_pos = request.data.find('id:"') + 4
                 id_end_pos = request.data.find('"', id_pos + 1)
@@ -184,7 +184,7 @@ def test_post_review(
 }"""
                     % id_tag
                 )
-            elif request.data.find("minimizeComment") is not -1:
+            elif "minimizeComment" in request.data:
                 # minimizeComment
                 return """{
   "data": {
