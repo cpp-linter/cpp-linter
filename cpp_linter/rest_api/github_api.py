@@ -38,16 +38,16 @@ RATE_LIMIT_HEADERS = RateLimitHeaders(
 )
 
 QUERY_REVIEW_COMMENTS = """
-query {
-    repository(owner:"%s", name:"%s") {
-        pullRequest(number: %d) {
+ query($owner: String!, $name: String!, $number: Int!) {
+     repository(owner: $owner, name: $name) {
+         pullRequest(number: $number) {
             id
             reviewThreads(last: 100) {
                 nodes {
                     id
                     isResolved
                     isCollapsed
-                    comments(first: 10) {
+                    comments(first: 100) {
                         nodes {
                             id
                             body
@@ -61,6 +61,7 @@ query {
                             }
                             pullRequestReview {
                                 id
+                                isMinimized
                             }
                         }
                     }
@@ -72,8 +73,8 @@ query {
 """
 
 RESOLVE_REVIEW_COMMENT = """
-mutation {
-    resolveReviewThread(input: {threadId:"%s", clientMutationId:"github-actions"}) {
+mutation($threadId: ID!) {
+    resolveReviewThread(input: {threadId: $threadId, clientMutationId: "github-actions"}) {
         thread {
             id
         }
@@ -82,8 +83,8 @@ mutation {
 """
 
 DELETE_REVIEW_COMMENT = """
-mutation {
-    deletePullRequestReviewComment(input: {id:"%s", clientMutationId:"github-actions"}) {
+mutation($id: ID!) {
+    deletePullRequestReviewComment(input: {id: $id, clientMutationId: "github-actions"}) {
         pullRequestReviewComment {
             id
         }
@@ -92,8 +93,8 @@ mutation {
 """
 
 HIDE_REVIEW_COMMENT = """
-mutation {
-    minimizeComment(input: {classifier:OUTDATED, subjectId:"%s", clientMutationId:"github-actions"}) {
+mutation($subjectId: ID!) {
+    minimizeComment(input: {classifier:OUTDATED, subjectId: $subjectId, clientMutationId: "github-actions"}) {
         minimizedComment {
             isMinimized
         }
@@ -529,7 +530,7 @@ class GithubApiClient(RestApiClient):
                         for comment in thread["comments"]["nodes"]:
                             found = False
                             if "originalLine" not in comment:
-                                raise KeyError(
+                                raise ValueError(
                                     "GraphQL response malformed: 'originalLine' missing in comment"
                                 )
                             line_start = (
@@ -545,10 +546,11 @@ class GithubApiClient(RestApiClient):
                                     suggestion.file_name == comment["path"]
                                     and suggestion.line_start == line_start
                                     and suggestion.line_end == line_end
-                                    and suggestion.comment == comment["body"]
+                                    and f"{COMMENT_MARKER}{suggestion.comment}" == comment["body"]
                                     and suggestion not in existing_review_comments
                                     and thread["isResolved"] is False
                                     and thread["isCollapsed"] is False
+                                    and comment["pullRequestReview"]["isMinimized"] is False
                                 ):
                                     found = True
                                     logger.info(
@@ -668,15 +670,16 @@ class GithubApiClient(RestApiClient):
         :param no_dismissed: `True` to ignore any already dismissed comments.
         """
         repo_owner, repo_name = self.repo.split("/")
-        query = QUERY_REVIEW_COMMENTS % (
-            repo_owner,
-            repo_name,
-            self.pull_request,
-        )
+        query = QUERY_REVIEW_COMMENTS
+        variables = {
+            "owner": repo_owner,
+            "name": repo_name,
+            "number": self.pull_request,
+        }
         response = self.api_request(
             url=f"{self.api_url}/graphql",
             method="POST",
-            data=json.dumps({"query": query}),
+            data=json.dumps({"query": query, "variables": variables}),
             strict=False,
         )
         if response.status_code != 200:
@@ -714,15 +717,21 @@ class GithubApiClient(RestApiClient):
         :param comment_id: The comment ID of the comment within the requested thread to close (only used when ``delete``==`True`).
         :param delete: `True` to delete the review comment, `False` to set it as resolved.
         """
-        mutation = RESOLVE_REVIEW_COMMENT % (thread_id)
+        mutation = RESOLVE_REVIEW_COMMENT
+        variables = {
+            "threadId": thread_id,
+        }
         operation = "resolve"
         if delete:
-            mutation = DELETE_REVIEW_COMMENT % (comment_id)
+            mutation = DELETE_REVIEW_COMMENT
+            variables = {
+                "id": comment_id,
+            }
             operation = "delete"
         response = self.api_request(
             url=f"{self.api_url}/graphql",
             method="POST",
-            data=json.dumps({"query": mutation}),
+            data=json.dumps({"query": mutation, "variables": variables}),
             strict=False,
         )
         if response.status_code != 200:
@@ -761,11 +770,14 @@ class GithubApiClient(RestApiClient):
                     and cast(str, review["body"]).startswith(COMMENT_MARKER)
                     and review["node_id"] not in ignored_reviews
                 ):
-                    mutation = HIDE_REVIEW_COMMENT % (review["node_id"])
+                    mutation = HIDE_REVIEW_COMMENT
+                    variables = {
+                        "subjectId": review["node_id"],
+                    }
                     response = self.api_request(
                         url=f"{self.api_url}/graphql",
                         method="POST",
-                        data=json.dumps({"query": mutation}),
+                        data=json.dumps({"query": mutation, "variables": variables}),
                         strict=False,
                     )
                     if response.status_code != 200:
