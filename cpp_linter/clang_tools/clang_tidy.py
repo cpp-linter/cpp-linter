@@ -270,23 +270,23 @@ def run_clang_tidy(
                 # wait 1s for file to become readable
                 read_timeout = time.monotonic_ns() + 1000000
                 while not src.readable() and time.monotonic_ns() < read_timeout:
-                    pass
+                    pass  # pragma: no cover
                 advice.patched = b"".join(src.readlines())
                 src.seek(os.SEEK_SET)  # back to start of file
                 # wait 1s for file to become writable
                 write_timeout = time.monotonic_ns() + 1000000
                 while not src.writable() and time.monotonic_ns() < write_timeout:
-                    pass
+                    pass  # pragma: no cover
                 src.writelines([original_buf])
                 src.close()
                 success = True
                 break
-            except OSError:
+            except OSError:  # pragma: no cover
                 if time.monotonic_ns() < timeout:
                     pass
                 else:
                     break
-        if not success:
+        if not success:  # pragma: no cover
             logger.error("Failed to write back contents of file: %s", filename)
 
     return advice
