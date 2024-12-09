@@ -528,9 +528,8 @@ class GithubApiClient(RestApiClient):
                     for thread in found_threads:
                         for comment in thread["comments"]["nodes"]:
                             found = False
-                            assert (
-                                "originalLine" in comment
-                            ), "GraphQL response malformed"
+                            if "originalLine" not in comment:
+                                raise KeyError("GraphQL response malformed: 'originalLine' missing in comment")
                             line_start = comment.get("startLine", None) or comment.get("originalStartLine", None) or -1
                             line_end = comment.get("line", None) or comment["originalLine"]
                             for suggestion in review_comments_suggestions:
@@ -691,11 +690,7 @@ class GithubApiClient(RestApiClient):
                             and thread["isCollapsed"] is False
                         )
                     )
-                    and comment["author"]["login"] == "github-actions"
-                    and (
-                        comment["body"].strip().startswith("### clang-format")
-                        or comment["body"].strip().startswith("### clang-tidy")
-                    )
+                    and comment["body"].startswith(COMMENT_MARKER)
                 ):
                     found_threads.append(thread)
                     break
