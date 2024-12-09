@@ -529,9 +529,17 @@ class GithubApiClient(RestApiClient):
                         for comment in thread["comments"]["nodes"]:
                             found = False
                             if "originalLine" not in comment:
-                                raise KeyError("GraphQL response malformed: 'originalLine' missing in comment")
-                            line_start = comment.get("startLine", None) or comment.get("originalStartLine", None) or -1
-                            line_end = comment.get("line", None) or comment["originalLine"]
+                                raise KeyError(
+                                    "GraphQL response malformed: 'originalLine' missing in comment"
+                                )
+                            line_start = (
+                                comment.get("startLine", None)
+                                or comment.get("originalStartLine", None)
+                                or -1
+                            )
+                            line_end = (
+                                comment.get("line", None) or comment["originalLine"]
+                            )
                             for suggestion in review_comments_suggestions:
                                 if (
                                     suggestion.file_name == comment["path"]
@@ -673,7 +681,8 @@ class GithubApiClient(RestApiClient):
         )
         if response.status_code != 200:
             logger.error(
-                "Could not get existing review thread comments: %d", response.status_code
+                "Could not get existing review thread comments: %d",
+                response.status_code,
             )
             return
         data = response.json()
@@ -717,7 +726,11 @@ class GithubApiClient(RestApiClient):
             strict=False,
         )
         if response.status_code != 200:
-            logger.error("Failed to %s review thread comment: %d", operation, response.status_code)
+            logger.error(
+                "Failed to %s review thread comment: %d",
+                operation,
+                response.status_code,
+            )
         elif "errors" in response.json():
             error_msg = response.json()["errors"][0]["message"]
             if "Resource not accessible by integration" in error_msg:
@@ -725,7 +738,9 @@ class GithubApiClient(RestApiClient):
                     "Changing review thread comments requires `contents: write` permission."
                 )
             else:
-                logger.error("Failed to %s review thread comment: %s", operation, error_msg)
+                logger.error(
+                    "Failed to %s review thread comment: %s", operation, error_msg
+                )
         else:
             logger.debug("Review comment thread %sd: %s", operation, thread_id)
 
