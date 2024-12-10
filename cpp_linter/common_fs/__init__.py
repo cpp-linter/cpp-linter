@@ -243,8 +243,6 @@ class FileObj:
 class FileIOTimeout(Exception):
     """An exception thrown when a file operation timed out."""
 
-    pass
-
 
 def has_line_changes(
     lines_changed_only: int, diff_chunks: List[List[int]], additions: List[int]
