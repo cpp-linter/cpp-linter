@@ -56,9 +56,6 @@ QUERY_REVIEW_COMMENTS = """
                             startLine
                             originalLine
                             originalStartLine
-                            author {
-                                login
-                            }
                             pullRequestReview {
                                 id
                                 isMinimized
