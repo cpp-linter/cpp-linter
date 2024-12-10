@@ -173,8 +173,8 @@ class FileObj:
         contents = b""
         success = False
         exception: Union[OSError, FileIOTimeout] = FileIOTimeout(
-            "Failed to read from file within %d seconds"
-            % round(timeout_ns / 1_000_000_000, 2)
+            f"Failed to read from file '{self.name}' within "
+            + f"{round(timeout_ns / 1_000_000_000, 2)} seconds"
         )
         timeout = time.monotonic_ns() + timeout_ns
         while not success and time.monotonic_ns() < timeout:
@@ -185,7 +185,7 @@ class FileObj:
                             contents = f.read()
                             success = True
                         else:  # pragma: no cover
-                            time.sleep(0.001)
+                            time.sleep(0.001)  # Sleep to prevent busy-waiting
             except OSError as exc:  # pragma: no cover
                 exception = exc
         if not success and exception:  # pragma: no cover
@@ -211,8 +211,8 @@ class FileObj:
         """
         success = False
         exception: Union[OSError, FileIOTimeout] = FileIOTimeout(
-            "Failed to read then write to file within %d seconds"
-            % round(timeout_ns / 1_000_000_000, 2)
+            f"Failed to read then write file '{self.name}' within "
+            + f"{round(timeout_ns / 1_000_000_000, 2)} seconds"
         )
         original_data = b""
         timeout = time.monotonic_ns() + timeout_ns
@@ -224,7 +224,7 @@ class FileObj:
                             original_data = f.read()
                             f.seek(0)
                         else:  # pragma: no cover
-                            time.sleep(0.001)
+                            time.sleep(0.001)  # Sleep to prevent busy-waiting
                             continue
                         while not success and time.monotonic_ns() < timeout:
                             if f.writable():
@@ -232,7 +232,7 @@ class FileObj:
                                 f.truncate()
                                 success = True
                             else:  # pragma: no cover
-                                time.sleep(0.001)
+                                time.sleep(0.001)  # Sleep to prevent busy-waiting
             except OSError as exc:  # pragma: no cover
                 exception = exc
         if not success and exception:  # pragma: no cover
@@ -268,7 +268,7 @@ def has_line_changes(
 def get_line_cnt_from_cols(data: bytes, offset: int) -> Tuple[int, int]:
     """Gets a line count and columns offset from a file's absolute offset.
 
-    :param data: Path to file.
+    :param data: Bytes content to analyze.
     :param offset: The byte offset to translate
 
     :returns:
