@@ -6,7 +6,7 @@ import subprocess
 from typing import Optional, List, Dict, Tuple, cast
 import shutil
 
-from ..common_fs import FileObj
+from ..common_fs import FileObj, FileIOTimeout
 from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
 from ..loggers import start_log_group, end_log_group, worker_log_init, logger
 from .clang_tidy import run_clang_tidy, TidyAdvice
@@ -45,34 +45,52 @@ def _run_on_single_file(
     args: Args,
 ) -> Tuple[str, str, Optional[TidyAdvice], Optional[FormatAdvice]]:
     log_stream = worker_log_init(log_lvl)
-
-    tidy_note = None
-    if tidy_cmd is not None and (
-        tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
-    ):
-        tidy_note = run_clang_tidy(
-            command=tidy_cmd,
-            file_obj=file,
-            checks=args.tidy_checks,
-            lines_changed_only=args.lines_changed_only,
-            database=args.database,
-            extra_args=args.extra_arg,
-            db_json=db_json,
-            tidy_review=args.tidy_review,
-            style=args.style,
-        )
+    filename = Path(file.name).as_posix()
 
     format_advice = None
     if format_cmd is not None and (
         format_filter is None or format_filter.is_source_or_ignored(file.name)
     ):
-        format_advice = run_clang_format(
-            command=format_cmd,
-            file_obj=file,
-            style=args.style,
-            lines_changed_only=args.lines_changed_only,
-            format_review=args.format_review,
-        )
+        try:
+            format_advice = run_clang_format(
+                command=format_cmd,
+                file_obj=file,
+                style=args.style,
+                lines_changed_only=args.lines_changed_only,
+                format_review=args.format_review,
+            )
+        except FileIOTimeout:  # pragma: no cover
+            logger.error(
+                "Failed to read or write contents of %s when running clang-format",
+                filename,
+            )
+        except OSError:  # pragma: no cover
+            logger.error(
+                "Failed to open the file %s when running clang-format", filename
+            )
+
+    tidy_note = None
+    if tidy_cmd is not None and (
+        tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
+    ):
+        try:
+            tidy_note = run_clang_tidy(
+                command=tidy_cmd,
+                file_obj=file,
+                checks=args.tidy_checks,
+                lines_changed_only=args.lines_changed_only,
+                database=args.database,
+                extra_args=args.extra_arg,
+                db_json=db_json,
+                tidy_review=args.tidy_review,
+                style=args.style,
+            )
+        except FileIOTimeout:  # pragma: no cover
+            logger.error(
+                "Failed to Read/Write contents of %s when running clang-tidy", filename
+            )
+        except OSError:  # pragma: no cover
+            logger.error("Failed to open the file %s when running clang-tidy", filename)
 
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 

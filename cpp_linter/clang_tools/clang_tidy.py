@@ -246,7 +246,7 @@ def run_clang_tidy(
     if tidy_review:
         # clang-tidy overwrites the file contents when applying fixes.
         # create a cache of original contents
-        original_buf = Path(file_obj.name).read_bytes()
+        original_buf = file_obj.read_with_timeout()
         cmds.append("--fix-errors")  # include compiler-suggested fixes
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
@@ -260,10 +260,8 @@ def run_clang_tidy(
     advice = parse_tidy_output(results.stdout.decode(), database=db_json)
 
     if tidy_review:
-        # store the modified output from clang-tidy
-        advice.patched = Path(file_obj.name).read_bytes()
-        # re-write original file contents
-        Path(file_obj.name).write_bytes(original_buf)
+        # store the modified output from clang-tidy and re-write original file contents
+        advice.patched = file_obj.read_write_with_timeout(original_buf)
 
     return advice
 

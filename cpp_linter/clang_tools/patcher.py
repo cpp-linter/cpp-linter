@@ -2,7 +2,6 @@
 by the clang tool's output."""
 
 from abc import ABC
-from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple
 from pygit2 import Patch  # type: ignore
 from ..common_fs import FileObj
@@ -178,7 +177,7 @@ class PatchMixin(ABC):
             self.patched
         ), f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
         patch = Patch.create_from(
-            Path(file_obj.name).read_bytes(),
+            file_obj.read_with_timeout(),
             self.patched,
             file_obj.name,
             file_obj.name,
