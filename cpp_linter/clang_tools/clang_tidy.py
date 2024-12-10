@@ -287,7 +287,7 @@ def run_clang_tidy(
                 break
             except OSError as exc:  # pragma: no cover
                 exception = exc
-        if not success:
+        if not success:  # pragma: no cover
             logger.error(
                 "Failed to write back contents of file: %s.%s)",
                 filename,
