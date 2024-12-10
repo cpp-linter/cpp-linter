@@ -261,7 +261,7 @@ def run_clang_tidy(
     advice = parse_tidy_output(results.stdout.decode(), database=db_json)
 
     if tidy_review:
-        timeout = time.monotonic_ns() + 1000000
+        timeout = time.monotonic_ns() + 1000000000
         # wait 1s for file to become accessible
         success = False
         exception = None
@@ -269,16 +269,16 @@ def run_clang_tidy(
             try:
                 with open(filename, "r+b") as src:
                     # wait 1s for file to become readable
-                    read_timeout = time.monotonic_ns() + 1000000
+                    read_timeout = time.monotonic_ns() + 1000000000
                     while not src.readable() and time.monotonic_ns() < read_timeout:
                         pass  # pragma: no cover
                     if src.readable():
                         advice.patched = b"".join(src.readlines())
-                        src.seek(os.SEEK_SET)  # back to start of file
+                        src.seek(0)  # back to start of file
                     else:  # pragma: no cover
                         continue  # we need those changes before overwriting them
                     # wait 1s for file to become writable
-                    write_timeout = time.monotonic_ns() + 1000000
+                    write_timeout = time.monotonic_ns() + 1000000000
                     while not src.writable() and time.monotonic_ns() < write_timeout:
                         pass  # pragma: no cover
                     if src.writable():
