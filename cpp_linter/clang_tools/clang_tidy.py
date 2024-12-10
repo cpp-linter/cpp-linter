@@ -282,7 +282,7 @@ def run_clang_tidy(
                     while not src.writable() and time.monotonic_ns() < write_timeout:
                         pass  # pragma: no cover
                     if src.writable():
-                        src.writelines([original_buf])
+                        src.write(original_buf)
                         success = True
                 break
             except OSError as exc:  # pragma: no cover
