@@ -184,6 +184,8 @@ class FileObj:
                         if f.readable():
                             contents = f.read()
                             success = True
+                        else:  # pragma: no cover
+                            time.sleep(0.001)
             except OSError as exc:  # pragma: no cover
                 exception = exc
         if not success and exception:  # pragma: no cover
@@ -222,11 +224,15 @@ class FileObj:
                             original_data = f.read()
                             f.seek(0)
                         else:  # pragma: no cover
+                            time.sleep(0.001)
                             continue
                         while not success and time.monotonic_ns() < timeout:
                             if f.writable():
                                 f.write(data)
+                                f.truncate()
                                 success = True
+                            else:  # pragma: no cover
+                                time.sleep(0.001)
             except OSError as exc:  # pragma: no cover
                 exception = exc
         if not success and exception:  # pragma: no cover
