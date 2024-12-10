@@ -84,8 +84,8 @@ def test_list_src_files(
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])
 def test_file_offset_translation(line: int, cols: int, offset: int):
     """Validate output from ``get_line_cnt_from_cols()``"""
-    test_file = str(Path("tests/demo/demo.cpp").resolve())
-    assert (line, cols) == get_line_cnt_from_cols(test_file, offset)
+    contents = Path("tests/demo/demo.cpp").read_bytes()
+    assert (line, cols) == get_line_cnt_from_cols(contents, offset)
 
 
 def test_serialize_file_obj():

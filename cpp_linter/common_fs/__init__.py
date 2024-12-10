@@ -1,5 +1,6 @@
 from os import environ
 from pathlib import Path
+import time
 from typing import List, Dict, Any, Union, Tuple, Optional, TYPE_CHECKING
 from pygit2 import DiffHunk  # type: ignore
 from ..loggers import logger
@@ -158,6 +159,86 @@ class FileObj:
         )
         return None
 
+    def read_with_timeout(self, timeout_ns: int = 1_000_000_000) -> bytes:
+        """Read the entire file's contents.
+
+        :param timeout_ns: The number of nanoseconds to wait till timeout occurs.
+            Defaults to 1 second.
+
+        :returns: The bytes read from the file.
+
+        :raises FileIOTimeout: When the operation did not succeed due to a timeout.
+        :raises OSError: When the file could not be opened due to an `OSError`.
+        """
+        contents = b""
+        success = False
+        exception: Union[OSError, FileIOTimeout] = FileIOTimeout(
+            "Failed to read from file within %d seconds"
+            % round(timeout_ns / 1_000_000_000, 2)
+        )
+        timeout = time.monotonic_ns() + timeout_ns
+        while not success and time.monotonic_ns() < timeout:
+            try:
+                with open(self.name, "rb") as f:
+                    while not success and time.monotonic_ns() < timeout:
+                        if f.readable():
+                            contents = f.read()
+                            success = True
+            except OSError as exc:  # pragma: no cover
+                exception = exc
+        if not success and exception:  # pragma: no cover
+            raise exception
+        return contents
+
+    def read_write_with_timeout(
+        self,
+        data: Union[bytes, bytearray],
+        timeout_ns: int = 1_000_000_000,
+    ) -> bytes:
+        """Read then write the entire file's contents.
+
+        :param data: The bytes to write to the file. This will overwrite the contents
+            being read beforehand.
+        :param timeout_ns: The number of nanoseconds to wait till timeout occurs.
+            Defaults to 1 second.
+
+        :returns: The bytes read from the file.
+
+        :raises FileIOTimeout: When the operation did not succeed due to a timeout.
+        :raises OSError: When the file could not be opened due to an `OSError`.
+        """
+        success = False
+        exception: Union[OSError, FileIOTimeout] = FileIOTimeout(
+            "Failed to read then write to file within %d seconds"
+            % round(timeout_ns / 1_000_000_000, 2)
+        )
+        original_data = b""
+        timeout = time.monotonic_ns() + timeout_ns
+        while not success and time.monotonic_ns() < timeout:
+            try:
+                with open(self.name, "r+b") as f:
+                    while not success and time.monotonic_ns() < timeout:
+                        if f.readable():
+                            original_data = f.read()
+                            f.seek(0)
+                        else:  # pragma: no cover
+                            continue
+                        while not success and time.monotonic_ns() < timeout:
+                            if f.writable():
+                                f.write(data)
+                                success = True
+            except OSError as exc:  # pragma: no cover
+                exception = exc
+        if not success and exception:  # pragma: no cover
+            raise exception
+        return original_data
+
+
+class FileIOTimeout(Exception):
+    """An exception thrown when a file operation timed out."""
+
+    pass
+
 
 def has_line_changes(
     lines_changed_only: int, diff_chunks: List[List[int]], additions: List[int]
@@ -180,10 +261,10 @@ def has_line_changes(
     )
 
 
-def get_line_cnt_from_cols(file_path: str, offset: int) -> Tuple[int, int]:
+def get_line_cnt_from_cols(data: bytes, offset: int) -> Tuple[int, int]:
     """Gets a line count and columns offset from a file's absolute offset.
 
-    :param file_path: Path to file.
+    :param data: Path to file.
     :param offset: The byte offset to translate
 
     :returns:
@@ -193,5 +274,5 @@ def get_line_cnt_from_cols(file_path: str, offset: int) -> Tuple[int, int]:
         - Index 1 is the column number for the given offset on the line.
     """
     # logger.debug("Getting line count from %s at offset %d", file_path, offset)
-    contents = Path(file_path).read_bytes()[:offset]
+    contents = data[:offset]
     return (contents.count(b"\n") + 1, offset - contents.rfind(b"\n"))

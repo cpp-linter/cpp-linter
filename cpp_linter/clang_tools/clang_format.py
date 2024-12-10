@@ -130,12 +130,13 @@ def parse_format_replacements_xml(
         file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
     tree = ET.fromstring(xml_out)
+    content = file_obj.read_with_timeout()
     for child in tree:
         if child.tag == "replacement":
             null_len = int(child.attrib["length"])
             text = "" if child.text is None else child.text
             offset = int(child.attrib["offset"])
-            line, cols = get_line_cnt_from_cols(file_obj.name, offset)
+            line, cols = get_line_cnt_from_cols(content, offset)
             is_line_in_ranges = False
             for r in ranges:
                 if line in range(r[0], r[1]):  # range is inclusive
