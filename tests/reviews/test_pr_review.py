@@ -139,6 +139,66 @@ def test_post_review(
         for review_id in [r["id"] for r in json.loads(reviews) if "id" in r]:
             mock.put(f"{base_url}/reviews/{review_id}/dismissals")
         extensions = ["cpp", "hpp", "c"]
+
+        # mock graphql requests
+        graphql_url = f"{gh_client.api_url}/graphql"
+
+        def graphql_callback(request, context):
+            context.status_code = 200
+            if request.data.startswith("query"):
+                # get existing review comments
+                return (cache_path / "pr_reviews_graphql.json").read_text(
+                    encoding="utf-8"
+                )
+            elif "resolveReviewThread" in request.data:
+                # resolve review
+                id_pos = request.data.find('threadId:"') + 10
+                id_end_pos = request.data.find('"', id_pos + 1)
+                id_tag = request.data[id_pos:id_end_pos]
+                return (
+                    """{
+  "data": {
+    resolveReviewThread: {
+      thread {
+        %s
+      }
+    }
+  }
+}"""
+                    % id_tag
+                )
+            elif "deletePullRequestReviewComment" in request.data:
+                # delete PR or minimizeComment
+                id_pos = request.data.find('id:"') + 4
+                id_end_pos = request.data.find('"', id_pos + 1)
+                id_tag = request.data[id_pos:id_end_pos]
+                return (
+                    """{
+  "data": {
+    deletePullRequestReviewComment: {
+      pullRequestReviewComment {
+        %s
+      }
+    }
+  }
+}"""
+                    % id_tag
+                )
+            elif "minimizeComment" in request.data:
+                # minimizeComment
+                return """{
+  "data": {
+    "minimizeComment": {
+      "minimizedComment": {
+        "isMinimized": true
+      }
+    }
+  }
+}"""
+            return "errors"
+
+        mock.post(graphql_url, text=graphql_callback)
+
         # run the actual test
         files = gh_client.get_list_of_changed_files(
             FileFilter(extensions=extensions),
