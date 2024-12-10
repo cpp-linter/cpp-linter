@@ -289,7 +289,7 @@ def run_clang_tidy(
                 exception = exc
         if not success:  # pragma: no cover
             logger.error(
-                "Failed to write back contents of file: %s.%s)",
+                "Failed to write back contents of file: %s.%s",
                 filename,
                 " timeout."
                 if not exception
