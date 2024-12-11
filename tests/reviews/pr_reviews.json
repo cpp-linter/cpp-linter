@@ -20,10 +20,11 @@
       "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
       "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
       "type": "Bot",
+      "user_view_type": "public",
       "site_admin": false
     },
-    "body": "<!-- cpp linter action -->\n## Cpp-linter Review\nOnly 1 out of 4 clang-format suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-format patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..c522998 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -4,9 +4,7 @@\n \r\n+int main()\r\n+{\r\n \r\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;)\r\n+        break;\r\n \r\n@@ -14,5 +12,3 @@ int main(){\n \r\n-\r\n-\r\n-\r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..8f92cac 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -7,25 +7,12 @@ class Dummy {\n     int numb;\r\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n+    Dummy()\r\n+        : numb(0)\r\n+        , useless(\"\\0\")\r\n+    {\r\n+    }\r\n \r\n     public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+        void* not_useful(char* str) { useless = str; }\r\n };\r\n \r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n struct LongDiff\r\n@@ -33,4 +20,3 @@ struct LongDiff\n \r\n-    long diff;\r\n-\r\n+        long diff;\r\n };\r\n\n```\n\n\n</details>\n\nOnly 2 out of 3 clang-tidy suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-tidy patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..b160609 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -2,11 +2,10 @@\n #include \"demo.hpp\"\r\n-#include <stdio.h>\r\n+#include <cstdio>\r\n \r\n+auto main() -> int\r\n+{\r\n \r\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;) {\r\n+        break;\r\n+    }\r\n \r\n@@ -17,2 +16,3 @@ int main(){\n \r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..2591c48 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -10,3 +10,3 @@ class Dummy {\n     public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+        auto not_useful(char* str) -> void* { useless = str; }\r\n };\r\n\n```\n\n\n</details>\n\n",
-    "state": "CHANGES_REQUESTED",
+    "body": "<!-- cpp-linter-action -->\n## Cpp-linter Review\nOnly 1 out of 4 clang-format suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-format patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..c522998 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -4,9 +4,7 @@\n \r\n+int main()\r\n+{\r\n \r\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;)\r\n+        break;\r\n \r\n@@ -14,5 +12,3 @@ int main(){\n \r\n-\r\n-\r\n-\r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..8f92cac 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -7,25 +7,12 @@ class Dummy {\n     int numb;\r\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n+    Dummy()\r\n+        : numb(0)\r\n+        , useless(\"\\0\")\r\n+    {\r\n+    }\r\n \r\n     public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+        void* not_useful(char* str) { useless = str; }\r\n };\r\n \r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n struct LongDiff\r\n@@ -33,4 +20,3 @@ struct LongDiff\n \r\n-    long diff;\r\n-\r\n+        long diff;\r\n };\r\n\n```\n\n\n</details>\n\nOnly 2 out of 3 clang-tidy suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-tidy patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..b160609 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -2,11 +2,10 @@\n #include \"demo.hpp\"\r\n-#include <stdio.h>\r\n+#include <cstdio>\r\n \r\n+auto main() -> int\r\n+{\r\n \r\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;) {\r\n+        break;\r\n+    }\r\n \r\n@@ -17,2 +16,3 @@ int main(){\n \r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..2591c48 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -10,3 +10,3 @@ class Dummy {\n     public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+        auto not_useful(char* str) -> void* { useless = str; }\r\n };\r\n\n```\n\n\n</details>\n\n",
+    "state": "DISMISSED",
     "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807607546",
     "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
     "author_association": "NONE",
@@ -37,5 +38,445 @@
     },
     "submitted_at": "2024-01-06T22:22:32Z",
     "commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f"
+  },
+  {
+    "id": 1807862968,
+    "node_id": "PRR_kwDOFY2uzM5rwcy4",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?u=a73fe81ae765fbd53ec950e5b4cde1ab780dfb9f&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807862968",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807862968"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-07T19:58:56Z",
+    "commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f"
+  },
+  {
+    "id": 1807863072,
+    "node_id": "PRR_kwDOFY2uzM5rwc0g",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?u=a73fe81ae765fbd53ec950e5b4cde1ab780dfb9f&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807863072",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807863072"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-07T19:59:26Z",
+    "commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f"
+  },
+  {
+    "id": 1807902857,
+    "node_id": "PRR_kwDOFY2uzM5rwmiJ",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp-linter-action -->\n## Cpp-linter Review\nOnly 0 out of 7 clang-format suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-format patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..c522998 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -4,0 +5,2 @@\n+int main()\r\n+{\r\n@@ -6,6 +8,2 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;)\r\n+        break;\r\n@@ -15,4 +13,2 @@ int main(){\n-\r\n-\r\n-\r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..31566a5 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -3,2 +2,0 @@\n-\r\n-\r\n@@ -8,4 +6,8 @@ class Dummy {\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n-\r\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+    Dummy()\r\n+        : numb(0)\r\n+        , useless(\"\\0\")\r\n+    {\r\n+    }\r\n+\r\n+public:\r\n+    void* not_useful(char* str) { useless = str; }\r\n@@ -14,19 +16 @@ class Dummy {\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-struct LongDiff\r\n-{\r\n+struct LongDiff {\r\n@@ -35 +18,0 @@ struct LongDiff\n-\r\n\n```\n\n\n</details>\n\nOnly 0 out of 6 clang-tidy suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-tidy patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..b160609 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -3 +3 @@\n-#include <stdio.h>\r\n+#include <cstdio>\r\n@@ -4,0 +5,2 @@\n+auto main() -> int\r\n+{\r\n@@ -6,6 +8,3 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;) {\r\n+        break;\r\n+    }\r\n@@ -18 +17,2 @@ int main(){\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..115b0de 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -6,3 +6,3 @@ class Dummy {\n-    char* useless;\r\n-    int numb;\r\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n+    char* useless { \"\\0\" };\r\n+    int numb { 0 };\r\n+    Dummy() { }\r\n@@ -10,2 +10,2 @@ class Dummy {\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+public:\r\n+    auto not_useful(char* str) -> void* { useless = str; }\r\n\n```\n\n\n</details>\n\n",
+    "state": "DISMISSED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807902857",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807902857"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-07T23:32:04Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1807918342,
+    "node_id": "PRR_kwDOFY2uzM5rwqUG",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp-linter-action -->\n## Cpp-linter Review\nOnly 5 out of 7 clang-format suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-format patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..c522998 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -4,0 +5,2 @@\n+int main()\r\n+{\r\n@@ -6,6 +8,2 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;)\r\n+        break;\r\n@@ -15,4 +13,2 @@ int main(){\n-\r\n-\r\n-\r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..31566a5 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -3,2 +2,0 @@\n-\r\n-\r\n@@ -8,4 +6,8 @@ class Dummy {\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n-\r\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+    Dummy()\r\n+        : numb(0)\r\n+        , useless(\"\\0\")\r\n+    {\r\n+    }\r\n+\r\n+public:\r\n+    void* not_useful(char* str) { useless = str; }\r\n@@ -14,19 +16 @@ class Dummy {\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-struct LongDiff\r\n-{\r\n+struct LongDiff {\r\n@@ -35 +18,0 @@ struct LongDiff\n-\r\n\n```\n\n\n</details>\n\n\n<details><summary>Click here for the full clang-tidy patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..b160609 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -3 +3 @@\n-#include <stdio.h>\r\n+#include <cstdio>\r\n@@ -4,0 +5,2 @@\n+auto main() -> int\r\n+{\r\n@@ -6,6 +8,3 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;) {\r\n+        break;\r\n+    }\r\n@@ -18 +17,2 @@ int main(){\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..115b0de 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -6,3 +6,3 @@ class Dummy {\n-    char* useless;\r\n-    int numb;\r\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n+    char* useless { \"\\0\" };\r\n+    int numb { 0 };\r\n+    Dummy() { }\r\n@@ -10,2 +10,2 @@ class Dummy {\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+public:\r\n+    auto not_useful(char* str) -> void* { useless = str; }\r\n\n```\n\n\n</details>\n\n",
+    "state": "DISMISSED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807918342",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807918342"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T00:26:52Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1807922252,
+    "node_id": "PRR_kwDOFY2uzM5rwrRM",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?u=a73fe81ae765fbd53ec950e5b4cde1ab780dfb9f&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807922252",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807922252"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T00:44:25Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1807924854,
+    "node_id": "PRR_kwDOFY2uzM5rwr52",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?u=a73fe81ae765fbd53ec950e5b4cde1ab780dfb9f&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807924854",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807924854"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T00:55:39Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1807926853,
+    "node_id": "PRR_kwDOFY2uzM5rwsZF",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?u=a73fe81ae765fbd53ec950e5b4cde1ab780dfb9f&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807926853",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807926853"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T01:03:46Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1807927611,
+    "node_id": "PRR_kwDOFY2uzM5rwsk7",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?u=a73fe81ae765fbd53ec950e5b4cde1ab780dfb9f&v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "",
+    "state": "COMMENTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807927611",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807927611"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T01:06:32Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1807930152,
+    "node_id": "PRR_kwDOFY2uzM5rwtMo",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp-linter-action -->\n## Cpp-linter Review\nOnly 5 out of 7 clang-format suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-format patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..c522998 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -4,0 +5,2 @@\n+int main()\r\n+{\r\n@@ -6,6 +8,2 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;)\r\n+        break;\r\n@@ -15,4 +13,2 @@ int main(){\n-\r\n-\r\n-\r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..31566a5 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -3,2 +2,0 @@\n-\r\n-\r\n@@ -8,4 +6,8 @@ class Dummy {\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n-\r\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+    Dummy()\r\n+        : numb(0)\r\n+        , useless(\"\\0\")\r\n+    {\r\n+    }\r\n+\r\n+public:\r\n+    void* not_useful(char* str) { useless = str; }\r\n@@ -14,19 +16 @@ class Dummy {\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-struct LongDiff\r\n-{\r\n+struct LongDiff {\r\n@@ -35 +18,0 @@ struct LongDiff\n-\r\n\n```\n\n\n</details>\n\n\n<details><summary>Click here for the full clang-tidy patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..b160609 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -3 +3 @@\n-#include <stdio.h>\r\n+#include <cstdio>\r\n@@ -4,0 +5,2 @@\n+auto main() -> int\r\n+{\r\n@@ -6,6 +8,3 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;) {\r\n+        break;\r\n+    }\r\n@@ -18 +17,2 @@ int main(){\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..115b0de 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -6,3 +6,3 @@ class Dummy {\n-    char* useless;\r\n-    int numb;\r\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n+    char* useless { \"\\0\" };\r\n+    int numb { 0 };\r\n+    Dummy() { }\r\n@@ -10,2 +10,2 @@ class Dummy {\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+public:\r\n+    auto not_useful(char* str) -> void* { useless = str; }\r\n\n```\n\n\n</details>\n\n",
+    "state": "CHANGES_REQUESTED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807930152",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1807930152"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T01:15:54Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1808225893,
+    "node_id": "PRR_kwDOFY2uzM5rx1Zl",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n## Cpp-linter Review\nOnly 5 out of 7 clang-format suggestions fit within this pull request's diff.\n\n<details><summary>Click here for the full clang-format patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..c522998 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -4,0 +5,2 @@\n+int main()\r\n+{\r\n@@ -6,6 +8,2 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;)\r\n+        break;\r\n@@ -15,4 +13,2 @@ int main(){\n-\r\n-\r\n-\r\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..31566a5 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -3,2 +2,0 @@\n-\r\n-\r\n@@ -8,4 +6,8 @@ class Dummy {\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n-\r\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+    Dummy()\r\n+        : numb(0)\r\n+        , useless(\"\\0\")\r\n+    {\r\n+    }\r\n+\r\n+public:\r\n+    void* not_useful(char* str) { useless = str; }\r\n@@ -14,19 +16 @@ class Dummy {\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-\r\n-struct LongDiff\r\n-{\r\n+struct LongDiff {\r\n@@ -35 +18,0 @@ struct LongDiff\n-\r\n\n```\n\n\n</details>\n\n\n<details><summary>Click here for the full clang-tidy patch</summary>\n\n\n```diff\ndiff --git a/src/demo.cpp b/src/demo.cpp\nindex fc295c3..b160609 100644\n--- a/src/demo.cpp\n+++ b/src/demo.cpp\n@@ -3 +3 @@\n-#include <stdio.h>\r\n+#include <cstdio>\r\n@@ -4,0 +5,2 @@\n+auto main() -> int\r\n+{\r\n@@ -6,6 +8,3 @@\n-\r\n-\r\n-int main(){\r\n-\r\n-    for (;;) break;\r\n-\r\n+    for (;;) {\r\n+        break;\r\n+    }\r\n@@ -18 +17,2 @@ int main(){\n-    return 0;}\r\n+    return 0;\r\n+}\r\ndiff --git a/src/demo.hpp b/src/demo.hpp\nindex a429f5c..115b0de 100644\n--- a/src/demo.hpp\n+++ b/src/demo.hpp\n@@ -6,3 +6,3 @@ class Dummy {\n-    char* useless;\r\n-    int numb;\r\n-    Dummy() :numb(0), useless(\"\\0\"){}\r\n+    char* useless { \"\\0\" };\r\n+    int numb { 0 };\r\n+    Dummy() { }\r\n@@ -10,2 +10,2 @@ class Dummy {\n-    public:\r\n-    void *not_useful(char *str){useless = str;}\r\n+public:\r\n+    auto not_useful(char* str) -> void* { useless = str; }\r\n\n```\n\n\n</details>\n\n\n\nHave any feedback or feature suggestions? [Share it here.](https://github.com/cpp-linter/cpp-linter-action/issues)",
+    "state": "DISMISSED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1808225893",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1808225893"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-08T07:56:26Z",
+    "commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d"
+  },
+  {
+    "id": 1812664781,
+    "node_id": "PRR_kwDOFY2uzM5sCxHN",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n## Cpp-linter Review\nNo objections from clang-format.\nNo objections from clang-tidy.\n\nGreat job!\n\nHave any feedback or feature suggestions? [Share it here.](https://github.com/cpp-linter/cpp-linter-action/issues)",
+    "state": "APPROVED",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1812664781",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#pullrequestreview-1812664781"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "submitted_at": "2024-01-10T08:33:45Z",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1"
   }
 ]
