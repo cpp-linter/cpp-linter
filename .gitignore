@@ -178,3 +178,6 @@ cmake_install.cmake
 
 # generated doc pages
 docs/cli_args.rst
+
+# generaed coverage data
+lcov.info
