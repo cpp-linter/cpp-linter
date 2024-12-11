@@ -37,8 +37,7 @@ RATE_LIMIT_HEADERS = RateLimitHeaders(
     retry="retry-after",
 )
 
-QUERY_REVIEW_COMMENTS = """
- query($owner: String!, $name: String!, $number: Int!) {
+QUERY_REVIEW_COMMENTS = """query($owner: String!, $name: String!, $number: Int!) {
      repository(owner: $owner, name: $name) {
          pullRequest(number: $number) {
             id
@@ -66,38 +65,31 @@ QUERY_REVIEW_COMMENTS = """
             }
         }
     }
-}
-"""
+}"""
 
-RESOLVE_REVIEW_COMMENT = """
-mutation($threadId: ID!) {
+RESOLVE_REVIEW_COMMENT = """mutation($threadId: ID!) {
     resolveReviewThread(input: {threadId: $threadId, clientMutationId: "github-actions"}) {
         thread {
             id
         }
     }
-}
-"""
+}"""
 
-DELETE_REVIEW_COMMENT = """
-mutation($id: ID!) {
+DELETE_REVIEW_COMMENT = """mutation($id: ID!) {
     deletePullRequestReviewComment(input: {id: $id, clientMutationId: "github-actions"}) {
         pullRequestReviewComment {
             id
         }
     }
-}
-"""
+}"""
 
-HIDE_REVIEW_COMMENT = """
-mutation($subjectId: ID!) {
+HIDE_REVIEW_COMMENT = """mutation($subjectId: ID!) {
     minimizeComment(input: {classifier:OUTDATED, subjectId: $subjectId, clientMutationId: "github-actions"}) {
         minimizedComment {
             isMinimized
         }
     }
-}
-"""
+}"""
 
 
 class GithubApiClient(RestApiClient):
@@ -731,24 +723,12 @@ class GithubApiClient(RestApiClient):
             data=json.dumps({"query": mutation, "variables": variables}),
             strict=False,
         )
-        if response.status_code != 200:
-            logger.error(
-                "Failed to %s review thread comment: %d",
-                operation,
-                response.status_code,
-            )
-        elif "errors" in response.json():
-            error_msg = response.json()["errors"][0]["message"]
-            if "Resource not accessible by integration" in error_msg:
-                logger.error(
-                    "Changing review thread comments requires `contents: write` permission."
-                )
-            else:
-                logger.error(
-                    "Failed to %s review thread comment: %s", operation, error_msg
-                )
-        else:
-            logger.debug("Review comment thread %sd: %s", operation, thread_id)
+        logger.debug(
+            "%s review comment thread %s (thread_id: %s)",
+            operation.title(),
+            "failed" if response.status_code != 200 else "succeeded",
+            thread_id,
+        )
 
     def _hide_stale_reviews(self, ignored_reviews: List[str]):
         """Hide all review comments that were previously created by cpp-linter
@@ -777,17 +757,8 @@ class GithubApiClient(RestApiClient):
                         data=json.dumps({"query": mutation, "variables": variables}),
                         strict=False,
                     )
-                    if response.status_code != 200:
-                        logger.error(
-                            "Failed to hide review comment: %d", response.status_code
-                        )
-                    elif "errors" in response.json():
-                        error_msg = response.json()["errors"][0]["message"]
-                        if "Resource not accessible by integration" in error_msg:
-                            logger.error(
-                                "Hiding review comments requires `contents: write` permission."
-                            )
-                        else:
-                            logger.error("Hiding review comment failed: %s", error_msg)
-                    else:
-                        logger.debug("Review comment minimized: %s", review["node_id"])
+                    logger.debug(
+                        "Minimized review comment: %s (node_id: %s)",
+                        repr(response.status_code != 200).lower(),
+                        review["node_id"],
+                    )
