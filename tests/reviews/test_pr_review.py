@@ -3,6 +3,7 @@ import json
 from os import environ
 from pathlib import Path
 import shutil
+from typing import Dict, Any
 import requests_mock
 import pytest
 import requests_mock.request
@@ -53,22 +54,18 @@ def graphql_callback(
     context: requests_mock.response._Context,
 ):
     context.status_code = 200
-    query: str = request.json()["query"]
+    req_json = request.json()
+    query: str = req_json["query"]
+    vars: Dict[str, Any] = req_json["variables"]
     if query.startswith("query"):
         # get existing review comments
         return (CACHE_PATH / "pr_reviews_graphql.json").read_text(encoding="utf-8")
-    elif "resolveReviewThread" in query:
+    elif "resolveReviewThread" in query and "threadId" in vars:
         # resolve review
-        id_pos = query.find('threadId:"') + 10
-        id_end_pos = query.find('"', id_pos + 1)
-        id_tag = query[id_pos:id_end_pos]
-        return RESOLVE_COMMENT_GRAPHQL % id_tag
-    elif "deletePullRequestReviewComment" in query:
+        return RESOLVE_COMMENT_GRAPHQL % vars["threadId"]
+    elif "deletePullRequestReviewComment" in query and "id" in vars:
         # delete PR or minimizeComment
-        id_pos = query.find('id:"') + 4
-        id_end_pos = query.find('"', id_pos + 1)
-        id_tag = query[id_pos:id_end_pos]
-        return DELETE_COMMENT_GRAPHQL % id_tag
+        return DELETE_COMMENT_GRAPHQL % vars["id"]
     elif "minimizeComment" in query:
         # minimizeComment
         return MINIMIZE_COMMENT_GRAPHQL
