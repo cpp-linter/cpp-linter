@@ -6,7 +6,7 @@
     "node_id": "PRRC_kwDOFY2uzM5WD6gj",
     "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");",
     "path": "src/demo.cpp",
-    "commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
     "original_commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
     "user": {
       "login": "github-actions[bot]",
@@ -26,9 +26,10 @@
       "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
       "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
       "type": "Bot",
+      "user_view_type": "public",
       "site_admin": false
     },
-    "body": "<!-- cpp linter action -->\n### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
+    "body": "### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
     "created_at": "2024-01-06T22:22:31Z",
     "updated_at": "2024-01-06T22:22:32Z",
     "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1443866659",
@@ -74,7 +75,7 @@
     "node_id": "PRRC_kwDOFY2uzM5WD6gk",
     "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");",
     "path": "src/demo.cpp",
-    "commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
     "original_commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
     "user": {
       "login": "github-actions[bot]",
@@ -94,9 +95,10 @@
       "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
       "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
       "type": "Bot",
+      "user_view_type": "public",
       "site_admin": false
     },
-    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
+    "body": "### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
     "created_at": "2024-01-06T22:22:31Z",
     "updated_at": "2024-01-06T22:22:32Z",
     "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1443866660",
@@ -142,7 +144,7 @@
     "node_id": "PRRC_kwDOFY2uzM5WD6gm",
     "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}\n \n     public:\n-    void *not_usefull(char *str){\n-        useless = str;\n-        return 0;\n-    }\n+    void *not_useful(char *str){useless = str;}\n };\n ",
     "path": "src/demo.hpp",
-    "commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
     "original_commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
     "user": {
       "login": "github-actions[bot]",
@@ -162,9 +164,10 @@
       "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
       "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
       "type": "Bot",
+      "user_view_type": "public",
       "site_admin": false
     },
-    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
+    "body": "### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
     "created_at": "2024-01-06T22:22:31Z",
     "updated_at": "2024-01-06T22:22:32Z",
     "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1443866662",
@@ -201,6 +204,1875 @@
     "side": "RIGHT",
     "original_position": 13,
     "position": 13,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444063536",
+    "pull_request_review_id": 1807862968,
+    "id": 1444063536,
+    "node_id": "PRRC_kwDOFY2uzM5WEqkw",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "The `printf()`seems to be getting dropped in this suggestion.",
+    "created_at": "2024-01-07T19:58:56Z",
+    "updated_at": "2024-01-07T19:58:56Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444063536",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444063536"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444063536"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444063536/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 4,
+    "original_start_line": 4,
+    "start_side": "RIGHT",
+    "line": 13,
+    "original_line": 13,
+    "side": "RIGHT",
+    "in_reply_to_id": 1443866659,
+    "original_position": 21,
+    "position": 21,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444063600",
+    "pull_request_review_id": 1807863072,
+    "id": 1444063600,
+    "node_id": "PRRC_kwDOFY2uzM5WEqlw",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "a09a2032511f6a61f9216b24d2cd480c923d333f",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "Again, the `printf()` call is getting dropped in this suggestion.",
+    "created_at": "2024-01-07T19:59:26Z",
+    "updated_at": "2024-01-07T19:59:26Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444063600",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444063600"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444063600"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444063600/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 2,
+    "original_start_line": 2,
+    "start_side": "RIGHT",
+    "line": 13,
+    "original_line": 13,
+    "side": "RIGHT",
+    "in_reply_to_id": 1443866660,
+    "original_position": 21,
+    "position": 21,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103278",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103278,
+    "node_id": "PRRC_kwDOFY2uzM5WE0Ru",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n ",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\nint main()\r\n{\r\n```",
+    "created_at": "2024-01-08T00:26:51Z",
+    "updated_at": "2024-12-11T16:02:11Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103278",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103278"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103278"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103278/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 5,
+    "original_line": 5,
+    "side": "RIGHT",
+    "original_position": 9,
+    "position": 9,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103279",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103279,
+    "node_id": "PRRC_kwDOFY2uzM5WE0Rv",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    for (;;)\r\n        break;\r\n```",
+    "created_at": "2024-01-08T00:26:51Z",
+    "updated_at": "2024-12-11T16:02:22Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103279",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103279"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103279"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103279/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 6,
+    "original_start_line": 6,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 19,
+    "position": 19,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103280",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103280,
+    "node_id": "PRRC_kwDOFY2uzM5WE0Rw",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");\n \n-    return 0;\n-}\n+\n+\n+\n+    return 0;}",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+    "created_at": "2024-01-08T00:26:51Z",
+    "updated_at": "2024-12-11T16:02:34Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103280",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103280"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103280"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103280/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 15,
+    "original_start_line": 15,
+    "start_side": "RIGHT",
+    "line": 18,
+    "original_line": 18,
+    "side": "RIGHT",
+    "original_position": 28,
+    "position": 28,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103281",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103281,
+    "node_id": "PRRC_kwDOFY2uzM5WE0Rx",
+    "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}\n \n     public:\n-    void *not_usefull(char *str){\n-        useless = str;\n-        return 0;\n-    }\n+    void *not_useful(char *str){useless = str;}",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    Dummy()\r\n        : numb(0)\r\n        , useless(\"\\0\")\r\n    {\r\n    }\r\n\r\npublic:\r\n    void* not_useful(char* str) { useless = str; }\r\n```",
+    "created_at": "2024-01-08T00:26:51Z",
+    "updated_at": "2024-12-11T16:02:57Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103281",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103281"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103281"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103281/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 8,
+    "original_start_line": 8,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 11,
+    "position": 11,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103282",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103282,
+    "node_id": "PRRC_kwDOFY2uzM5WE0Ry",
+    "diff_hunk": "@@ -28,14 +26,11 @@ class Dummy {\n \n \n \n-\n-\n-\n-\n \n \n struct LongDiff\n {\n+\n     long diff;\n ",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\nPlease remove this line(s).",
+    "created_at": "2024-01-08T00:26:51Z",
+    "updated_at": "2024-12-11T16:03:09Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103282",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103282"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103282"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103282/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 35,
+    "original_line": 35,
+    "side": "RIGHT",
+    "original_position": 29,
+    "position": 29,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103283",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103283,
+    "node_id": "PRRC_kwDOFY2uzM5WE0Rz",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\n#include <cstdio>\r\n```",
+    "created_at": "2024-01-08T00:26:52Z",
+    "updated_at": "2024-12-11T16:03:21Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103283",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103283"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103283"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103283/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 3,
+    "original_line": 3,
+    "side": "RIGHT",
+    "original_position": 5,
+    "position": 5,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103284",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103284,
+    "node_id": "PRRC_kwDOFY2uzM5WE0R0",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n ",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\nauto main() -> int\r\n{\r\n```",
+    "created_at": "2024-01-08T00:26:52Z",
+    "updated_at": "2024-12-11T16:03:31Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103284",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103284"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103284"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103284/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 5,
+    "original_line": 5,
+    "side": "RIGHT",
+    "original_position": 9,
+    "position": 9,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103285",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103285,
+    "node_id": "PRRC_kwDOFY2uzM5WE0R1",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\r\n\r\n```suggestion\r\n    for (;;) {\r\n        break;\r\n    }\r\n```",
+    "created_at": "2024-01-08T00:26:52Z",
+    "updated_at": "2024-12-11T16:03:46Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103285",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103285"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103285"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103285/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 6,
+    "original_start_line": 6,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 19,
+    "position": 19,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103286",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103286,
+    "node_id": "PRRC_kwDOFY2uzM5WE0R2",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");\n \n-    return 0;\n-}\n+\n+\n+\n+    return 0;}",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+    "created_at": "2024-01-08T00:26:52Z",
+    "updated_at": "2024-12-11T16:04:03Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103286",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103286"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103286"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103286/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 18,
+    "original_line": 18,
+    "side": "RIGHT",
+    "original_position": 28,
+    "position": 28,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103288",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103288,
+    "node_id": "PRRC_kwDOFY2uzM5WE0R4",
+    "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use default member initializer for 'useless' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n- use default member initializer for 'numb' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n\r\n```suggestion\r\n    char* useless { \"\\0\" };\r\n    int numb { 0 };\r\n    Dummy() { }\r\n```",
+    "created_at": "2024-01-08T00:26:52Z",
+    "updated_at": "2024-12-11T16:04:13Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103288",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103288"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103288"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103288/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 6,
+    "original_start_line": 6,
+    "start_side": "RIGHT",
+    "line": 8,
+    "original_line": 8,
+    "side": "RIGHT",
+    "original_position": 4,
+    "position": 4,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103289",
+    "pull_request_review_id": 1807918342,
+    "id": 1444103289,
+    "node_id": "PRRC_kwDOFY2uzM5WE0R5",
+    "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}\n \n     public:\n-    void *not_usefull(char *str){\n-        useless = str;\n-        return 0;\n-    }\n+    void *not_useful(char *str){useless = str;}",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\npublic:\r\n    auto not_useful(char* str) -> void* { useless = str; }\r\n```",
+    "created_at": "2024-01-08T00:26:52Z",
+    "updated_at": "2024-12-11T16:04:22Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103289",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103289"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444103289"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444103289/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 10,
+    "original_start_line": 10,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 11,
+    "position": 11,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444106069",
+    "pull_request_review_id": 1807922252,
+    "id": 1444106069,
+    "node_id": "PRRC_kwDOFY2uzM5WE09V",
+    "diff_hunk": "@@ -28,14 +26,11 @@ class Dummy {\n \n \n \n-\n-\n-\n-\n \n \n struct LongDiff\n {\n+\n     long diff;\n ",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "More detail please! Which line(s)?",
+    "created_at": "2024-01-08T00:44:25Z",
+    "updated_at": "2024-01-08T00:44:25Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444106069",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444106069"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444106069"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444106069/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 35,
+    "original_line": 35,
+    "side": "RIGHT",
+    "in_reply_to_id": 1444103282,
+    "original_position": 29,
+    "position": 29,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444108009",
+    "pull_request_review_id": 1807924854,
+    "id": 1444108009,
+    "node_id": "PRRC_kwDOFY2uzM5WE1bp",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "clang-tidy diagnostic isn't named here\r\n> src/demo.cpp:3:10: warning: [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\r\n\r\nTry to find out why and fix it.",
+    "created_at": "2024-01-08T00:55:39Z",
+    "updated_at": "2024-01-08T00:55:39Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444108009",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444108009"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444108009"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444108009/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 3,
+    "original_line": 3,
+    "side": "RIGHT",
+    "in_reply_to_id": 1444103283,
+    "original_position": 5,
+    "position": 5,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444109522",
+    "pull_request_review_id": 1807926853,
+    "id": 1444109522,
+    "node_id": "PRRC_kwDOFY2uzM5WE1zS",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");\n \n-    return 0;\n-}\n+\n+\n+\n+    return 0;}",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "This change is from code style guidelines (a clang-format thing), thus no clang-tidy diagnostic to name as the cause for the change.\r\n\r\nWe should probably change the wording in this situation:\r\n```diff\r\n-clang-tidy diagnostics\r\n+clang-tidy suggestions\r\n```",
+    "created_at": "2024-01-08T01:03:46Z",
+    "updated_at": "2024-01-08T01:03:46Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444109522",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444109522"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444109522"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444109522/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 18,
+    "original_line": 18,
+    "side": "RIGHT",
+    "in_reply_to_id": 1444103286,
+    "original_position": 28,
+    "position": 28,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444109977",
+    "pull_request_review_id": 1807927611,
+    "id": 1444109977,
+    "node_id": "PRRC_kwDOFY2uzM5WE16Z",
+    "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}\n \n     public:\n-    void *not_usefull(char *str){\n-        useless = str;\n-        return 0;\n-    }\n+    void *not_useful(char *str){useless = str;}",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "2bndy5",
+      "id": 14963867,
+      "node_id": "MDQ6VXNlcjE0OTYzODY3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14963867?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/2bndy5",
+      "html_url": "https://github.com/2bndy5",
+      "followers_url": "https://api.github.com/users/2bndy5/followers",
+      "following_url": "https://api.github.com/users/2bndy5/following{/other_user}",
+      "gists_url": "https://api.github.com/users/2bndy5/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/2bndy5/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/2bndy5/subscriptions",
+      "organizations_url": "https://api.github.com/users/2bndy5/orgs",
+      "repos_url": "https://api.github.com/users/2bndy5/repos",
+      "events_url": "https://api.github.com/users/2bndy5/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/2bndy5/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "Again wording seems inadequate here because no clang-tidy diagnostics are named for code style guidelines.",
+    "created_at": "2024-01-08T01:06:32Z",
+    "updated_at": "2024-01-08T01:06:32Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444109977",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "MEMBER",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444109977"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444109977"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444109977/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 10,
+    "original_start_line": 10,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "in_reply_to_id": 1444103289,
+    "original_position": 11,
+    "position": 11,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111613",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111613,
+    "node_id": "PRRC_kwDOFY2uzM5WE2T9",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n ",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\nint main()\r\n{\r\n```",
+    "created_at": "2024-01-08T01:15:53Z",
+    "updated_at": "2024-12-11T16:04:43Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111613",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111613"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111613"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111613/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 5,
+    "original_line": 5,
+    "side": "RIGHT",
+    "original_position": 9,
+    "position": 9,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111614",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111614,
+    "node_id": "PRRC_kwDOFY2uzM5WE2T-",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    for (;;)\r\n        break;\r\n```",
+    "created_at": "2024-01-08T01:15:53Z",
+    "updated_at": "2024-12-11T16:04:52Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111614",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111614"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111614"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111614/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 6,
+    "original_start_line": 6,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 19,
+    "position": 19,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111615",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111615,
+    "node_id": "PRRC_kwDOFY2uzM5WE2T_",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");\n \n-    return 0;\n-}\n+\n+\n+\n+    return 0;}",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+    "created_at": "2024-01-08T01:15:53Z",
+    "updated_at": "2024-12-11T16:05:03Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111615",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111615"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111615"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111615/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 15,
+    "original_start_line": 15,
+    "start_side": "RIGHT",
+    "line": 18,
+    "original_line": 18,
+    "side": "RIGHT",
+    "original_position": 28,
+    "position": 28,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111617",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111617,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UB",
+    "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}\n \n     public:\n-    void *not_usefull(char *str){\n-        useless = str;\n-        return 0;\n-    }\n+    void *not_useful(char *str){useless = str;}",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    Dummy()\r\n        : numb(0)\r\n        , useless(\"\\0\")\r\n    {\r\n    }\r\n\r\npublic:\r\n    void* not_useful(char* str) { useless = str; }\r\n```",
+    "created_at": "2024-01-08T01:15:53Z",
+    "updated_at": "2024-12-11T16:05:12Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111617",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111617"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111617"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111617/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 8,
+    "original_start_line": 8,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 11,
+    "position": 11,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111618",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111618,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UC",
+    "diff_hunk": "@@ -28,14 +26,11 @@ class Dummy {\n \n \n \n-\n-\n-\n-\n \n \n struct LongDiff\n {\n+\n     long diff;\n ",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\nPlease remove the line(s)\r\n- 35",
+    "created_at": "2024-01-08T01:15:54Z",
+    "updated_at": "2024-12-11T16:05:22Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111618",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111618"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111618"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111618/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 35,
+    "original_line": 35,
+    "side": "RIGHT",
+    "original_position": 29,
+    "position": 29,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111619",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111619,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UD",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\r\n\r\n```suggestion\r\n#include <cstdio>\r\n```",
+    "created_at": "2024-01-08T01:15:54Z",
+    "updated_at": "2024-12-11T16:05:33Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111619",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111619"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111619"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111619/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 3,
+    "original_line": 3,
+    "side": "RIGHT",
+    "original_position": 5,
+    "position": 5,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111620",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111620,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UE",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n ",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy suggestions\r\n\r\n```suggestion\r\nauto main() -> int\r\n{\r\n```",
+    "created_at": "2024-01-08T01:15:54Z",
+    "updated_at": "2024-12-11T16:05:58Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111620",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111620"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111620"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111620/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 5,
+    "original_line": 5,
+    "side": "RIGHT",
+    "original_position": 9,
+    "position": 9,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111621",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111621,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UF",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\r\n\r\n```suggestion\r\n    for (;;) {\r\n        break;\r\n    }\r\n```",
+    "created_at": "2024-01-08T01:15:54Z",
+    "updated_at": "2024-12-11T16:06:11Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111621",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111621"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111621"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111621/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 6,
+    "original_start_line": 6,
+    "start_side": "RIGHT",
+    "line": 11,
+    "original_line": 11,
+    "side": "RIGHT",
+    "original_position": 19,
+    "position": 19,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111622",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111622,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UG",
+    "diff_hunk": "@@ -1,17 +1,18 @@\n /** This is a very ugly test code (doomed to fail linting) */\n #include \"demo.hpp\"\n-#include <cstdio>\n-#include <cstddef>\n+#include <stdio.h>\n \n-// using size_t from cstddef\n-size_t dummyFunc(size_t i) { return i; }\n \n-int main()\n-{\n-    for (;;)\n-        break;\n+\n+\n+int main(){\n+\n+    for (;;) break;\n+\n \n     printf(\"Hello world!\\n\");\n \n-    return 0;\n-}\n+\n+\n+\n+    return 0;}",
+    "path": "src/demo.cpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+    "created_at": "2024-01-08T01:15:54Z",
+    "updated_at": "2024-12-11T16:06:22Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111622",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111622"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111622"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111622/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": null,
+    "original_start_line": null,
+    "start_side": null,
+    "line": 18,
+    "original_line": 18,
+    "side": "RIGHT",
+    "original_position": 28,
+    "position": 28,
+    "subject_type": "line"
+  },
+  {
+    "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111623",
+    "pull_request_review_id": 1807930152,
+    "id": 1444111623,
+    "node_id": "PRRC_kwDOFY2uzM5WE2UH",
+    "diff_hunk": "@@ -5,12 +5,10 @@\n class Dummy {\n     char* useless;\n     int numb;\n+    Dummy() :numb(0), useless(\"\\0\"){}",
+    "path": "src/demo.hpp",
+    "commit_id": "635a9c57bdcca07b99ddef52c2640337c50280b1",
+    "original_commit_id": "ca8d8e8ad719979c3bfe5f15a09a83abbcec421d",
+    "user": {
+      "login": "github-actions[bot]",
+      "id": 41898282,
+      "node_id": "MDM6Qm90NDE4OTgyODI=",
+      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+      "html_url": "https://github.com/apps/github-actions",
+      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "type": "Bot",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use default member initializer for 'useless' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n- use default member initializer for 'numb' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n\r\n```suggestion\r\n    char* useless { \"\\0\" };\r\n    int numb { 0 };\r\n    Dummy() { }\r\n```",
+    "created_at": "2024-01-08T01:15:54Z",
+    "updated_at": "2024-12-11T16:06:34Z",
+    "html_url": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111623",
+    "pull_request_url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27",
+    "author_association": "NONE",
+    "_links": {
+      "self": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111623"
+      },
+      "html": {
+        "href": "https://github.com/cpp-linter/test-cpp-linter-action/pull/27#discussion_r1444111623"
+      },
+      "pull_request": {
+        "href": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/27"
+      }
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/cpp-linter/test-cpp-linter-action/pulls/comments/1444111623/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "start_line": 6,
+    "original_start_line": 6,
+    "start_side": "RIGHT",
+    "line": 8,
+    "original_line": 8,
+    "side": "RIGHT",
+    "original_position": 4,
+    "position": 4,
     "subject_type": "line"
   }
 ]

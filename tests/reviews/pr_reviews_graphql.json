@@ -13,17 +13,15 @@
                 "nodes": [
                   {
                     "id": "PRRC_kwDOFY2uzM5WD6gj",
-                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
+                    "body": "### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
                     "path": "src/demo.cpp",
                     "line": 13,
                     "startLine": 4,
                     "originalLine": 13,
                     "originalStartLine": 4,
-                    "author": {
-                      "login": "github-actions"
-                    },
                     "pullRequestReview": {
-                      "id": "PRR_kwDOFY2uzM5rveb6"
+                      "id": "PRR_kwDOFY2uzM5rveb6",
+                      "isMinimized": true
                     }
                   },
                   {
@@ -34,11 +32,9 @@
                     "startLine": 4,
                     "originalLine": 13,
                     "originalStartLine": 4,
-                    "author": {
-                      "login": "2bndy5"
-                    },
                     "pullRequestReview": {
-                      "id": "PRR_kwDOFY2uzM5rwcy4"
+                      "id": "PRR_kwDOFY2uzM5rwcy4",
+                      "isMinimized": false
                     }
                   }
                 ]
@@ -52,17 +48,15 @@
                 "nodes": [
                   {
                     "id": "PRRC_kwDOFY2uzM5WD6gk",
-                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
+                    "body": "### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
                     "path": "src/demo.cpp",
                     "line": 13,
                     "startLine": 2,
                     "originalLine": 13,
                     "originalStartLine": 2,
-                    "author": {
-                      "login": "github-actions"
-                    },
                     "pullRequestReview": {
-                      "id": "PRR_kwDOFY2uzM5rveb6"
+                      "id": "PRR_kwDOFY2uzM5rveb6",
+                      "isMinimized": true
                     }
                   },
                   {
@@ -73,11 +67,9 @@
                     "startLine": 2,
                     "originalLine": 13,
                     "originalStartLine": 2,
-                    "author": {
-                      "login": "2bndy5"
-                    },
                     "pullRequestReview": {
-                      "id": "PRR_kwDOFY2uzM5rwc0g"
+                      "id": "PRR_kwDOFY2uzM5rwc0g",
+                      "isMinimized": false
                     }
                   }
                 ]
@@ -91,17 +83,793 @@
                 "nodes": [
                   {
                     "id": "PRRC_kwDOFY2uzM5WD6gm",
-                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
+                    "body": "### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
                     "path": "src/demo.hpp",
                     "line": 13,
                     "startLine": 10,
                     "originalLine": 13,
                     "originalStartLine": 10,
-                    "author": {
-                      "login": "github-actions"
-                    },
                     "pullRequestReview": {
-                      "id": "PRR_kwDOFY2uzM5rveb6"
+                      "id": "PRR_kwDOFY2uzM5rveb6",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43ArmZ",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0Ru",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\nint main()\r\n{\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 5,
+                    "startLine": null,
+                    "originalLine": 5,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Arma",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0Rv",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    for (;;)\r\n        break;\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 11,
+                    "startLine": 6,
+                    "originalLine": 11,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armb",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0Rw",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": 15,
+                    "originalLine": 18,
+                    "originalStartLine": 15,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armc",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0Rx",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    Dummy()\r\n        : numb(0)\r\n        , useless(\"\\0\")\r\n    {\r\n    }\r\n\r\npublic:\r\n    void* not_useful(char* str) { useless = str; }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 8,
+                    "originalLine": 11,
+                    "originalStartLine": 8,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armd",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0Ry",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\nPlease remove this line(s).",
+                    "path": "src/demo.hpp",
+                    "line": 35,
+                    "startLine": null,
+                    "originalLine": 35,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  },
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE09V",
+                    "body": "More detail please! Which line(s)?",
+                    "path": "src/demo.hpp",
+                    "line": 35,
+                    "startLine": null,
+                    "originalLine": 35,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwrRM",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Arme",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0Rz",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\n#include <cstdio>\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 3,
+                    "startLine": null,
+                    "originalLine": 3,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  },
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE1bp",
+                    "body": "clang-tidy diagnostic isn't named here\r\n> src/demo.cpp:3:10: warning: [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\r\n\r\nTry to find out why and fix it.",
+                    "path": "src/demo.cpp",
+                    "line": 3,
+                    "startLine": null,
+                    "originalLine": 3,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwr52",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armf",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0R0",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\nauto main() -> int\r\n{\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 5,
+                    "startLine": null,
+                    "originalLine": 5,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armg",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0R1",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\r\n\r\n```suggestion\r\n    for (;;) {\r\n        break;\r\n    }\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 11,
+                    "startLine": 6,
+                    "originalLine": 11,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armh",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0R2",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": null,
+                    "originalLine": 18,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  },
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE1zS",
+                    "body": "This change is from code style guidelines (a clang-format thing), thus no clang-tidy diagnostic to name as the cause for the change.\r\n\r\nWe should probably change the wording in this situation:\r\n```diff\r\n-clang-tidy diagnostics\r\n+clang-tidy suggestions\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": null,
+                    "originalLine": 18,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwsZF",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armj",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0R4",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use default member initializer for 'useless' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n- use default member initializer for 'numb' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n\r\n```suggestion\r\n    char* useless { \"\\0\" };\r\n    int numb { 0 };\r\n    Dummy() { }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 8,
+                    "startLine": 6,
+                    "originalLine": 8,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43Armk",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE0R5",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n\r\n```suggestion\r\npublic:\r\n    auto not_useful(char* str) -> void* { useless = str; }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 10,
+                    "originalLine": 11,
+                    "originalStartLine": 10,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwqUG",
+                      "isMinimized": true
+                    }
+                  },
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE16Z",
+                    "body": "Again wording seems inadequate here because no clang-tidy diagnostics are named for code style guidelines.",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 10,
+                    "originalLine": 11,
+                    "originalStartLine": 10,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwsk7",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGA",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2T9",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\nint main()\r\n{\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 5,
+                    "startLine": null,
+                    "originalLine": 5,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGB",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2T-",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    for (;;)\r\n        break;\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 11,
+                    "startLine": 6,
+                    "originalLine": 11,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGC",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2T_",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": 15,
+                    "originalLine": 18,
+                    "originalStartLine": 15,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGE",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UB",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    Dummy()\r\n        : numb(0)\r\n        , useless(\"\\0\")\r\n    {\r\n    }\r\n\r\npublic:\r\n    void* not_useful(char* str) { useless = str; }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 8,
+                    "originalLine": 11,
+                    "originalStartLine": 8,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGF",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UC",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\nPlease remove the line(s)\r\n- 35",
+                    "path": "src/demo.hpp",
+                    "line": 35,
+                    "startLine": null,
+                    "originalLine": 35,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGG",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UD",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\r\n\r\n```suggestion\r\n#include <cstdio>\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 3,
+                    "startLine": null,
+                    "originalLine": 3,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGH",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UE",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy suggestions\r\n\r\n```suggestion\r\nauto main() -> int\r\n{\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 5,
+                    "startLine": null,
+                    "originalLine": 5,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGI",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UF",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\r\n\r\n```suggestion\r\n    for (;;) {\r\n        break;\r\n    }\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 11,
+                    "startLine": 6,
+                    "originalLine": 11,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGJ",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UG",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": null,
+                    "originalLine": 18,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGK",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UH",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use default member initializer for 'useless' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n- use default member initializer for 'numb' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n\r\n```suggestion\r\n    char* useless { \"\\0\" };\r\n    int numb { 0 };\r\n    Dummy() { }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 8,
+                    "startLine": 6,
+                    "originalLine": 8,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43AtGL",
+              "isResolved": true,
+              "isCollapsed": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WE2UI",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n\r\n```suggestion\r\npublic:\r\n    auto not_useful(char* str) -> void* { useless = str; }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 10,
+                    "originalLine": 11,
+                    "originalStartLine": 10,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rwtMo",
+                      "isMinimized": true
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsh",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaMx",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\nint main()\r\n{\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 5,
+                    "startLine": null,
+                    "originalLine": 5,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsl",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM0",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    for (;;)\r\n        break;\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 11,
+                    "startLine": 6,
+                    "originalLine": 11,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsn",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM2",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": 15,
+                    "originalLine": 18,
+                    "originalStartLine": 15,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFso",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM5",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\n```suggestion\r\n    Dummy()\r\n        : numb(0)\r\n        , useless(\"\\0\")\r\n    {\r\n    }\r\n\r\npublic:\r\n    void* not_useful(char* str) { useless = str; }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 8,
+                    "originalLine": 11,
+                    "originalStartLine": 8,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsq",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM7",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\r\n\r\nPlease remove the line(s)\r\n- 35",
+                    "path": "src/demo.hpp",
+                    "line": 35,
+                    "startLine": null,
+                    "originalLine": 35,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsr",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM8",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\r\n\r\n```suggestion\r\n#include <cstdio>\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 3,
+                    "startLine": null,
+                    "originalLine": 3,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFss",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM9",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy suggestions\r\n\r\n```suggestion\r\nauto main() -> int\r\n{\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 5,
+                    "startLine": null,
+                    "originalLine": 5,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFst",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaM_",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\r\n\r\n```suggestion\r\n    for (;;) {\r\n        break;\r\n    }\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 11,
+                    "startLine": 6,
+                    "originalLine": 11,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsu",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaNA",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy suggestions\r\n\r\n```suggestion\r\n    return 0;\r\n}\r\n```",
+                    "path": "src/demo.cpp",
+                    "line": 18,
+                    "startLine": null,
+                    "originalLine": 18,
+                    "originalStartLine": null,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsx",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaNE",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use default member initializer for 'useless' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n- use default member initializer for 'numb' [[modernize-use-default-member-init](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-default-member-init.html)]\r\n\r\n```suggestion\r\n    char* useless { \"\\0\" };\r\n    int numb { 0 };\r\n    Dummy() { }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 8,
+                    "startLine": 6,
+                    "originalLine": 8,
+                    "originalStartLine": 6,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOFY2uzM43BFsz",
+              "isResolved": false,
+              "isCollapsed": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOFY2uzM5WFaNG",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\r\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\r\n\r\n```suggestion\r\npublic:\r\n    auto not_useful(char* str) -> void* { useless = str; }\r\n```",
+                    "path": "src/demo.hpp",
+                    "line": 11,
+                    "startLine": 10,
+                    "originalLine": 11,
+                    "originalStartLine": 10,
+                    "pullRequestReview": {
+                      "id": "PRR_kwDOFY2uzM5rx1Zl",
+                      "isMinimized": false
                     }
                   }
                 ]
