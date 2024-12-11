@@ -504,71 +504,11 @@ class GithubApiClient(RestApiClient):
                 summary_only=summary_only,
                 review_comments=review_comments,
             )
-        ignored_reviews = []
-        if not summary_only:
-            found_threads = self._get_existing_review_comments(
-                no_dismissed=reuse_review_comments and not delete_review_comments
-            )
-            if found_threads:
-                if reuse_review_comments:
-                    # Keep already posted comments if they match new ones
-                    review_comments_suggestions = review_comments.suggestions
-                    review_comments.suggestions = []
-                    existing_review_comments = []
-                    for thread in found_threads:
-                        for comment in thread["comments"]["nodes"]:
-                            found = False
-                            if "originalLine" not in comment:
-                                raise ValueError(  # pragma: no cover
-                                    "GraphQL response malformed: 'originalLine' missing in comment"
-                                )
-                            line_start = (
-                                comment.get("startLine", None)
-                                or comment.get("originalStartLine", None)
-                                or -1
-                            )
-                            line_end = (
-                                comment.get("line", None) or comment["originalLine"]
-                            )
-                            for suggestion in review_comments_suggestions:
-                                if (
-                                    suggestion.file_name == comment["path"]
-                                    and suggestion.line_start == line_start
-                                    and suggestion.line_end == line_end
-                                    and f"{COMMENT_MARKER}{suggestion.comment}"
-                                    == comment["body"]
-                                    and suggestion not in existing_review_comments
-                                    and thread["isResolved"] is False
-                                    and thread["isCollapsed"] is False
-                                    and comment["pullRequestReview"]["isMinimized"]
-                                    is False
-                                ):
-                                    found = True
-                                    logger.info(
-                                        "Using existing review comment: path='%s', line_start='%s', line_end='%s'",
-                                        comment["path"],
-                                        line_start,
-                                        line_end,
-                                    )
-                                    ignored_reviews.append(
-                                        comment["pullRequestReview"]["id"]
-                                    )
-                                    existing_review_comments.append(suggestion)
-                                    break
-                            if not found:
-                                self._close_review_comment(
-                                    thread["id"], comment["id"], delete_review_comments
-                                )
-                    for suggestion in review_comments_suggestions:
-                        if suggestion not in existing_review_comments:
-                            review_comments.suggestions.append(suggestion)
-                else:
-                    # Not reusing so close all existing review comments
-                    for thread in found_threads:
-                        for comment in thread["comments"]["nodes"]:
-                            self._close_review_comment(
-                                thread["id"], comment["id"], delete_review_comments
-                            )
+        ignored_reviews = self._sort_review_threads(
+            review_comments=review_comments,
+            reuse_review_comments=reuse_review_comments,
+            delete_review_comments=delete_review_comments,
+        )
         self._hide_stale_reviews(ignored_reviews=ignored_reviews)
         if len(review_comments.suggestions) == 0 and len(ignored_reviews) > 0:
             logger.info("Using previous review as nothing new was found")
@@ -599,6 +539,78 @@ class GithubApiClient(RestApiClient):
             "comments": payload_comments,
         }
         self.api_request(url=url, data=json.dumps(payload), strict=False)
+
+    def _sort_review_threads(
+        self,
+        review_comments: ReviewComments,
+        reuse_review_comments: bool,
+        delete_review_comments: bool,
+    ) -> List[str]:
+        """This will sort through the threads of PR reviews and return a list of
+        bot comments to be kept.
+
+        This will also resolve (or delete if ``delete_review_comments`` is `True`)
+        any outdated unresolved comment."""
+        ignored_reviews: List[str] = []
+        found_threads = self._get_existing_review_comments(
+            no_dismissed=reuse_review_comments and not delete_review_comments
+        )
+        if not found_threads:
+            return ignored_reviews
+
+        if reuse_review_comments:
+            # Keep already posted comments if they match new ones
+            review_comments_suggestions = review_comments.suggestions
+            review_comments.suggestions = []
+            existing_review_comments = []
+            for thread in found_threads:
+                for comment in thread["comments"]["nodes"]:
+                    if "originalLine" not in comment:
+                        raise ValueError(  # pragma: no cover
+                            "GraphQL response malformed: 'originalLine' missing in comment"
+                        )
+                    line_start = (
+                        comment.get("startLine", None)
+                        or comment.get("originalStartLine", None)
+                        or -1
+                    )
+                    line_end = comment.get("line", None) or comment["originalLine"]
+                    for suggestion in review_comments_suggestions:
+                        if (
+                            suggestion.file_name == comment["path"]
+                            and suggestion.line_start == line_start
+                            and suggestion.line_end == line_end
+                            and f"{COMMENT_MARKER}{suggestion.comment}"
+                            == comment["body"]
+                            and suggestion not in existing_review_comments
+                            and thread["isResolved"] is False
+                            and thread["isCollapsed"] is False
+                            and comment["pullRequestReview"]["isMinimized"] is False
+                        ):
+                            logger.info(
+                                "Using existing review comment: path='%s', line_start='%s', line_end='%s'",
+                                comment["path"],
+                                line_start,
+                                line_end,
+                            )
+                            ignored_reviews.append(comment["pullRequestReview"]["id"])
+                            existing_review_comments.append(suggestion)
+                            break
+                    else:
+                        self._close_review_comment(
+                            thread["id"], comment["id"], delete_review_comments
+                        )
+            for suggestion in review_comments_suggestions:
+                if suggestion not in existing_review_comments:
+                    review_comments.suggestions.append(suggestion)
+        else:
+            # Not reusing so close all existing review comments
+            for thread in found_threads:
+                for comment in thread["comments"]["nodes"]:
+                    self._close_review_comment(
+                        thread["id"], comment["id"], delete_review_comments
+                    )
+        return ignored_reviews
 
     @staticmethod
     def create_review_comments(
