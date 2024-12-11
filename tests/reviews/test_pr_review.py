@@ -145,12 +145,13 @@ def test_post_review(
 
         def graphql_callback(request, context):
             context.status_code = 200
-            if request.data.startswith("query"):
+            query: str = request.json()["query"]
+            if query.startswith("query"):
                 # get existing review comments
                 return (cache_path / "pr_reviews_graphql.json").read_text(
                     encoding="utf-8"
                 )
-            elif "resolveReviewThread" in request.data:
+            elif "resolveReviewThread" in query:
                 # resolve review
                 id_pos = request.data.find('threadId:"') + 10
                 id_end_pos = request.data.find('"', id_pos + 1)
@@ -167,7 +168,7 @@ def test_post_review(
 }"""
                     % id_tag
                 )
-            elif "deletePullRequestReviewComment" in request.data:
+            elif "deletePullRequestReviewComment" in query:
                 # delete PR or minimizeComment
                 id_pos = request.data.find('id:"') + 4
                 id_end_pos = request.data.find('"', id_pos + 1)
@@ -184,7 +185,7 @@ def test_post_review(
 }"""
                     % id_tag
                 )
-            elif "minimizeComment" in request.data:
+            elif "minimizeComment" in query:
                 # minimizeComment
                 return """{
   "data": {
@@ -195,7 +196,13 @@ def test_post_review(
     }
   }
 }"""
-            return "errors"
+            return json.dumps(
+                {
+                    "errors": [
+                        {"message": "Failed to parse query when mocking a response"}
+                    ]
+                }
+            )
 
         mock.post(graphql_url, text=graphql_callback)
 
