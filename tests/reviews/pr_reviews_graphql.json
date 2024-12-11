@@ -13,7 +13,7 @@
                 "nodes": [
                   {
                     "id": "PRRC_kwDOFY2uzM5WD6gj",
-                    "body": "### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
+                    "body": "<!-- cpp linter action -->\n### clang-format suggestions\n\n```suggestion\n\r\nint main()\r\n{\r\n\r\n    for (;;)\r\n        break;\r\n\r\n```",
                     "path": "src/demo.cpp",
                     "line": 13,
                     "startLine": 4,
@@ -52,7 +52,7 @@
                 "nodes": [
                   {
                     "id": "PRRC_kwDOFY2uzM5WD6gk",
-                    "body": "### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\n- inclusion of deprecated C++ header 'stdio.h'; consider using 'cstdio' instead [[modernize-deprecated-headers](https://clang.llvm.org/extra/clang-tidy/checks/modernize/deprecated-headers.html)]\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n- statement should be inside braces [[readability-braces-around-statements](https://clang.llvm.org/extra/clang-tidy/checks/readability/braces-around-statements.html)]\n\n```suggestion\n#include \"demo.hpp\"\r\n#include <cstdio>\r\n\r\nauto main() -> int\r\n{\r\n\r\n    for (;;) {\r\n        break;\r\n    }\r\n\r\n```",
                     "path": "src/demo.cpp",
                     "line": 13,
                     "startLine": 2,
@@ -91,7 +91,7 @@
                 "nodes": [
                   {
                     "id": "PRRC_kwDOFY2uzM5WD6gm",
-                    "body": "### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
+                    "body": "<!-- cpp linter action -->\n### clang-tidy diagnostics\n- use a trailing return type for this function [[modernize-use-trailing-return-type](https://clang.llvm.org/extra/clang-tidy/checks/modernize/use-trailing-return-type.html)]\n\n```suggestion\n    public:\r\n        auto not_useful(char* str) -> void* { useless = str; }\r\n};\r\n```",
                     "path": "src/demo.hpp",
                     "line": 13,
                     "startLine": 10,

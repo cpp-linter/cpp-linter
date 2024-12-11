@@ -519,7 +519,7 @@ class GithubApiClient(RestApiClient):
                         for comment in thread["comments"]["nodes"]:
                             found = False
                             if "originalLine" not in comment:
-                                raise ValueError(
+                                raise ValueError(  # pragma: no cover
                                     "GraphQL response malformed: 'originalLine' missing in comment"
                                 )
                             line_start = (
@@ -535,11 +535,13 @@ class GithubApiClient(RestApiClient):
                                     suggestion.file_name == comment["path"]
                                     and suggestion.line_start == line_start
                                     and suggestion.line_end == line_end
-                                    and f"{COMMENT_MARKER}{suggestion.comment}" == comment["body"]
+                                    and f"{COMMENT_MARKER}{suggestion.comment}"
+                                    == comment["body"]
                                     and suggestion not in existing_review_comments
                                     and thread["isResolved"] is False
                                     and thread["isCollapsed"] is False
-                                    and comment["pullRequestReview"]["isMinimized"] is False
+                                    and comment["pullRequestReview"]["isMinimized"]
+                                    is False
                                 ):
                                     found = True
                                     logger.info(

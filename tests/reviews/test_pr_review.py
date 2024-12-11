@@ -5,6 +5,8 @@ from pathlib import Path
 import shutil
 import requests_mock
 import pytest
+import requests_mock.request
+import requests_mock.response
 
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools import capture_clang_tools_output
@@ -13,6 +15,69 @@ from cpp_linter.common_fs.file_filter import FileFilter
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
+DELETE_COMMENT_GRAPHQL = """{
+  "data": {
+    deletePullRequestReviewComment: {
+      pullRequestReviewComment {
+        %s
+      }
+    }
+  }
+}"""
+
+RESOLVE_COMMENT_GRAPHQL = """{
+  "data": {
+    resolveReviewThread: {
+      thread {
+        %s
+      }
+    }
+  }
+}"""
+
+MINIMIZE_COMMENT_GRAPHQL = """{
+  "data": {
+    "minimizeComment": {
+      "minimizedComment": {
+        "isMinimized": true
+      }
+    }
+  }
+}"""
+
+CACHE_PATH = Path(__file__).parent
+
+
+def graphql_callback(
+    request: requests_mock.request._RequestObjectProxy,
+    context: requests_mock.response._Context,
+):
+    context.status_code = 200
+    query: str = request.json()["query"]
+    if query.startswith("query"):
+        # get existing review comments
+        return (CACHE_PATH / "pr_reviews_graphql.json").read_text(encoding="utf-8")
+    elif "resolveReviewThread" in query:
+        # resolve review
+        id_pos = query.find('threadId:"') + 10
+        id_end_pos = query.find('"', id_pos + 1)
+        id_tag = query[id_pos:id_end_pos]
+        return RESOLVE_COMMENT_GRAPHQL % id_tag
+    elif "deletePullRequestReviewComment" in query:
+        # delete PR or minimizeComment
+        id_pos = query.find('id:"') + 4
+        id_end_pos = query.find('"', id_pos + 1)
+        id_tag = query[id_pos:id_end_pos]
+        return DELETE_COMMENT_GRAPHQL % id_tag
+    elif "minimizeComment" in query:
+        # minimizeComment
+        return MINIMIZE_COMMENT_GRAPHQL
+    else:  # pragma: no cover
+        context.status_code = 403
+        return json.dumps(
+            {"errors": [{"message": "Failed to parse query when mocking a response"}]}
+        )
+
 
 test_parameters = OrderedDict(
     is_draft=False,
@@ -26,6 +91,7 @@ test_parameters = OrderedDict(
     no_lgtm=False,
     num_workers=None,
     is_passive=False,
+    delete_review_comments=False,
 )
 
 
@@ -55,6 +121,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
         tuple(mk_param_set(tidy_review=True, changes=0).values()),
         tuple(mk_param_set(tidy_review=True, changes=0, summary_only=True).values()),
         tuple(mk_param_set(is_passive=True).values()),
+        tuple(mk_param_set(delete_review_comments=True).values()),
     ],
     ids=[
         "draft",
@@ -69,6 +136,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
         "all_lines",
         "summary_only",
         "passive",
+        "delete",
     ],
 )
 def test_post_review(
@@ -85,6 +153,7 @@ def test_post_review(
     no_lgtm: bool,
     num_workers: int,
     is_passive: bool,
+    delete_review_comments: bool,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -104,12 +173,11 @@ def test_post_review(
     shutil.copyfile(str(demo_dir / "demo.cpp"), str(tmp_path / "src" / "demo.cpp"))
     shutil.copyfile(str(demo_dir / "demo.hpp"), str(tmp_path / "src" / "demo.hpp"))
     shutil.copyfile(str(demo_dir / "demo.cpp"), str(tmp_path / "src" / "demo.c"))
-    cache_path = Path(__file__).parent
     shutil.copyfile(
-        str(cache_path / ".clang-format"), str(tmp_path / "src" / ".clang-format")
+        str(CACHE_PATH / ".clang-format"), str(tmp_path / "src" / ".clang-format")
     )
     shutil.copyfile(
-        str(cache_path / ".clang-tidy"), str(tmp_path / "src" / ".clang-tidy")
+        str(CACHE_PATH / ".clang-tidy"), str(tmp_path / "src" / ".clang-tidy")
     )
 
     gh_client = GithubApiClient()
@@ -122,16 +190,16 @@ def test_post_review(
         mock.get(
             base_url,
             request_headers={"Accept": "application/vnd.github.diff"},
-            text=(cache_path / f"pr_{TEST_PR}.diff").read_text(encoding="utf-8"),
+            text=(CACHE_PATH / f"pr_{TEST_PR}.diff").read_text(encoding="utf-8"),
         )
-        reviews = (cache_path / "pr_reviews.json").read_text(encoding="utf-8")
+        reviews = (CACHE_PATH / "pr_reviews.json").read_text(encoding="utf-8")
         mock.get(
             f"{base_url}/reviews?page=1&per_page=100",
             text=reviews,
         )
         mock.get(
             f"{base_url}/comments",
-            text=(cache_path / "pr_review_comments.json").read_text(encoding="utf-8"),
+            text=(CACHE_PATH / "pr_review_comments.json").read_text(encoding="utf-8"),
         )
 
         # acknowledge any PUT and POST requests about specific reviews
@@ -142,67 +210,6 @@ def test_post_review(
 
         # mock graphql requests
         graphql_url = f"{gh_client.api_url}/graphql"
-
-        def graphql_callback(request, context):
-            context.status_code = 200
-            query: str = request.json()["query"]
-            if query.startswith("query"):
-                # get existing review comments
-                return (cache_path / "pr_reviews_graphql.json").read_text(
-                    encoding="utf-8"
-                )
-            elif "resolveReviewThread" in query:
-                # resolve review
-                id_pos = request.data.find('threadId:"') + 10
-                id_end_pos = request.data.find('"', id_pos + 1)
-                id_tag = request.data[id_pos:id_end_pos]
-                return (
-                    """{
-  "data": {
-    resolveReviewThread: {
-      thread {
-        %s
-      }
-    }
-  }
-}"""
-                    % id_tag
-                )
-            elif "deletePullRequestReviewComment" in query:
-                # delete PR or minimizeComment
-                id_pos = request.data.find('id:"') + 4
-                id_end_pos = request.data.find('"', id_pos + 1)
-                id_tag = request.data[id_pos:id_end_pos]
-                return (
-                    """{
-  "data": {
-    deletePullRequestReviewComment: {
-      pullRequestReviewComment {
-        %s
-      }
-    }
-  }
-}"""
-                    % id_tag
-                )
-            elif "minimizeComment" in query:
-                # minimizeComment
-                return """{
-  "data": {
-    "minimizeComment": {
-      "minimizedComment": {
-        "isMinimized": true
-      }
-    }
-  }
-}"""
-            return json.dumps(
-                {
-                    "errors": [
-                        {"message": "Failed to parse query when mocking a response"}
-                    ]
-                }
-            )
 
         mock.post(graphql_url, text=graphql_callback)
 
@@ -233,6 +240,7 @@ def test_post_review(
         args.no_lgtm = no_lgtm
         args.file_annotations = False
         args.passive_reviews = is_passive
+        args.delete_review_comments = delete_review_comments
 
         clang_versions = capture_clang_tools_output(files, args=args)
         if not force_approved:
@@ -245,7 +253,7 @@ def test_post_review(
             assert format_advice and len(format_advice) <= len(files)
 
         # simulate draft PR by changing the request response
-        cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(
+        cache_pr_response = (CACHE_PATH / f"pr_{TEST_PR}.json").read_text(
             encoding="utf-8"
         )
         if is_draft:
