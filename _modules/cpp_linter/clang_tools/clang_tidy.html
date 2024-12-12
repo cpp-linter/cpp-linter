@@ -705,9 +705,13 @@
 
         <span class="k">def</span> <span class="nf">_has_related_suggestion</span><span class="p">(</span><span class="n">suggestion</span><span class="p">:</span> <span class="n">Suggestion</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">known</span> <span class="ow">in</span> <span class="n">review_comments</span><span class="o">.</span><span class="n">suggestions</span><span class="p">:</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">known</span><span class="o">.</span><span class="n">file_name</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">file_name</span>
-                    <span class="ow">and</span> <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">known</span><span class="o">.</span><span class="n">line_start</span>
+                <span class="k">if</span> <span class="n">known</span><span class="o">.</span><span class="n">file_name</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">file_name</span> <span class="ow">and</span> <span class="p">(</span>
+                    <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">==</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span>
+                    <span class="k">if</span> <span class="n">known</span><span class="o">.</span><span class="n">line_start</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                    <span class="k">else</span> <span class="p">(</span>
+                        <span class="n">known</span><span class="o">.</span><span class="n">line_start</span> <span class="o">&lt;=</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span>
+                        <span class="ow">and</span> <span class="n">known</span><span class="o">.</span><span class="n">line_end</span> <span class="o">&gt;=</span> <span class="n">suggestion</span><span class="o">.</span><span class="n">line_end</span>
+                    <span class="p">)</span>
                 <span class="p">):</span>
                     <span class="n">known</span><span class="o">.</span><span class="n">comment</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">suggestion</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2">&quot;</span>
                     <span class="k">return</span> <span class="kc">True</span>
