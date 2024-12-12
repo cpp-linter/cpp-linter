@@ -556,6 +556,7 @@
 <h1>Source code for cpp_linter.common_fs</h1><div class="highlight"><pre>
 <span></span><code><span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">environ</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
 <span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">DiffHunk</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">..loggers</span> <span class="kn">import</span> <span class="n">logger</span>
@@ -726,7 +727,100 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="FileObj.read_with_timeout">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj.read_with_timeout">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_with_timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout_ns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000_000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the entire file&#39;s contents.</span>
+
+<span class="sd">        :param timeout_ns: The number of nanoseconds to wait till timeout occurs.</span>
+<span class="sd">            Defaults to 1 second.</span>
+
+<span class="sd">        :returns: The bytes read from the file.</span>
+
+<span class="sd">        :raises FileIOTimeout: When the operation did not succeed due to a timeout.</span>
+<span class="sd">        :raises OSError: When the file could not be opened due to an `OSError`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">exception</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">FileIOTimeout</span><span class="p">]</span> <span class="o">=</span> <span class="n">FileIOTimeout</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Failed to read from file &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; within &quot;</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">timeout_ns</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1_000_000_000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
+        <span class="p">)</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">+</span> <span class="n">timeout_ns</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="k">while</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">readable</span><span class="p">():</span>
+                            <span class="n">contents</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                            <span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>  <span class="c1"># Sleep to prevent busy-waiting</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="n">exception</span> <span class="o">=</span> <span class="n">exc</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="n">exception</span>
+        <span class="k">return</span> <span class="n">contents</span></div>
+
+
+<div class="viewcode-block" id="FileObj.read_write_with_timeout">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.common_fs.html#cpp_linter.common_fs.FileObj.read_write_with_timeout">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_write_with_timeout</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">],</span>
+        <span class="n">timeout_ns</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000_000_000</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read then write the entire file&#39;s contents.</span>
+
+<span class="sd">        :param data: The bytes to write to the file. This will overwrite the contents</span>
+<span class="sd">            being read beforehand.</span>
+<span class="sd">        :param timeout_ns: The number of nanoseconds to wait till timeout occurs.</span>
+<span class="sd">            Defaults to 1 second.</span>
+
+<span class="sd">        :returns: The bytes read from the file.</span>
+
+<span class="sd">        :raises FileIOTimeout: When the operation did not succeed due to a timeout.</span>
+<span class="sd">        :raises OSError: When the file could not be opened due to an `OSError`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">exception</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">FileIOTimeout</span><span class="p">]</span> <span class="o">=</span> <span class="n">FileIOTimeout</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Failed to read then write file &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; within &quot;</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">timeout_ns</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1_000_000_000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
+        <span class="p">)</span>
+        <span class="n">original_data</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">+</span> <span class="n">timeout_ns</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;r+b&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="k">while</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">readable</span><span class="p">():</span>
+                            <span class="n">original_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>  <span class="c1"># Sleep to prevent busy-waiting</span>
+                            <span class="k">continue</span>
+                        <span class="k">while</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">time</span><span class="o">.</span><span class="n">monotonic_ns</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">timeout</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">writable</span><span class="p">():</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                                <span class="n">f</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+                                <span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>  <span class="c1"># Sleep to prevent busy-waiting</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="n">exception</span> <span class="o">=</span> <span class="n">exc</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="n">exception</span>
+        <span class="k">return</span> <span class="n">original_data</span></div>
 </div>
+
+
+
+<div class="viewcode-block" id="FileIOTimeout">
+<a class="viewcode-back" href="../../API-Reference/cpp_linter.common_fs.html#cpp_linter.common_fs.FileIOTimeout">[docs]</a>
+<span class="k">class</span> <span class="nc">FileIOTimeout</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An exception thrown when a file operation timed out.&quot;&quot;&quot;</span></div>
 
 
 
@@ -756,10 +850,10 @@
 
 <div class="viewcode-block" id="get_line_cnt_from_cols">
 <a class="viewcode-back" href="../../API-Reference/cpp_linter.common_fs.html#cpp_linter.common_fs.get_line_cnt_from_cols">[docs]</a>
-<span class="k">def</span> <span class="nf">get_line_cnt_from_cols</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">get_line_cnt_from_cols</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gets a line count and columns offset from a file&#39;s absolute offset.</span>
 
-<span class="sd">    :param file_path: Path to file.</span>
+<span class="sd">    :param data: Bytes content to analyze.</span>
 <span class="sd">    :param offset: The byte offset to translate</span>
 
 <span class="sd">    :returns:</span>
@@ -769,7 +863,7 @@
 <span class="sd">        - Index 1 is the column number for the given offset on the line.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># logger.debug(&quot;Getting line count from %s at offset %d&quot;, file_path, offset)</span>
-    <span class="n">contents</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()[:</span><span class="n">offset</span><span class="p">]</span>
+    <span class="n">contents</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">offset</span><span class="p">]</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">contents</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">contents</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span></div>
 
 </code></pre></div>

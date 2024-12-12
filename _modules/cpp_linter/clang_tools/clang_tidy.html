@@ -825,7 +825,7 @@
     <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
         <span class="c1"># clang-tidy overwrites the file contents when applying fixes.</span>
         <span class="c1"># create a cache of original contents</span>
-        <span class="n">original_buf</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+        <span class="n">original_buf</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">read_with_timeout</span><span class="p">()</span>
         <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--fix-errors&quot;</span><span class="p">)</span>  <span class="c1"># include compiler-suggested fixes</span>
     <span class="n">cmds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Running &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmds</span><span class="p">))</span>
@@ -839,10 +839,8 @@
     <span class="n">advice</span> <span class="o">=</span> <span class="n">parse_tidy_output</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">decode</span><span class="p">(),</span> <span class="n">database</span><span class="o">=</span><span class="n">db_json</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">tidy_review</span><span class="p">:</span>
-        <span class="c1"># store the modified output from clang-tidy</span>
-        <span class="n">advice</span><span class="o">.</span><span class="n">patched</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
-        <span class="c1"># re-write original file contents</span>
-        <span class="n">Path</span><span class="p">(</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">original_buf</span><span class="p">)</span>
+        <span class="c1"># store the modified output from clang-tidy and re-write original file contents</span>
+        <span class="n">advice</span><span class="o">.</span><span class="n">patched</span> <span class="o">=</span> <span class="n">file_obj</span><span class="o">.</span><span class="n">read_write_with_timeout</span><span class="p">(</span><span class="n">original_buf</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">advice</span></div>
 
