@@ -561,15 +561,9 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">Patch</span>  <span class="c1"># type: ignore</span>
 <span class="kn">from</span> <span class="nn">..common_fs</span> <span class="kn">import</span> <span class="n">FileObj</span>
+<span class="kn">from</span> <span class="nn">pygit2.enums</span> <span class="kn">import</span> <span class="n">DiffOption</span>  <span class="c1"># type: ignore</span>
 
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">pygit2.enums</span> <span class="kn">import</span> <span class="n">DiffOption</span>  <span class="c1"># type: ignore</span>
-
-    <span class="n">INDENT_HEURISTIC</span> <span class="o">=</span> <span class="n">DiffOption</span><span class="o">.</span><span class="n">INDENT_HEURISTIC</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># if pygit2.__version__ &lt; 1.14</span>
-    <span class="kn">from</span> <span class="nn">pygit2</span> <span class="kn">import</span> <span class="n">GIT_DIFF_INDENT_HEURISTIC</span>  <span class="c1"># type: ignore</span>
-
-    <span class="n">INDENT_HEURISTIC</span> <span class="o">=</span> <span class="n">GIT_DIFF_INDENT_HEURISTIC</span>
+<span class="n">INDENT_HEURISTIC</span> <span class="o">=</span> <span class="n">DiffOption</span><span class="o">.</span><span class="n">INDENT_HEURISTIC</span>
 
 
 <div class="viewcode-block" id="Suggestion">
