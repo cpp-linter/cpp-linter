@@ -571,7 +571,7 @@ class GithubApiClient(RestApiClient):
         if len(review_comments.suggestions) == 0 and len(ignored_reviews) > 0:
             logger.info("Using previous review as nothing new was found")
             return
-        self._dismiss_stale_reviews(url)
+        self._dismiss_stale_reviews(url, ignored_reviews=ignored_reviews)
         (summary, comments) = review_comments.serialize_to_github_payload(
             # avoid circular imports by passing primitive types
             tidy_version=clang_versions.tidy,
@@ -628,7 +628,7 @@ class GithubApiClient(RestApiClient):
                 file_obj, summary_only, review_comments
             )
 
-    def _dismiss_stale_reviews(self, url: str):
+    def _dismiss_stale_reviews(self, url: str, ignored_reviews: List[str]):
         """Dismiss all reviews that were previously created by cpp-linter"""
         next_page: Optional[str] = url + "?page=1&per_page=100"
         while next_page:
@@ -642,6 +642,7 @@ class GithubApiClient(RestApiClient):
                     and cast(str, review["body"]).startswith(COMMENT_MARKER)
                     and "state" in review
                     and review["state"] not in ["PENDING", "DISMISSED"]
+                    and review["node_id"] not in ignored_reviews
                 ):
                     assert "id" in review
                     self.api_request(
