@@ -10,8 +10,9 @@ keywords = ["clang", "clang-tools", "linter", "clang-tidy", "clang-format"]
 license = {text = "MIT License"}
 authors = [
     { name = "Brendan Doherty", email = "2bndy5@gmail.com" },
-    { name = "Peter Shen", email = "xianpeng.shen@gmail.com" },
+    { name = "Xianpeng Shen", email = "xianpeng.shen@gmail.com" },
 ]
+requires-python = ">=3.9"
 classifiers = [
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     "Development Status :: 5 - Production/Stable",
@@ -24,6 +25,11 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Build Tools",
 ]
 dynamic = ["version", "dependencies"]

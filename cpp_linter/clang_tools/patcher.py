@@ -5,15 +5,9 @@ from abc import ABC
 from typing import Optional, Dict, Any, List, Tuple
 from pygit2 import Patch  # type: ignore
 from ..common_fs import FileObj
+from pygit2.enums import DiffOption  # type: ignore
 
-try:
-    from pygit2.enums import DiffOption  # type: ignore
-
-    INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
-except ImportError:  # if pygit2.__version__ < 1.14
-    from pygit2 import GIT_DIFF_INDENT_HEURISTIC  # type: ignore
-
-    INDENT_HEURISTIC = GIT_DIFF_INDENT_HEURISTIC
+INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
 
 
 class Suggestion:
