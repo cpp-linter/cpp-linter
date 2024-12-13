@@ -12,9 +12,7 @@ authors = [
     { name = "Brendan Doherty", email = "2bndy5@gmail.com" },
     { name = "Peter Shen", email = "xianpeng.shen@gmail.com" },
 ]
-
 requires-python = ">=3.9"
-
 classifiers = [
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     "Development Status :: 5 - Production/Stable",
