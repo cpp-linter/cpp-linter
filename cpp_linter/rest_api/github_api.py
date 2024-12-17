@@ -628,7 +628,7 @@ class GithubApiClient(RestApiClient):
                 file_obj, summary_only, review_comments
             )
 
-    def _dismiss_stale_reviews(self, url: str, ignored_reviews: List[str]):
+    def _dismiss_stale_reviews(self, url: str, ignored_reviews: List[str] = []):
         """Dismiss all reviews that were previously created by cpp-linter"""
         next_page: Optional[str] = url + "?page=1&per_page=100"
         while next_page:
