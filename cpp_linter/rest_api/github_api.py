@@ -570,7 +570,7 @@ class GithubApiClient(RestApiClient):
                 file_obj, summary_only, review_comments
             )
 
-    def _dismiss_stale_reviews(self, url: str, ignored_reviews: List[str] = []):
+    def _dismiss_stale_reviews(self, url: str, ignored_reviews: List[str] = None):
         """Dismiss all reviews that were previously created by cpp-linter"""
         next_page: Optional[str] = url + "?page=1&per_page=100"
         while next_page:
@@ -584,7 +584,10 @@ class GithubApiClient(RestApiClient):
                     and cast(str, review["body"]).startswith(COMMENT_MARKER)
                     and "state" in review
                     and review["state"] not in ["PENDING", "DISMISSED"]
-                    and review["node_id"] not in ignored_reviews
+                    and (
+                        ignored_reviews is not None
+                        and review["node_id"] not in ignored_reviews
+                    )
                 ):
                     assert "id" in review
                     self.api_request(
