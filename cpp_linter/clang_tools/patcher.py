@@ -164,7 +164,7 @@ class ReviewComments:
                     self.tool_total["clang-tidy"] - clang_tidy_comments
                 )
                 self.tool_total["clang-tidy"] = clang_tidy_comments
-            if clang_tidy_comments > 0:
+            if clang_format_comments > 0:
                 self.tool_reused["clang-format"] = (
                     self.tool_total["clang-format"] - clang_format_comments
                 )
