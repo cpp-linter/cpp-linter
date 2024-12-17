@@ -66,6 +66,12 @@ class ReviewComments:
         """The full patch of all the suggestions (including those that will not
         fit within the diff)"""
 
+        self.tool_reused: Dict[str, int] = {
+            "clang-tidy": 0,
+            "clang-format": 0,
+        }
+        """The total number of reused concerns from previous reviews."""
+
     def merge_similar_suggestion(self, suggestion: Suggestion) -> bool:
         """Merge a given ``suggestion`` into a similar `Suggestion`
 
@@ -105,10 +111,10 @@ class ReviewComments:
         posted_tool_advice = {"clang-tidy": 0, "clang-format": 0}
         for comment in self.suggestions:
             comments.append(comment.serialize_to_github_payload())
-            if "### clang-format" in comment.comment:
-                posted_tool_advice["clang-format"] += 1
-            if "### clang-tidy" in comment.comment:
-                posted_tool_advice["clang-tidy"] += 1
+            posted_tool_advice["clang-tidy"] += comment.comment.count("### clang-tidy")
+            posted_tool_advice["clang-format"] += comment.comment.count(
+                "### clang-format"
+            )
 
         for tool_name in ("clang-tidy", "clang-format"):
             tool_version = tidy_version
@@ -117,15 +123,18 @@ class ReviewComments:
             if tool_version is None or self.tool_total[tool_name] is None:
                 continue  # if tool wasn't used
             summary += f"### Used {tool_name} v{tool_version}\n\n"
-            if (
-                len(comments)
-                and posted_tool_advice[tool_name] != self.tool_total[tool_name]
+            if len(comments) and (
+                posted_tool_advice[tool_name] != self.tool_total[tool_name]
+                or self.tool_reused[tool_name] != 0
             ):
                 summary += (
                     f"Only {posted_tool_advice[tool_name]} out of "
                     + f"{self.tool_total[tool_name]} {tool_name}"
-                    + " concerns fit within this pull request's diff.\n"
+                    + " new concerns fit within this pull request's diff."
                 )
+                if self.tool_reused[tool_name] != 0:
+                    summary += f" {self.tool_reused[tool_name]} concerns were suppressed as duplicates."
+                summary += "\n"
             if self.full_patch[tool_name]:
                 summary += (
                     f"\n<details><summary>Click here for the full {tool_name} patch"
@@ -135,6 +144,31 @@ class ReviewComments:
             elif not self.tool_total[tool_name]:
                 summary += f"No concerns from {tool_name}.\n"
         return (summary, comments)
+
+    def remove_reused_suggestions(self, existing_review_comments: List[Suggestion]):
+        """Remove any reused ``Suggestion`` from the internal list and update counts"""
+        if len(existing_review_comments):
+            review_comments_suggestions = self.suggestions
+            self.suggestions = []
+            clang_tidy_comments = 0
+            clang_format_comments = 0
+            for suggestion in review_comments_suggestions:
+                if suggestion not in existing_review_comments:
+                    clang_tidy_comments += suggestion.comment.count("### clang-tidy")
+                    clang_format_comments += suggestion.comment.count(
+                        "### clang-format"
+                    )
+                    self.suggestions.append(suggestion)
+            if clang_tidy_comments > 0:
+                self.tool_reused["clang-tidy"] = (
+                    self.tool_total["clang-tidy"] - clang_tidy_comments
+                )
+                self.tool_total["clang-tidy"] = clang_tidy_comments
+            if clang_tidy_comments > 0:
+                self.tool_reused["clang-format"] = (
+                    self.tool_total["clang-format"] - clang_format_comments
+                )
+                self.tool_total["clang-format"] = clang_format_comments
 
 
 class PatchMixin(ABC):
