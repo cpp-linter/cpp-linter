@@ -667,10 +667,11 @@ class GithubApiClient(RestApiClient):
             strict=False,
         )
         logger.debug(
-            "%s review comment thread %s (thread_id: %s)",
+            "%s review comment %s (%s: %s)",
             operation.title(),
             "failed" if response.status_code != 200 else "succeeded",
-            thread_id,
+            "comment_id" if delete else "thread_id",
+            comment_id if delete else thread_id,
         )
 
     def _hide_stale_reviews(self, ignored_reviews: List[str]):
