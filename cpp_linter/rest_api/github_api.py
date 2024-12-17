@@ -512,8 +512,6 @@ class GithubApiClient(RestApiClient):
             if found_threads:
                 if reuse_review_comments:
                     # Keep already posted comments if they match new ones
-                    review_comments_suggestions = review_comments.suggestions
-                    review_comments.suggestions = []
                     existing_review_comments = []
                     for thread in found_threads:
                         for comment in thread["comments"]["nodes"]:
@@ -530,16 +528,18 @@ class GithubApiClient(RestApiClient):
                             line_end = (
                                 comment.get("line", None) or comment["originalLine"]
                             )
-                            for suggestion in review_comments_suggestions:
+                            for suggestion in review_comments.suggestions:
                                 if (
                                     suggestion.file_name == comment["path"]
                                     and suggestion.line_start == line_start
                                     and suggestion.line_end == line_end
-                                    and f"{COMMENT_MARKER}{suggestion.comment}" == comment["body"]
+                                    and f"{COMMENT_MARKER}{suggestion.comment}"
+                                    == comment["body"]
                                     and suggestion not in existing_review_comments
                                     and thread["isResolved"] is False
                                     and thread["isCollapsed"] is False
-                                    and comment["pullRequestReview"]["isMinimized"] is False
+                                    and comment["pullRequestReview"]["isMinimized"]
+                                    is False
                                 ):
                                     found = True
                                     logger.info(
@@ -557,9 +557,9 @@ class GithubApiClient(RestApiClient):
                                 self._close_review_comment(
                                     thread["id"], comment["id"], delete_review_comments
                                 )
-                    for suggestion in review_comments_suggestions:
-                        if suggestion not in existing_review_comments:
-                            review_comments.suggestions.append(suggestion)
+                    review_comments.remove_reused_suggestions(
+                        existing_review_comments=existing_review_comments
+                    )
                 else:
                     # Not reusing so close all existing review comments
                     for thread in found_threads:
