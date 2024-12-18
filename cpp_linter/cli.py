@@ -365,7 +365,7 @@ _parser_args[("-C", "--delete-review-comments")] = dict(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to delete existing outdated/unused
 Pull request review comments, ``false`` to just set them to resolved.
-This only effects review comments made when either
+This only affects review comments made when either
 :std:option:`--tidy-review` or :std:option:`--format-review` is enabled.
 
 Defaults to ``%(default)s``.""",
