@@ -42,6 +42,27 @@ class Suggestion:
         return result
 
 
+class ExistingSuggestion(Suggestion):
+    def __init__(self, file_name) -> None:
+        super().__init__(file_name)
+        #: The review ID corresponding to this review comment.
+        self.review_id: str = ""
+        self.review_is_minimized: bool = False
+        """Is the review minimized?
+        This applies to entire review, not the thread or comments within."""
+
+
+class ExistingThread:
+    def __init__(self) -> None:
+        self.comments: List[ExistingSuggestion] = []
+        #: Is the review thread resolved?
+        self.is_resolved: bool = False
+        #: Is the review thread collapsed?
+        self.is_collapsed: bool = False
+        #: The review thread's ``node_id``.
+        self.id: str = ""
+
+
 class ReviewComments:
     """A data structure to contain PR review comments from a specific clang tool."""
 

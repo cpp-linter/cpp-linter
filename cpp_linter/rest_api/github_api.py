@@ -24,7 +24,12 @@ from ..clang_tools.clang_format import (
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import tally_tidy_advice
-from ..clang_tools.patcher import ReviewComments, PatchMixin
+from ..clang_tools.patcher import (
+    ReviewComments,
+    PatchMixin,
+    ExistingSuggestion,
+    ExistingThread,
+)
 from ..clang_tools import ClangVersions
 from ..cli import Args
 from ..loggers import logger, log_commander
@@ -37,16 +42,18 @@ RATE_LIMIT_HEADERS = RateLimitHeaders(
     retry="retry-after",
 )
 
-QUERY_REVIEW_COMMENTS = """query($owner: String!, $name: String!, $number: Int!) {
-     repository(owner: $owner, name: $name) {
-         pullRequest(number: $number) {
+GRAPHQL_PAGE_INFO = Dict[str, Union[str, bool]]
+
+QUERY_REVIEW_COMMENTS = """query($owner: String!, $name: String!, $number: Int!, $afterThread: String, $afterComment: String) {
+    repository(owner: $owner, name: $name) {
+        pullRequest(number: $number) {
             id
-            reviewThreads(last: 100) {
+            reviewThreads(last: 100, after: $afterThread) {
                 nodes {
                     id
                     isResolved
                     isCollapsed
-                    comments(first: 100) {
+                    comments(first: 100, after: $afterComment) {
                         nodes {
                             id
                             body
@@ -60,7 +67,15 @@ QUERY_REVIEW_COMMENTS = """query($owner: String!, $name: String!, $number: Int!)
                                 isMinimized
                             }
                         }
+                        pageInfo {
+                            endCursor
+                            hasNextPage
+                        }
                     }
+                }
+                pageInfo {
+                    endCursor
+                    hasNextPage
                 }
             }
         }
@@ -513,7 +528,8 @@ class GithubApiClient(RestApiClient):
         ignored_reviews = []
         if not summary_only:
             ignored_reviews = self._check_reused_comments(
-                delete_review_comments, review_comments
+                delete_review_comments=delete_review_comments,
+                review_comments=review_comments,
             )
         self._hide_stale_reviews(ignored_reviews=ignored_reviews)
         if len(review_comments.suggestions) == 0 and len(ignored_reviews) > 0:
@@ -545,6 +561,58 @@ class GithubApiClient(RestApiClient):
             "comments": payload_comments,
         }
         self.api_request(url=url, data=json.dumps(payload), strict=False)
+
+    def _check_reused_comments(
+        self,
+        delete_review_comments: bool,
+        review_comments: ReviewComments,
+    ) -> List[str]:
+        """This will sort through the threads of PR reviews and return a list of
+        bot comments' IDs to be kept.
+
+        This will also resolve (or delete if ``delete_review_comments`` is `True`)
+        any outdated unresolved comment."""
+        ignored_reviews: List[str] = []
+        found_threads = self._get_existing_review_comments(
+            no_dismissed=not delete_review_comments
+        )
+        if not found_threads:
+            return ignored_reviews
+
+        # Keep already posted comments if they match new ones
+        existing_review_comments = []
+        for thread in found_threads:
+            for comment in thread.comments:
+                for suggestion in review_comments.suggestions:
+                    if (
+                        suggestion.file_name == comment.file_name
+                        and suggestion.line_start == comment.line_start
+                        and suggestion.line_end == comment.line_end
+                        and f"{COMMENT_MARKER}{suggestion.comment}" == comment.comment
+                        and suggestion not in existing_review_comments
+                        and not thread.is_resolved
+                        and not thread.is_collapsed
+                        and not comment.review_is_minimized
+                    ):
+                        logger.info(
+                            "Using existing review comment: path='%s', line_start='%s', line_end='%s'",
+                            comment.file_name,
+                            comment.line_start,
+                            comment.line_end,
+                        )
+                        ignored_reviews.append(comment.review_id)
+                        existing_review_comments.append(suggestion)
+                        break
+                else:
+                    self._close_review_comment(
+                        thread_id=thread.id,
+                        comment_id=comment.review_id,
+                        delete=delete_review_comments,
+                    )
+        review_comments.remove_reused_suggestions(
+            existing_review_comments=existing_review_comments
+        )
+        return ignored_reviews
 
     @staticmethod
     def create_review_comments(
@@ -620,48 +688,119 @@ class GithubApiClient(RestApiClient):
 
         :param no_dismissed: `True` to ignore any already dismissed comments.
         """
+
+        class ThreadInfo(NamedTuple):
+            id: str
+            is_resolved: bool
+            is_collapsed: bool
+
+        # aggregate threads into map of reviews' ID corresponding to
+        found_threads: Dict[ThreadInfo, List[ExistingSuggestion]] = {}
         repo_owner, repo_name = self.repo.split("/")
-        query = QUERY_REVIEW_COMMENTS
-        variables = {
-            "owner": repo_owner,
-            "name": repo_name,
-            "number": self.pull_request,
-        }
-        response = self.api_request(
-            url=f"{self.api_url}/graphql",
-            method="POST",
-            data=json.dumps({"query": query, "variables": variables}),
-            strict=False,
-        )
-        if response.status_code != 200:
-            logger.error(
-                "Could not get existing review thread comments: %d",
-                response.status_code,
+        after_thread: Optional[str] = None
+        after_comment: Optional[str] = None
+        has_next_pg = True
+        default_pg_info: GRAPHQL_PAGE_INFO = {"hasNextPage": False, "endCursor": ""}
+        while has_next_pg:
+            variables = {
+                "owner": repo_owner,
+                "name": repo_name,
+                "number": self.pull_request,
+                "afterThread": after_thread,
+                "afterComment": after_comment,
+            }
+            response = self.api_request(
+                url=f"{self.api_url}/graphql",
+                method="POST",
+                data=json.dumps(
+                    {"query": QUERY_REVIEW_COMMENTS, "variables": variables}
+                ),
+                strict=False,
             )
-            return
-        data = response.json()
-        found_threads = []
-        try:
-            nodes = data["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
-        except KeyError as exc:  # pragma: no cover
-            logger.error("Malformed GraphQL response: Field %s not found", exc.args[0])
-            return
-        for thread in nodes:
-            for comment in thread["comments"]["nodes"]:
-                if (
-                    comment["id"]
-                    and (
-                        not no_dismissed
-                        or (
-                            thread["isResolved"] is False
-                            and thread["isCollapsed"] is False
+            if response.status_code != 200:
+                logger.error("Could not get existing review thread comments.")
+                break
+            data = response.json()
+            try:
+                threads = cast(
+                    Dict[str, Any],
+                    data["data"]["repository"]["pullRequest"]["reviewThreads"],
+                )
+            except KeyError as exc:  # pragma: no cover
+                logger.error(
+                    "Malformed GraphQL response: Field %s not found", exc.args[0]
+                )
+                break
+            thread_pg_info = cast(
+                GRAPHQL_PAGE_INFO, threads.pop("pageInfo", default_pg_info)
+            )
+            for thread in cast(List[Dict[str, Any]], threads.get("nodes", [])):
+                comment_data = cast(Dict[str, Any], thread["comments"])
+                comment_pg_info = cast(
+                    GRAPHQL_PAGE_INFO, comment_data.pop("pageInfo", default_pg_info)
+                )
+                thread_info = ThreadInfo(
+                    id=thread["id"],
+                    is_resolved=thread.get("isResolved", False),
+                    is_collapsed=thread.get("isCollapsed", False),
+                )
+                for comment in cast(List[Dict[str, Any]], thread.get("nodes", [])):
+                    if (
+                        "id" in comment
+                        and "path" in comment
+                        and "originalLine" in comment
+                        and "pullRequestReview" in comment
+                        and "id" in comment["pullRequestReview"]
+                        and (
+                            not no_dismissed
+                            or (
+                                not thread.get("isResolved", False)
+                                and not thread.get("isCollapsed", False)
+                            )
                         )
-                    )
-                    and comment["body"].startswith(COMMENT_MARKER)
-                ):
-                    found_threads.append(thread)
-                    break
-        return found_threads
+                        and "body" in comment
+                        and cast(str, comment["body"]).startswith(COMMENT_MARKER)
+                    ):
+                        suggestion = ExistingSuggestion(comment["path"])
+                        suggestion.line_start = (
+                            comment.get("startLine", None)
+                            or comment.get("originalStartLine", None)
+                            or -1
+                        )
+                        suggestion.line_end = (
+                            comment.get("line", None) or comment["originalLine"]
+                        )
+                        suggestion.comment = comment["body"]
+                        review_info = cast(
+                            Dict[str, Union[str, bool]], comment["pullRequestReview"]
+                        )
+                        suggestion.review_id = cast(str, review_info["id"])
+                        suggestion.review_is_minimized = cast(
+                            bool, review_info.get("isMinimized", False)
+                        )
+                        if thread_info not in found_threads:
+                            found_threads[thread_info] = [suggestion]
+                        elif suggestion not in found_threads[thread_info]:
+                            found_threads[thread_info].append(suggestion)
+                if comment_pg_info.get("hasNextPage", False) is True:
+                    after_comment = cast(str, comment_pg_info.get("endCursor"))
+                else:
+                    after_comment = None
+            if after_comment is None:
+                if thread_pg_info.get("hasNextPage", False) is False:
+                    has_next_pg = False
+                else:
+                    after_thread = cast(str, thread_pg_info.get("endCursor"))
+        # serialize threads into data structure for further processing
+        result: List[ExistingThread] = []
+        for thread_info, comments in found_threads.items():
+            review_thread = ExistingThread()
+            review_thread.id = thread_info.id
+            review_thread.is_resolved = thread_info.is_resolved
+            review_thread.is_collapsed = thread_info.is_collapsed
+            review_thread.comments = comments
+            result.append(review_thread)
+        return result
 
     def _close_review_comment(
         self, thread_id: str, comment_id: str, delete: bool = True
@@ -729,61 +868,3 @@ class GithubApiClient(RestApiClient):
                         repr(response.status_code != 200).lower(),
                         review["node_id"],
                     )
-
-    def _check_reused_comments(
-        self,
-        delete_review_comments: bool,
-        review_comments: ReviewComments,
-    ) -> List[str]:
-        ignored_reviews = []
-        found_threads = self._get_existing_review_comments(
-            no_dismissed=not delete_review_comments
-        )
-        if found_threads:
-            # Keep already posted comments if they match new ones
-            existing_review_comments = []
-            for thread in found_threads:
-                for comment in thread["comments"]["nodes"]:
-                    found = False
-                    if "originalLine" not in comment:
-                        raise ValueError(
-                            "GraphQL response malformed: 'originalLine' missing in comment"
-                        )
-                    line_start = (
-                        comment.get("startLine", None)
-                        or comment.get("originalStartLine", None)
-                        or -1
-                    )
-                    line_end = comment.get("line", None) or comment["originalLine"]
-                    for suggestion in review_comments.suggestions:
-                        if (
-                            suggestion.file_name == comment["path"]
-                            and suggestion.line_start == line_start
-                            and suggestion.line_end == line_end
-                            and f"{COMMENT_MARKER}{suggestion.comment}"
-                            == comment["body"]
-                            and suggestion not in existing_review_comments
-                            and thread["isResolved"] is False
-                            and thread["isCollapsed"] is False
-                            and comment["pullRequestReview"]["isMinimized"] is False
-                        ):
-                            found = True
-                            logger.info(
-                                "Using existing review comment: path='%s', line_start='%s', line_end='%s'",
-                                comment["path"],
-                                line_start,
-                                line_end,
-                            )
-                            ignored_reviews.append(
-                                comment["pullRequestReview"]["id"]
-                            )
-                            existing_review_comments.append(suggestion)
-                            break
-                    if not found:
-                        self._close_review_comment(
-                            thread["id"], comment["id"], delete_review_comments
-                        )
-                review_comments.remove_reused_suggestions(
-                    existing_review_comments=existing_review_comments
-                )
-        return ignored_reviews
