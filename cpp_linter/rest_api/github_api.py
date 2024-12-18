@@ -570,9 +570,11 @@ class GithubApiClient(RestApiClient):
                 file_obj, summary_only, review_comments
             )
 
-    def _dismiss_stale_reviews(self, url: str, ignored_reviews: Optional[List[str]] = None):
+    def _dismiss_stale_reviews(
+        self, url: str, ignored_reviews: Optional[List[str]] = None
+    ):
         """Dismiss reviews that were previously created by cpp-linter.
-        
+
         Use ``ignored_reviews`` to only dismiss the reviews not specified in
         the given list. If ``ignored_reviews`` is `None`, then dismiss all
         reviews.
@@ -633,7 +635,11 @@ class GithubApiClient(RestApiClient):
             return
         data = response.json()
         found_threads = []
-        nodes = data["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
+        try:
+            nodes = data["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
+        except KeyError as exc:  # pragma: no cover
+            logger.error("Malformed GraphQL response: Field %s not found", exc.args[0])
+            return
         for thread in nodes:
             for comment in thread["comments"]["nodes"]:
                 if (
