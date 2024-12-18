@@ -147,28 +147,27 @@ class ReviewComments:
 
     def remove_reused_suggestions(self, existing_review_comments: List[Suggestion]):
         """Remove any reused ``Suggestion`` from the internal list and update counts"""
-        if len(existing_review_comments):
-            review_comments_suggestions = self.suggestions
-            self.suggestions = []
-            clang_tidy_comments = 0
-            clang_format_comments = 0
-            for suggestion in review_comments_suggestions:
-                if suggestion not in existing_review_comments:
-                    clang_tidy_comments += suggestion.comment.count("### clang-tidy")
-                    clang_format_comments += suggestion.comment.count(
-                        "### clang-format"
-                    )
-                    self.suggestions.append(suggestion)
-            if clang_tidy_comments > 0:
-                self.tool_reused["clang-tidy"] = (
-                    self.tool_total["clang-tidy"] - clang_tidy_comments
-                )
-                self.tool_total["clang-tidy"] = clang_tidy_comments
-            if clang_format_comments > 0:
-                self.tool_reused["clang-format"] = (
-                    self.tool_total["clang-format"] - clang_format_comments
-                )
-                self.tool_total["clang-format"] = clang_format_comments
+        if not existing_review_comments:
+            return
+        review_comments_suggestions = self.suggestions
+        self.suggestions = []
+        clang_tidy_comments = 0
+        clang_format_comments = 0
+        for suggestion in review_comments_suggestions:
+            if suggestion not in existing_review_comments:
+                clang_tidy_comments += suggestion.comment.count("### clang-tidy")
+                clang_format_comments += suggestion.comment.count("### clang-format")
+                self.suggestions.append(suggestion)
+        if clang_tidy_comments > 0 and self.tool_total["clang-tidy"] is not None:
+            self.tool_reused["clang-tidy"] = (
+                self.tool_total["clang-tidy"] - clang_tidy_comments
+            )
+            self.tool_total["clang-tidy"] = clang_tidy_comments
+        if clang_format_comments > 0 and self.tool_total["clang-format"] is not None:
+            self.tool_reused["clang-format"] = (
+                self.tool_total["clang-format"] - clang_format_comments
+            )
+            self.tool_total["clang-format"] = clang_format_comments
 
 
 class PatchMixin(ABC):
