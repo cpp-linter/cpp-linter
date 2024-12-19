@@ -60,7 +60,7 @@ def graphql_callback(
     if query.startswith("query"):
         # get existing review comments
         return (CACHE_PATH / "pr_reviews_graphql.json").read_text(encoding="utf-8")
-    elif "resolveReviewThread" in query and "threadId" in variables:
+    elif "resolveReviewThread" in query and "id" in variables:
         # resolve review
         return RESOLVE_COMMENT_GRAPHQL % variables["threadId"]
     elif "deletePullRequestReviewComment" in query and "id" in variables:
