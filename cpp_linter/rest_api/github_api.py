@@ -45,65 +45,64 @@ RATE_LIMIT_HEADERS = RateLimitHeaders(
 GRAPHQL_PAGE_INFO = Dict[str, Union[str, bool]]
 
 QUERY_REVIEW_COMMENTS = """query($owner: String!, $name: String!, $number: Int!, $afterThread: String, $afterComment: String) {
-    repository(owner: $owner, name: $name) {
-        pullRequest(number: $number) {
-            id
-            reviewThreads(last: 100, after: $afterThread) {
-                nodes {
-                    id
-                    isResolved
-                    isCollapsed
-                    comments(first: 100, after: $afterComment) {
-                        nodes {
-                            id
-                            body
-                            path
-                            line
-                            startLine
-                            originalLine
-                            originalStartLine
-                            pullRequestReview {
-                                id
-                                isMinimized
-                            }
-                        }
-                        pageInfo {
-                            endCursor
-                            hasNextPage
-                        }
-                    }
-                }
-                pageInfo {
-                    endCursor
-                    hasNextPage
-                }
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      reviewThreads(last: 100, after: $afterThread) {
+        nodes {
+          id
+          isResolved
+          isCollapsed
+          comments(first: 100, after: $afterComment) {
+            nodes {
+              id
+              body
+              path
+              line
+              startLine
+              originalLine
+              originalStartLine
+              pullRequestReview {
+                id
+                isMinimized
+              }
             }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
         }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+      }
     }
+  }
 }"""
 
-RESOLVE_REVIEW_COMMENT = """mutation($threadId: ID!) {
-    resolveReviewThread(input: {threadId: $threadId, clientMutationId: "github-actions"}) {
-        thread {
-            id
-        }
+RESOLVE_REVIEW_COMMENT = """mutation($id: ID!) {
+  resolveReviewThread(input: {threadId: $id, clientMutationId: "github-actions"}) {
+    thread {
+      id
     }
+  }
 }"""
 
 DELETE_REVIEW_COMMENT = """mutation($id: ID!) {
-    deletePullRequestReviewComment(input: {id: $id, clientMutationId: "github-actions"}) {
-        pullRequestReviewComment {
-            id
-        }
+  deletePullRequestReviewComment(input: {id: $id, clientMutationId: "github-actions"}) {
+    pullRequestReviewComment {
+      id
     }
+  }
 }"""
 
 HIDE_REVIEW_COMMENT = """mutation($subjectId: ID!) {
-    minimizeComment(input: {classifier:OUTDATED, subjectId: $subjectId, clientMutationId: "github-actions"}) {
-        minimizedComment {
-            isMinimized
-        }
+  minimizeComment(input: {classifier:OUTDATED, subjectId: $subjectId, clientMutationId: "github-actions"}) {
+    minimizedComment {
+      isMinimized
     }
+  }
 }"""
 
 
@@ -507,7 +506,8 @@ class GithubApiClient(RestApiClient):
         if is_draft or not is_open:  # is PR open and ready for review
             self._dismiss_stale_reviews(url)
             return  # don't post reviews
-        body = f"{COMMENT_MARKER}## Cpp-linter Review\n"
+
+        body = f"{COMMENT_MARKER}## Cpp-Linter Review\n"
         payload_comments = []
         summary_only = environ.get(
             "CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "false"
@@ -525,13 +525,14 @@ class GithubApiClient(RestApiClient):
                 summary_only=summary_only,
                 review_comments=review_comments,
             )
+
         ignored_reviews = []
         if not summary_only:
             ignored_reviews = self._check_reused_comments(
                 delete_review_comments=delete_review_comments,
                 review_comments=review_comments,
             )
-        self._hide_stale_reviews(ignored_reviews=ignored_reviews)
+        self._hide_stale_reviews(url=url, ignored_reviews=ignored_reviews)
         if len(review_comments.suggestions) == 0 and len(ignored_reviews) > 0:
             logger.info("Using previous review as nothing new was found")
             return
@@ -586,7 +587,10 @@ class GithubApiClient(RestApiClient):
                 for suggestion in review_comments.suggestions:
                     if (
                         suggestion.file_name == comment.file_name
-                        and suggestion.line_start == comment.line_start
+                        and (
+                            suggestion.line_start in [-1, comment.line_end]
+                            or suggestion.line_start == comment.line_start
+                        )
                         and suggestion.line_end == comment.line_end
                         and f"{COMMENT_MARKER}{suggestion.comment}" == comment.comment
                         and suggestion not in existing_review_comments
@@ -605,8 +609,9 @@ class GithubApiClient(RestApiClient):
                         break
                 else:
                     self._close_review_comment(
-                        thread_id=thread.id,
-                        comment_id=comment.review_id,
+                        node_id=comment.review_id
+                        if delete_review_comments
+                        else thread.id,
                         delete=delete_review_comments,
                     )
         review_comments.remove_reused_suggestions(
@@ -762,13 +767,13 @@ class GithubApiClient(RestApiClient):
                         and cast(str, comment["body"]).startswith(COMMENT_MARKER)
                     ):
                         suggestion = ExistingSuggestion(comment["path"])
+                        suggestion.line_end = (
+                            comment.get("line", None) or comment["originalLine"]
+                        )
                         suggestion.line_start = (
                             comment.get("startLine", None)
                             or comment.get("originalStartLine", None)
-                            or -1
-                        )
-                        suggestion.line_end = (
-                            comment.get("line", None) or comment["originalLine"]
+                            or suggestion.line_end
                         )
                         suggestion.comment = comment["body"]
                         review_info = cast(
@@ -802,26 +807,19 @@ class GithubApiClient(RestApiClient):
             result.append(review_thread)
         return result
 
-    def _close_review_comment(
-        self, thread_id: str, comment_id: str, delete: bool = True
-    ):
+    def _close_review_comment(self, node_id: str, delete: bool):
         """Resolve or Delete an existing review thread comment.
 
-        :param thread_id: Thread ID for the conversation to close (only used when ``delete``==`False`).
-        :param comment_id: The comment ID of the comment within the requested thread to close (only used when ``delete``==`True`).
+        :param node_id: This string shall be either
+
+            - the Thread ID for the conversation to close
+              (only if ``delete`` is passed `False`).
+            - the comment ID of the comment within the requested thread to close
+              (only if ``delete`` is passed `True`).
         :param delete: `True` to delete the review comment, `False` to set it as resolved.
         """
-        mutation = RESOLVE_REVIEW_COMMENT
-        variables = {
-            "threadId": thread_id,
-        }
-        operation = "resolve"
-        if delete:
-            mutation = DELETE_REVIEW_COMMENT
-            variables = {
-                "id": comment_id,
-            }
-            operation = "delete"
+        mutation = DELETE_REVIEW_COMMENT if delete else RESOLVE_REVIEW_COMMENT
+        variables = {"id": node_id}
         response = self.api_request(
             url=f"{self.api_url}/graphql",
             method="POST",
@@ -830,18 +828,17 @@ class GithubApiClient(RestApiClient):
         )
         logger.debug(
             "%s review comment %s (%s: %s)",
-            operation.title(),
+            "Delete" if delete else "Resolve",
             "failed" if response.status_code != 200 else "succeeded",
             "comment_id" if delete else "thread_id",
-            comment_id if delete else thread_id,
+            node_id,
         )
 
-    def _hide_stale_reviews(self, ignored_reviews: List[str]):
+    def _hide_stale_reviews(self, url: str, ignored_reviews: List[str]):
         """Hide all review comments that were previously created by cpp-linter
 
         :param ignored_reviews: List of review comments to keep displayed.
         """
-        url = f"{self.api_url}/repos/{self.repo}/pulls/{self.pull_request}/reviews"
         next_page: Optional[str] = url + "?page=1&per_page=100"
         while next_page:
             response = self.api_request(url=next_page)
@@ -865,6 +862,6 @@ class GithubApiClient(RestApiClient):
                     )
                     logger.debug(
                         "Minimized review comment: %s (node_id: %s)",
-                        repr(response.status_code != 200).lower(),
+                        repr(response.status_code == 200).lower(),
                         review["node_id"],
                     )

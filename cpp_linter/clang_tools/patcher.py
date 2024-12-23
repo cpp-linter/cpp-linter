@@ -150,8 +150,8 @@ class ReviewComments:
             ):
                 summary += (
                     f"Only {posted_tool_advice[tool_name]} out of "
-                    + f"{self.tool_total[tool_name]} {tool_name}"
-                    + " new concerns fit within this pull request's diff."
+                    + f"{self.tool_total[tool_name]} _new_ {tool_name}"
+                    + " concerns fit within this pull request's diff."
                 )
                 if self.tool_reused[tool_name] != 0:
                     summary += f" {self.tool_reused[tool_name]} concerns were suppressed as duplicates."
