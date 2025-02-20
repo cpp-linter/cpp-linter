@@ -7,7 +7,8 @@ name = "cpp-linter"
 description = "Run clang-format and clang-tidy on a batch of files."
 readme = "README.rst"
 keywords = ["clang", "clang-tools", "linter", "clang-tidy", "clang-format"]
-license = {text = "MIT License"}
+license = "MIT"
+license-files = [ "LICENSE" ]
 authors = [
     { name = "Brendan Doherty", email = "2bndy5@gmail.com" },
     { name = "Xianpeng Shen", email = "xianpeng.shen@gmail.com" },
@@ -16,7 +17,6 @@ requires-python = ">=3.9"
 classifiers = [
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
     "Intended Audience :: Information Technology",
