@@ -8,7 +8,6 @@ description = "Run clang-format and clang-tidy on a batch of files."
 readme = "README.rst"
 keywords = ["clang", "clang-tools", "linter", "clang-tidy", "clang-format"]
 license = "MIT"
-license-files = [ "LICENSE" ]
 authors = [
     { name = "Brendan Doherty", email = "2bndy5@gmail.com" },
     { name = "Xianpeng Shen", email = "xianpeng.shen@gmail.com" },
