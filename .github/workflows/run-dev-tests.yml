@@ -41,7 +41,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+        # TODO: change to official version 3.14
+        py: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14.0-beta.1']
         os: ['windows-latest', ubuntu-22.04]
         version: ['19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7']
 
