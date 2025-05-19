@@ -159,7 +159,7 @@ class TidyAdvice(PatchMixin):
                     body += f"{note.line}:{note.cols}:** {note.severity}: "
                     body += f"[{note.diagnostic_link}]\n> {note.rationale}\n"
                     if note.fixit_lines:
-                        body += f'```{Path(file_obj.name).suffix.lstrip(".")}\n'
+                        body += f"```{Path(file_obj.name).suffix.lstrip('.')}\n"
                         for fixit_line in note.fixit_lines:
                             body += f"{fixit_line}\n"
                         body += "```\n"
