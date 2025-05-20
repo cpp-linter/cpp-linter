@@ -41,18 +41,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
         os: ['windows-latest', ubuntu-22.04]
         version: ['19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7']
+        pre-release: [false]
+        include:
+          - py: '3.14'
+            pre-release: true
+            os: ubuntu-latest
+            version: '19'
+    env:
+      # only used when installing for a pre-released python version
+      LIBGIT2_VERSION: '1.9.0'
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout libgit2
+        if: matrix.pre-release
+        uses: actions/checkout@v4
+        with:
+          repository: libgit2/libgit2
+          ref: v${{ env.LIBGIT2_VERSION }}
+          path: libgit2-${{ env.LIBGIT2_VERSION }}
+
+      - name: Install libgit2
+        if: matrix.pre-release
+        working-directory: libgit2-${{ env.LIBGIT2_VERSION }}
+        run: |-
+          mkdir build
+          cd build
+          cmake ..
+          make
+          sudo make install
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.py }}
-          allow-prereleases: true
+          allow-prereleases: ${{ matrix.pre-release }}
 
       - name: Download wheel artifact
         uses: actions/download-artifact@v4
