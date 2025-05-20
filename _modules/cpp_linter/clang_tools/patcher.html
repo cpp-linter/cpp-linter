@@ -931,9 +931,9 @@
 
 <span class="sd">        Results are stored in the ``review_comments`` parameter (passed by reference).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">patched</span>
-        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> has no suggestions for </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> has no suggestions for </span><span class="si">{</span><span class="n">file_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
         <span class="n">patch</span> <span class="o">=</span> <span class="n">Patch</span><span class="o">.</span><span class="n">create_from</span><span class="p">(</span>
             <span class="n">file_obj</span><span class="o">.</span><span class="n">read_with_timeout</span><span class="p">(),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">patched</span><span class="p">,</span>
