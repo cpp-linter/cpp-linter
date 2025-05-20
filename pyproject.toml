@@ -76,6 +76,7 @@ concurrency = ["thread", "multiprocessing"]
 omit = [
     # don't include tests in coverage
     # "tests/*",
+    "cpp_linter/__init__.py"
 ]
 
 [tool.coverage.json]

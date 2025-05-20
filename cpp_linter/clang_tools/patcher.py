@@ -167,9 +167,9 @@ class PatchMixin(ABC):
 
         Results are stored in the ``review_comments`` parameter (passed by reference).
         """
-        assert (
-            self.patched
-        ), f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
+        assert self.patched, (
+            f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
+        )
         patch = Patch.create_from(
             file_obj.read_with_timeout(),
             self.patched,
