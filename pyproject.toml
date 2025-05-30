@@ -74,11 +74,11 @@ dynamic_context = "test_function"
 # These options are useful if combining coverage data from multiple tested envs
 parallel = true
 relative_files = true
-concurrency = ["thread", "multiprocessing"]
+source = ["cpp_linter/", "tests/"]
+concurrency = ["multiprocessing"]
+# don't include these files in coverage data
 omit = [
-    # don't include tests in coverage
-    # "tests/*",
-    "cpp_linter/__init__.py"
+    "cpp_linter/__init__.py",
 ]
 
 [tool.coverage.json]
@@ -102,6 +102,10 @@ exclude_lines = [
     "raise NotImplementedError",
     # ignore the local specific debug statement related to not having rich installed
     "if not FOUND_RICH_LIB",
+]
+# don't include these files in coverage reports
+omit = [
+    "cpp_linter/__init__.py",
 ]
 
 [tool.codespell]
