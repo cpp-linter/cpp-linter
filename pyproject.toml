@@ -30,7 +30,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Build Tools",
 ]
-dynamic = ["version", "dependencies"]
+dynamic = ["version"]
+dependencies = [
+    "pygit2>=1.15.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+]
 
 [project.scripts]
 cpp-linter = "cpp_linter:main"
@@ -45,9 +50,6 @@ tracker = "https://github.com/cpp-linter/cpp-linter/issues"
 [tool.setuptools]
 zip-safe = false
 packages = ["cpp_linter"]
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools_scm]
 # It would be nice to include the commit hash in the version, but that
@@ -104,3 +106,22 @@ exclude_lines = [
 
 [tool.codespell]
 skip = "tests/capture_tools_output/**/cache/**,tests/capture_tools_output/**/*.diff"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "nox>=2025.5.1",
+    "pre-commit>=4.2.0",
+    "rich>=14.0.0",
+    "ruff>=0.11.12",
+    "types-requests>=2.32.0.20250515",
+]
+docs = [
+    "sphinx-immaterial>=0.12.5",
+]
+test = [
+    "coverage[toml]>=7.8.2",
+    "meson>=1.8.1",
+    "pytest>=8.3.5",
+    "requests-mock>=1.12.1",
+]

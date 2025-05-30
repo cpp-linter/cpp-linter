@@ -4,6 +4,32 @@ on: [push, workflow_dispatch]
 
 jobs:
   build-docs:
-    uses: cpp-linter/.github/.github/workflows/sphinx.yml@main
-    with:
-      path-to-doc: docs/_build/html
+    runs-on: ubuntu-latest
+    env:
+      path_to_doc: docs/_build/html
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Build docs
+        run: uvx nox -s docs
+
+      - name: Upload docs build as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.repository.name }}_docs
+          path: ${{ github.workspace }}/${{ env.path_to_doc }}
+
+      - name: Upload to github pages
+        # only publish doc changes from main branch
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./${{ env.path_to_doc }}

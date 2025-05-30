@@ -25,6 +25,7 @@ release = get_version("cpp-linter")
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 extensions = [
     "sphinx_immaterial",
+    "sphinx_immaterial.inline_icons",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
@@ -57,6 +58,15 @@ html_theme_options = {
     "repo_url": "https://github.com/cpp-linter/cpp-linter",
     "repo_name": "cpp-linter",
     "palette": [
+        {
+            "media": "(prefers-color-scheme)",
+            "primary": "blue",
+            "accent": "cyan",
+            "toggle": {
+                "icon": "material/brightness-auto",
+                "name": "Switch to light mode",
+            },
+        },
         {
             "media": "(prefers-color-scheme: light)",
             "scheme": "default",

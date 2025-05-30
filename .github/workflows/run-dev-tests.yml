@@ -21,29 +21,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
-      - name: Build wheel
-        run: python3 -m pip wheel --no-deps -w dist .
-      - name: Upload wheel as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cpp-linter_wheel
-          path: ${{ github.workspace }}/dist/*.whl
-
   test:
-    needs: [build]
     strategy:
       fail-fast: false
       matrix:
-        py: ['3.9', '3.10', '3.11', '3.12', '3.13']
         os: ['windows-latest', ubuntu-22.04]
-        version: ['19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8', '7']
+        version: ['19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8']
+    env:
+      MAX_PYTHON_VERSION: '3.14'
+      # only used when installing for a pre-released python version
+      LIBGIT2_VERSION: '1.9.0'
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -51,18 +38,29 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.py }}
+          python-version: 3.x
 
-      - name: Download wheel artifact
-        uses: actions/download-artifact@v4
+      - name: Checkout libgit2
+        uses: actions/checkout@v4
         with:
-          name: cpp-linter_wheel
-          path: dist
+          repository: libgit2/libgit2
+          ref: v${{ env.LIBGIT2_VERSION }}
+          path: libgit2-${{ env.LIBGIT2_VERSION }}
 
-      - name: Install workflow deps
-        # using a wildcard as filename on Windows requires a bash shell
-        shell: bash
-        run: python3 -m pip install pytest requests-mock coverage[toml] meson dist/*.whl
+      - name: Install libgit2
+        working-directory: libgit2-${{ env.LIBGIT2_VERSION }}
+        run: |-
+          mkdir build
+          cd build
+          cmake ..
+          make
+          sudo make install
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
       # https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages
       - name: Install ninja (Linux)
@@ -95,16 +93,53 @@ jobs:
       - name: Collect Coverage
         env:
           CLANG_VERSION: ${{ matrix.version }}
-        run: coverage run -m pytest
+        run: uvx nox -s test-all
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-data-${{ runner.os }}-py${{ matrix.py }}-${{ matrix.version }}
+          name: coverage-data-${{ runner.os }}-${{ matrix.version }}
           path: .coverage*
           include-hidden-files: true
 
   coverage-report:
     needs: [test]
-    uses: cpp-linter/.github/.github/workflows/py-coverage.yml@main
-    secrets: inherit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ci-artifacts
+          pattern: coverage-data-*
+          merge-multiple: true
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Create coverage report
+        run: uvx nox -s coverage
+
+      - name: Upload comprehensive coverage HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+      - run: coverage report && coverage xml
+
+      - uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
