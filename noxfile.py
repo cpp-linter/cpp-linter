@@ -54,6 +54,9 @@ def test_all(session: nox.Session):
 def coverage(session: nox.Session):
     """Create coverage report."""
     uv_sync(session, "--group", "test")
+    ci_logger.info("::group::Combining coverage data")
     session.run("coverage", "combine")
+    ci_logger.info("::endgroup::")
     session.run("coverage", "html")
     session.run("coverage", "xml")
+    session.run("coverage", "report")
