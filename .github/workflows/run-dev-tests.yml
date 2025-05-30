@@ -28,9 +28,9 @@ jobs:
         os: ['windows-latest', ubuntu-22.04]
         version: ['19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8']
     env:
-      MAX_PYTHON_VERSION: '3.14'
+      MAX_PYTHON_VERSION: '3.13'
       # only used when installing for a pre-released python version
-      LIBGIT2_VERSION: '1.9.0'
+      # LIBGIT2_VERSION: '1.9.0'
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -40,21 +40,20 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Checkout libgit2
-        uses: actions/checkout@v4
-        with:
-          repository: libgit2/libgit2
-          ref: v${{ env.LIBGIT2_VERSION }}
-          path: libgit2-${{ env.LIBGIT2_VERSION }}
+      # - name: Checkout libgit2
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: libgit2/libgit2
+      #     ref: v${{ env.LIBGIT2_VERSION }}
+      #     path: libgit2-${{ env.LIBGIT2_VERSION }}
 
-      - name: Install libgit2
-        working-directory: libgit2-${{ env.LIBGIT2_VERSION }}
-        run: |-
-          mkdir build
-          cd build
-          cmake ..
-          make
-          sudo make install
+      # - name: Install libgit2
+      #   working-directory: libgit2-${{ env.LIBGIT2_VERSION }}
+      #   shell: bash
+      #   run: |-
+      #     cmake -B build -S . -DBUILD_TESTS=OFF
+      #     cmake --build build
+      #     sudo cmake --install build
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -107,6 +106,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
