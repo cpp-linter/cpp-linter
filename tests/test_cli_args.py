@@ -5,6 +5,7 @@ import pytest
 from cpp_linter.cli import get_cli_parser, Args
 
 
+@pytest.mark.no_clang
 @pytest.mark.parametrize(
     "arg_name,arg_value,attr_name,attr_value",
     [

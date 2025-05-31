@@ -51,7 +51,7 @@ def test_db_detection(
     args = Args()
     args.database = database
     args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
-    args.version = os.getenv("CLANG_VERSION", "12")
+    args.version = os.getenv("CLANG_VERSION", "16")
     args.style = ""  # don't invoke clang-format
     args.extensions = ["cpp", "hpp"]
     args.lines_changed_only = 0  # analyze complete file

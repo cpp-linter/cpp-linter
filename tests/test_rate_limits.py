@@ -13,6 +13,7 @@ BASE_HEADERS = {
 }
 
 
+@pytest.mark.no_clang
 @pytest.mark.parametrize(
     "response_headers",
     [

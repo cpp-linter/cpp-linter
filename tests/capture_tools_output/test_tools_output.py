@@ -24,8 +24,8 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.cli import get_cli_parser, Args
 from cpp_linter.common_fs.file_filter import FileFilter
 
-
-CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
+DEFAULT_CLANG_VERSION = "16"
+CLANG_VERSION = os.getenv("CLANG_VERSION", DEFAULT_CLANG_VERSION)
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
@@ -392,6 +392,7 @@ def test_tidy_annotations(
     assert tidy_checks_failed == checks_failed
 
 
+@pytest.mark.no_clang
 def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Verify the comment is affirmative when no attention is needed."""
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
@@ -413,6 +414,11 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert not tidy_checks_failed
 
 
+MAX_SUPPORTED_PY_VER = tuple(
+    [int(x) for x in os.environ.get("MAX_PYTHON_VERSION", "3.13").split(".")]
+)
+
+
 @pytest.mark.parametrize(
     "repo_commit_pair,patch",
     [
@@ -422,6 +428,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     ],
     ids=["modded-src", "no-modded-src", "staged-modded-src"],
 )
+@pytest.mark.no_clang
 def test_parse_diff(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

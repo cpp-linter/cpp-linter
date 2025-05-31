@@ -45,14 +45,17 @@ def docs(session: nox.Session):
 def test(session: nox.Session):
     """Run unit tests."""
     uv_sync(session, "--group", "test")
-    session.run("coverage", "run", "-m", "pytest")
+    session.run("coverage", "run", "-m", "pytest", *session.posargs)
+
+
+MAX_VERSION = environ.get("MAX_PYTHON_VERSION", "3.13")
 
 
 @nox.session(
     name="test-all",
     python=nox.project.python_versions(
         nox.project.load_toml("pyproject.toml"),
-        max_version=environ.get("MAX_PYTHON_VERSION", "3.13"),
+        max_version=MAX_VERSION,
     ),
 )
 def test_all(session: nox.Session):

@@ -35,6 +35,7 @@ from cpp_linter.common_fs.file_filter import FileFilter
         ),
     ],
 )
+@pytest.mark.no_clang
 def test_ignore(
     caplog: pytest.LogCaptureFixture,
     user_in: str,
@@ -50,6 +51,7 @@ def test_ignore(
         assert file_filter.is_file_in_list(ignored=False, file_name=PurePath(p))
 
 
+@pytest.mark.no_clang
 def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
     """test auto detection of submodules and ignore the paths appropriately."""
     monkeypatch.chdir(str(Path(__file__).parent))
@@ -63,6 +65,7 @@ def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
 @pytest.mark.parametrize(
     "user_input", [[], ["file1", "file2"]], ids=["none", "multiple"]
 )
+@pytest.mark.no_clang
 def test_positional_arg(user_input: List[str]):
     """Make sure positional arg value(s) are added to not_ignored list."""
     file_filter = FileFilter(not_ignored=user_input)

@@ -89,10 +89,22 @@ jobs:
           python -m pip install clang-tools
           clang-tools --install ${{ matrix.version }}
 
+      - name: Is clang-only tests?
+        id: clang-dep
+        shell: python
+        run: |-
+          from os import environ
+          with open(environ["GITHUB_OUTPUT"], mode="a") as gh_out:
+            if ${{ matrix.version }} == 20:
+                gh_out.write("args=\n")
+            else:
+                gh_out.write("args=-m \"not no_clang\"\n")
+
       - name: Collect Coverage
         env:
           CLANG_VERSION: ${{ matrix.version }}
-        run: uvx nox -s test-all
+
+        run: uvx nox -s test-all -- ${{ steps.clang-dep.outputs.args }}
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v4

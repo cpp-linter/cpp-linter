@@ -22,6 +22,7 @@ from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
 
 
+@pytest.mark.no_clang
 def test_exit_output(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     """Test exit code that indicates if action encountered lining errors."""
     env_file = tmp_path / "GITHUB_OUTPUT"
@@ -40,6 +41,7 @@ def test_exit_output(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 
 
 # see https://github.com/pytest-dev/pytest/issues/5997
+@pytest.mark.no_clang
 def test_end_group(caplog: pytest.LogCaptureFixture):
     """Test the output that concludes a group of runner logs."""
     caplog.set_level(logging.INFO, logger=log_commander.name)
@@ -50,6 +52,7 @@ def test_end_group(caplog: pytest.LogCaptureFixture):
 
 
 # see https://github.com/pytest-dev/pytest/issues/5997
+@pytest.mark.no_clang
 def test_start_group(caplog: pytest.LogCaptureFixture):
     """Test the output that begins a group of runner logs."""
     caplog.set_level(logging.INFO, logger=log_commander.name)
@@ -66,6 +69,7 @@ def test_start_group(caplog: pytest.LogCaptureFixture):
         pytest.param(["cxx"], marks=pytest.mark.xfail),
     ],
 )
+@pytest.mark.no_clang
 def test_list_src_files(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
@@ -81,6 +85,7 @@ def test_list_src_files(
         assert Path(file.name).suffix.lstrip(".") in extensions
 
 
+@pytest.mark.no_clang
 @pytest.mark.parametrize("line,cols,offset", [(13, 5, 144), (19, 1, 189)])
 def test_file_offset_translation(line: int, cols: int, offset: int):
     """Validate output from ``get_line_cnt_from_cols()``"""
@@ -88,6 +93,7 @@ def test_file_offset_translation(line: int, cols: int, offset: int):
     assert (line, cols) == get_line_cnt_from_cols(contents, offset)
 
 
+@pytest.mark.no_clang
 def test_serialize_file_obj():
     """Validate JSON serialization of a FileObj instance."""
     file_obj = FileObj("some_name", [5, 10], [2, 12])

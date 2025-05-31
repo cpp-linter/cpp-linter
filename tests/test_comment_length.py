@@ -1,4 +1,5 @@
 from pathlib import Path
+import pytest
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.rest_api import USER_OUTREACH
 from cpp_linter.clang_tools.clang_format import FormatAdvice, FormatReplacementLine
@@ -6,6 +7,7 @@ from cpp_linter.common_fs import FileObj
 from cpp_linter.clang_tools import ClangVersions
 
 
+@pytest.mark.no_clang
 def test_comment_length_limit(tmp_path: Path):
     """Ensure comment length does not exceed specified limit for thread-comments but is
     unhindered for step-summary"""

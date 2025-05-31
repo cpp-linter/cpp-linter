@@ -24,6 +24,7 @@ TYPICAL_DIFF = "\n".join(
 )
 
 
+@pytest.mark.no_clang
 def test_pygit2_bug1260(caplog: pytest.LogCaptureFixture):
     """This test the legacy approach of parsing a diff str using pure python regex
     patterns.
@@ -47,6 +48,7 @@ def test_pygit2_bug1260(caplog: pytest.LogCaptureFixture):
     assert not files  # no line changes means no file to focus on
 
 
+@pytest.mark.no_clang
 def test_typical_diff():
     """For coverage completeness. Also tests for files with spaces in the names."""
     file_filter = FileFilter(extensions=["cpp"])
@@ -58,6 +60,7 @@ def test_typical_diff():
         assert " " in file_obj.name
 
 
+@pytest.mark.no_clang
 def test_binary_diff():
     """For coverage completeness"""
     diff_str = "\n".join(
@@ -72,6 +75,7 @@ def test_binary_diff():
     assert not files
 
 
+@pytest.mark.no_clang
 def test_ignored_diff():
     """For coverage completeness"""
     files = parse_diff_str(TYPICAL_DIFF, FileFilter(extensions=["hpp"]), 0)
@@ -79,6 +83,7 @@ def test_ignored_diff():
     assert not files
 
 
+@pytest.mark.no_clang
 def test_terse_hunk_header():
     """For coverage completeness"""
     diff_str = "\n".join(
