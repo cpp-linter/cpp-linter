@@ -9,5 +9,5 @@
 *.cpp text eol=lf
 *.hpp text eol=lf
 *.yml text eol=lf
-*.yaml test eol=lf
+*.yaml text eol=lf
 *.toml text eol=lf

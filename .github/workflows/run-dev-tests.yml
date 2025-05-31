@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "**.py"
-      - "**requirements*.txt"
+      - uv.lock
       - pyproject.toml
       - ".github/workflows/run-dev-tests.yml"
       - "!docs/**"
@@ -14,7 +14,7 @@ on:
     branches: [main]
     paths:
       - "**.py"
-      - "**requirements*.txt"
+      - uv.lock
       - pyproject.toml
       - ".github/workflows/run-dev-tests.yml"
       - "!docs/**"

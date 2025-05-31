@@ -1,3 +1,9 @@
+"""Nox automation file for cpp-linter project.
+
+This file defines automation sessions for testing, coverage, and documentation
+using uv for dependency management and virtual environment backend.
+"""
+
 import logging
 from os import environ
 import sys
@@ -14,6 +20,12 @@ nox.options.reuse_existing_virtualenvs = True
 
 
 def uv_sync(session: nox.Session, *args: str):
+    """Synchronize dependencies using uv with additional arguments.
+
+    Args:
+        session: The nox session to run the command in.
+        *args: Additional arguments to pass to `uv sync`.
+    """
     session.run_install(
         "uv",
         "sync",
@@ -45,7 +57,7 @@ def test(session: nox.Session):
 )
 def test_all(session: nox.Session):
     """Run unit tests in all supported version of python and clang"""
-    ci_logger.info(f"::group::Python {session.python}")
+    ci_logger.info("::group::Using Python %s" % session.python)
     test(session)
     ci_logger.info("::endgroup::")
 
