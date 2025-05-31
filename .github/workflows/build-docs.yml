@@ -28,7 +28,7 @@ jobs:
 
       - name: Upload to github pages
         # only publish doc changes from main branch
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.repository == 'cpp-linter/cpp-linter'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
