@@ -6,21 +6,21 @@ version: 2
 
 # Set the OS, Python version and other tools you might need
 build:
-  os: ubuntu-22.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3.12"
+    python: "latest"
     # You can also specify other tool versions:
-    # nodejs: "20"
-    # rust: "1.70"
-    # golang: "1.20"
+    # nodejs: "latest"
+    # rust: "latest"
+    # golang: "latest"
   jobs:
     pre_create_environment:
-      - asdf plugin add uv
-      - asdf install uv latest
-      - asdf global uv latest
+      - >-
+        UV_INSTALL_DIR="${HOME}/.local/bin" &&
+        curl -LsSf https://astral.sh/uv/install.sh | sh
     build:
       html:
-        - uvx nox -s docs
+        - ${HOME}/.local/bin/uvx nox -s docs
     post_build:
       - mkdir -p $READTHEDOCS_OUTPUT/html/
       - mv docs/_build/html/* $READTHEDOCS_OUTPUT/html
