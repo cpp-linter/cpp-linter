@@ -76,10 +76,6 @@ parallel = true
 relative_files = true
 source = ["cpp_linter/", "tests/"]
 concurrency = ["thread", "multiprocessing"]
-# don't include these files in coverage data
-omit = [
-    "cpp_linter/__init__.py",
-]
 
 [tool.coverage.json]
 pretty_print = true
@@ -102,10 +98,6 @@ exclude_lines = [
     "raise NotImplementedError",
     # ignore the local specific debug statement related to not having rich installed
     "if not FOUND_RICH_LIB",
-]
-# don't include these files in coverage reports
-omit = [
-    "cpp_linter/__init__.py",
 ]
 
 [tool.codespell]
