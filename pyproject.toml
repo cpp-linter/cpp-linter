@@ -75,7 +75,7 @@ dynamic_context = "test_function"
 parallel = true
 relative_files = true
 source = ["cpp_linter/", "tests/"]
-concurrency = ["multiprocessing"]
+concurrency = ["thread", "multiprocessing"]
 # don't include these files in coverage data
 omit = [
     "cpp_linter/__init__.py",
