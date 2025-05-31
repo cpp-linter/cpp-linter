@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['windows-latest', ubuntu-22.04]
-        version: ['19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8']
+        version: ['20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9', '8']
     env:
       MAX_PYTHON_VERSION: '3.13'
       # only used when installing for a pre-released python version
