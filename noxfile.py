@@ -41,11 +41,18 @@ def docs(session: nox.Session):
     session.run("sphinx-build", "docs", "docs/_build/html")
 
 
+def run_tests(session: nox.Session):
+    """Run the unit tests"""
+    uv_sync(session, "--group", "test")
+    session.run(
+        "uv", "run", "--active", "coverage", "run", "-m", "pytest", *session.posargs
+    )
+
+
 @nox.session
 def test(session: nox.Session):
     """Run unit tests."""
-    uv_sync(session, "--group", "test")
-    session.run("coverage", "run", "-m", "pytest", *session.posargs)
+    run_tests(session)
 
 
 MAX_VERSION = environ.get("MAX_PYTHON_VERSION", "3.13")
@@ -61,7 +68,7 @@ MAX_VERSION = environ.get("MAX_PYTHON_VERSION", "3.13")
 def test_all(session: nox.Session):
     """Run unit tests in all supported version of python and clang"""
     ci_logger.info("::group::Using Python %s" % session.python)
-    test(session)
+    run_tests(session)
     ci_logger.info("::endgroup::")
 
 
@@ -70,8 +77,8 @@ def coverage(session: nox.Session):
     """Create coverage report."""
     uv_sync(session, "--group", "test")
     ci_logger.info("::group::Combining coverage data")
-    session.run("coverage", "combine")
+    session.run("uv", "run", "--active", "coverage", "combine")
     ci_logger.info("::endgroup::")
-    session.run("coverage", "html")
-    session.run("coverage", "xml")
-    session.run("coverage", "report")
+    session.run("uv", "run", "--active", "coverage", "html")
+    session.run("uv", "run", "--active", "coverage", "xml")
+    session.run("uv", "run", "--active", "coverage", "report")
