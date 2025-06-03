@@ -414,11 +414,6 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     assert not tidy_checks_failed
 
 
-MAX_SUPPORTED_PY_VER = tuple(
-    [int(x) for x in os.environ.get("MAX_PYTHON_VERSION", "3.13").split(".")]
-)
-
-
 @pytest.mark.parametrize(
     "repo_commit_pair,patch",
     [
