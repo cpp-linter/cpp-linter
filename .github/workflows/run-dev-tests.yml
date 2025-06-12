@@ -96,9 +96,9 @@ jobs:
           from os import environ
           with open(environ["GITHUB_OUTPUT"], mode="a") as gh_out:
             if ${{ matrix.version }} == 20:
-                gh_out.write("args=-s\n")
+                gh_out.write("args=\n")
             else:
-                gh_out.write("args=-m \"not no_clang\" -s\n")
+                gh_out.write("args=-m \"not no_clang\"\n")
 
       - name: Collect Coverage
         env:
