@@ -7,6 +7,7 @@
    pr_review_caveats
    cli_args
    permissions
+   contributing
 
 .. toctree::
    :hidden:
