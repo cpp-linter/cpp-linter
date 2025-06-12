@@ -30,7 +30,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Build Tools",
 ]
-dynamic = ["version", "dependencies"]
+dynamic = ["version"]
+dependencies = [
+    "pygit2>=1.15.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+]
 
 [project.scripts]
 cpp-linter = "cpp_linter:main"
@@ -46,9 +51,6 @@ tracker = "https://github.com/cpp-linter/cpp-linter/issues"
 zip-safe = false
 packages = ["cpp_linter"]
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-
 [tool.setuptools_scm]
 # It would be nice to include the commit hash in the version, but that
 # can't be done in a PEP 440-compatible way.
@@ -63,8 +65,11 @@ show_column_numbers = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-vv --durations=8 --color=yes"
+addopts = "-vv --durations=8 --color=yes  -r=s"
 testpaths = ["tests"]
+markers = [
+    "no_clang: marks tests as independents of any clang version",
+]
 
 [tool.coverage]
 [tool.coverage.run]
@@ -72,12 +77,8 @@ dynamic_context = "test_function"
 # These options are useful if combining coverage data from multiple tested envs
 parallel = true
 relative_files = true
+source = ["cpp_linter/", "tests/"]
 concurrency = ["thread", "multiprocessing"]
-omit = [
-    # don't include tests in coverage
-    # "tests/*",
-    "cpp_linter/__init__.py"
-]
 
 [tool.coverage.json]
 pretty_print = true
@@ -104,3 +105,22 @@ exclude_lines = [
 
 [tool.codespell]
 skip = "tests/capture_tools_output/**/cache/**,tests/capture_tools_output/**/*.diff"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "nox>=2025.5.1",
+    "pre-commit>=4.2.0",
+    "rich>=14.0.0",
+    "ruff>=0.11.12",
+    "types-requests>=2.32.0.20250515",
+]
+docs = [
+    "sphinx-immaterial>=0.12.5",
+]
+test = [
+    "coverage[toml]>=7.8.2",
+    "meson>=1.8.1",
+    "pytest>=8.3.5",
+    "requests-mock>=1.12.1",
+]

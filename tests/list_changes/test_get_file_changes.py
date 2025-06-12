@@ -15,6 +15,7 @@ TEST_ASSETS = Path(__file__).parent
 TEST_DIFF = (TEST_ASSETS / "patch.diff").read_text(encoding="utf-8")
 
 
+@pytest.mark.no_clang
 @pytest.mark.parametrize(
     "event_name,paginated,fake_runner,lines_changed_only",
     [

@@ -8,3 +8,6 @@
 *.sh text eol=lf
 *.cpp text eol=lf
 *.hpp text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf

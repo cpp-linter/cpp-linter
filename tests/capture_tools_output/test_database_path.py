@@ -16,6 +16,8 @@ from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
 from cpp_linter.cli import Args
 
+DEFAULT_CLANG_VERSION = "16"
+CLANG_VERSION = os.getenv("CLANG_VERSION", DEFAULT_CLANG_VERSION)
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 ABS_DB_PATH = str(Path("tests/demo").resolve())
@@ -51,7 +53,7 @@ def test_db_detection(
     args = Args()
     args.database = database
     args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
-    args.version = os.getenv("CLANG_VERSION", "12")
+    args.version = CLANG_VERSION
     args.style = ""  # don't invoke clang-format
     args.extensions = ["cpp", "hpp"]
     args.lines_changed_only = 0  # analyze complete file
@@ -90,7 +92,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     args = Args()
     args.database = "build"  # point to generated compile_commands.txt
     args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
-    args.version = os.getenv("CLANG_VERSION", "12")
+    args.version = CLANG_VERSION
     args.style = ""  # don't invoke clang-format
     args.extensions = ["cpp", "hpp"]
     args.lines_changed_only = 0  # analyze complete file
