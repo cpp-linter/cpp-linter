@@ -7,7 +7,7 @@ import argparse
 from io import StringIO
 from pathlib import Path
 import time
-from typing import Optional, cast, Dict
+from typing import cast
 from importlib.metadata import version as get_version
 import docutils
 from sphinx.application import Sphinx
@@ -138,9 +138,9 @@ for name in ("hint", "tip", "important"):
 
 class CliBadge(SphinxRole):
     badge_type: str
-    badge_icon: Optional[str] = None
-    href: Optional[str] = None
-    href_title: Optional[str] = None
+    badge_icon: str | None = None
+    href: str | None = None
+    href_title: str | None = None
 
     def run(self):
         permission_link = ""
@@ -281,7 +281,7 @@ def setup(app: Sphinx):
         for line in usage.splitlines():
             doc.write(f"    {line[start:]}\n")
 
-        sub_commands: Optional[argparse.Action] = None
+        sub_commands: argparse.Action | None = None
 
         doc.write("\n\nPositional Arguments\n")
         doc.write("--------------------\n\n")
@@ -325,7 +325,7 @@ def setup(app: Sphinx):
             doc.write("\n    ".join(help.splitlines()) + "\n")
 
         if sub_commands is not None:
-            choices = cast(Dict[str, argparse.ArgumentParser], sub_commands.choices)
+            choices = cast(dict[str, argparse.ArgumentParser], sub_commands.choices)
             doc.write("\n\nSubcommands\n")
             doc.write("-----------\n")
             for sub_cmd in choices:
