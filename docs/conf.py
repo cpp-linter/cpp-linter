@@ -325,14 +325,14 @@ def setup(app: Sphinx):
             doc.write("\n    ".join(help.splitlines()) + "\n")
 
         if sub_commands is not None:
-            assert sub_commands is not None
             choices = cast(Dict[str, argparse.ArgumentParser], sub_commands.choices)
             doc.write("\n\nSubcommands\n")
             doc.write("-----------\n")
             for sub_cmd in choices:
-                doc.write(f"\n.. std:option:: {sub_cmd}\n")
-                version = SUBCOMMAND_VERSIONS[sub_cmd]
-                doc.write(f"\n    :badge-version:`{version}`\n\n    ")
+                doc.write(f"\n.. std:option:: {sub_cmd}\n\n    ")
+                version = SUBCOMMAND_VERSIONS.get(sub_cmd)
+                if version is not None:
+                    doc.write(f":badge-version:`{version}`\n\n    ")
                 sub_cmd_action = choices[sub_cmd]
                 assert sub_cmd_action.description is not None
                 doc.write("\n    ".join(sub_cmd_action.description.splitlines()) + "\n")
