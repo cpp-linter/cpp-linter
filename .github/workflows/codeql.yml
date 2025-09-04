@@ -9,6 +9,10 @@ on:
 
 jobs:
   codeql:
+    permissions:
+      actions: read
+      security-events: write
+      contents: read
     uses: cpp-linter/.github/.github/workflows/codeql.yml@main
     with:
       language: python
