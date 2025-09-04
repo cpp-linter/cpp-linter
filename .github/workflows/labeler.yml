@@ -1,13 +1,15 @@
 name: PR Autolabeler
 
 on:
-  # pull_request event is required for autolabeler
   pull_request:
     types: [opened, reopened, synchronize]
 
 jobs:
-  draft-release:
+  # Auto label PRs during a PR event
+  auto-label:
+    runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
-    uses: cpp-linter/.github/.github/workflows/release-drafter.yml@main
+    steps:
+      - uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5 # v6.1.0
