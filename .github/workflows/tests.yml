@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['windows-latest', ubuntu-latest]
+        os: ['windows-latest', 'ubuntu-latest']
         version: ['21', '20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9']
     env:
       MAX_PYTHON_VERSION: '3.13'
@@ -95,7 +95,7 @@ jobs:
         run: |-
           from os import environ
           with open(environ["GITHUB_OUTPUT"], mode="a") as gh_out:
-            if ${{ matrix.version }} == 21:
+            if "${{ matrix.version }}" == "21":
                 gh_out.write("args=\n")
             else:
                 gh_out.write("args=-m \"not no_clang\"\n")
