@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: ['main']
 
+permissions: {}
+
 jobs:
   pre-commit:
     uses: cpp-linter/.github/.github/workflows/pre-commit.yml@main
