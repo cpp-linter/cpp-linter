@@ -56,7 +56,7 @@ jobs:
       #     sudo cmake --install build
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -132,7 +132,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@557e51de59eb14aaaba2ed9621916900a91d50c6 # v6.6.1
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
