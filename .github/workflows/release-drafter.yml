@@ -6,6 +6,10 @@ on:
       - "main"
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   draft-release:
+    permissions:
+      contents: write
     uses: cpp-linter/.github/.github/workflows/release-drafter.yml@main
