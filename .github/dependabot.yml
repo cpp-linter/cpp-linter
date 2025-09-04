@@ -13,11 +13,11 @@ updates:
       actions:
         patterns:
           - "*"
-  - package-ecosystem: uv
-    directory: /
-    schedule:
-      interval: "monthly"
-    groups:
-      uv-pip:
-        patterns:
-          - "*"
+  # - package-ecosystem: uv
+  #   directory: /
+  #   schedule:
+  #     interval: "monthly"
+  #   groups:
+  #     uv-pip:
+  #       patterns:
+  #         - "*"
