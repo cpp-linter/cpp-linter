@@ -58,6 +58,7 @@ version_scheme= "no-guess-dev"
 # Test PyPI does not support local versions.
 local_scheme = "no-local-version"
 fallback_version = "0.0.0"
+version_file = "cpp_linter/_version.py"
 
 [tool.mypy]
 show_error_codes = true
@@ -102,9 +103,6 @@ exclude_lines = [
     # ignore the local specific debug statement related to not having rich installed
     "if not FOUND_RICH_LIB",
 ]
-
-[tool.codespell]
-skip = "tests/capture_tools_output/**/cache/**,tests/capture_tools_output/**/*.diff"
 
 [dependency-groups]
 dev = [

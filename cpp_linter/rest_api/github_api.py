@@ -29,7 +29,7 @@ from ..clang_tools import ClangVersions
 from ..cli import Args
 from ..loggers import logger, log_commander
 from ..git import parse_diff, get_diff
-from . import RestApiClient, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
+from . import RestApiClient, USER_AGENT, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -203,6 +203,7 @@ class GithubApiClient(RestApiClient):
         gh_token = environ.get("GITHUB_TOKEN", "")
         if gh_token:
             headers["Authorization"] = f"token {gh_token}"
+        headers["User-Agent"] = USER_AGENT
         return headers
 
     def post_feedback(

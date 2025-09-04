@@ -69,6 +69,8 @@ class Args(UserDict):
     ignore_format: str = ""
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
+    #: A subcommand if provided
+    command: Optional[str] = None
 
 
 _parser_args: Dict[Sequence[str], Any] = {}
@@ -395,4 +397,9 @@ def get_cli_parser() -> argparse.ArgumentParser:
     )
     for switches, kwargs in _parser_args.items():
         cli_parser.add_argument(*switches, **kwargs)
+    sub_parser = cli_parser.add_subparsers(
+        description="Subcommands for special behavior", dest="command"
+    )
+    version_help = "Show the cpp-linter version and exit"
+    sub_parser.add_parser("version", description=version_help, help=version_help)
     return cli_parser

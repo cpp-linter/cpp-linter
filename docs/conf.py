@@ -3,10 +3,11 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import argparse
 from io import StringIO
 from pathlib import Path
 import time
-from typing import Optional
+from typing import Optional, cast, Dict
 from importlib.metadata import version as get_version
 import docutils
 from sphinx.application import Sphinx
@@ -238,6 +239,7 @@ REQUIRED_VERSIONS = {
     "1.9.0": ["ignore_tidy", "ignore_format"],
     "1.10.0": ["passive_reviews"],
 }
+SUBCOMMAND_VERSIONS = {"version": "1.11.0"}
 
 PERMISSIONS = {
     "thread_comments": ["thread-comments", "contents: write"],
@@ -279,6 +281,8 @@ def setup(app: Sphinx):
         for line in usage.splitlines():
             doc.write(f"    {line[start:]}\n")
 
+        sub_commands: Optional[argparse.Action] = None
+
         doc.write("\n\nPositional Arguments\n")
         doc.write("--------------------\n\n")
         args = parser._optionals._actions
@@ -286,9 +290,12 @@ def setup(app: Sphinx):
             if arg.option_strings:
                 continue
             assert arg.dest is not None
-            doc.write(f"\n.. std:option:: {arg.dest.lower()}\n\n")
-            assert arg.help is not None
-            doc.write("\n    ".join(arg.help.splitlines()))
+            if arg.dest != "command":
+                doc.write(f"\n.. std:option:: {arg.dest.lower()}\n\n")
+                assert arg.help is not None
+                doc.write("\n    ".join(arg.help.splitlines()))
+            else:
+                sub_commands = arg
 
         doc.write("\n\nOptional Arguments")
         doc.write("\n------------------\n\n")
@@ -316,3 +323,16 @@ def setup(app: Sphinx):
                     break
             doc.write("\n\n    ")
             doc.write("\n    ".join(help.splitlines()) + "\n")
+
+        if sub_commands is not None:
+            assert sub_commands is not None
+            choices = cast(Dict[str, argparse.ArgumentParser], sub_commands.choices)
+            doc.write("\n\nSubcommands\n")
+            doc.write("-----------\n")
+            for sub_cmd in choices:
+                doc.write(f"\n.. std:option:: {sub_cmd}\n")
+                version = SUBCOMMAND_VERSIONS[sub_cmd]
+                doc.write(f"\n    :badge-version:`{version}`\n\n    ")
+                sub_cmd_action = choices[sub_cmd]
+                assert sub_cmd_action.description is not None
+                doc.write("\n    ".join(sub_cmd_action.description.splitlines()) + "\n")
