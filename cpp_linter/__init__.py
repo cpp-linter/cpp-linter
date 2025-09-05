@@ -16,8 +16,7 @@ def main():
     """The main script."""
 
     # The parsed CLI args
-    cli_parser = get_cli_parser()
-    args = cli_parser.parse_args(namespace=Args())
+    args = get_cli_parser().parse_args(namespace=Args())
     if args.command == "version":
         print(version)
         return
