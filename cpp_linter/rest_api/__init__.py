@@ -13,13 +13,14 @@ from ..common_fs.file_filter import FileFilter
 from ..cli import Args
 from ..loggers import logger, log_response_msg
 from ..clang_tools import ClangVersions
-
+from .._version import version
 
 USER_OUTREACH = (
     "\n\nHave any feedback or feature suggestions? [Share it here.]"
     + "(https://github.com/cpp-linter/cpp-linter-action/issues)"
 )
 COMMENT_MARKER = "<!-- cpp linter action -->\n"
+USER_AGENT = f"cpp-linter/{version}"
 
 
 class RateLimitHeaders(NamedTuple):

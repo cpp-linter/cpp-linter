@@ -48,3 +48,11 @@ def test_arg_parser(
     """parameterized test of specific args compared to their parsed value"""
     args = get_cli_parser().parse_args([f"--{arg_name}={arg_value}"], namespace=Args())
     assert getattr(args, attr_name) == attr_value
+    assert args.command is None
+
+
+@pytest.mark.no_clang
+def test_version_cmd():
+    """Invoke `cpp-linter version` subcommand"""
+    args = get_cli_parser().parse_args(["version"], namespace=Args())
+    assert args.command == "version"

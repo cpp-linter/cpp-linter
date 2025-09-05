@@ -9,6 +9,7 @@ from .loggers import start_log_group, end_log_group, logger
 from .clang_tools import capture_clang_tools_output
 from .cli import get_cli_parser, Args
 from .rest_api.github_api import GithubApiClient
+from ._version import version
 
 
 def main():
@@ -16,6 +17,9 @@ def main():
 
     # The parsed CLI args
     args = get_cli_parser().parse_args(namespace=Args())
+    if args.command == "version":
+        print(version)
+        return
 
     #  force files-changed-only to reflect value of lines-changed-only
     if args.lines_changed_only:

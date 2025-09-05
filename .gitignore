@@ -179,3 +179,6 @@ cmake_install.cmake
 
 # generated doc pages
 docs/cli_args.rst
+
+# generated version info (via setuptools_scm)
+cpp_linter/_version.py
