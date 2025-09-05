@@ -257,7 +257,7 @@
   
   
   <span class="md-ellipsis">
-    C/C++ Linting Package
+    <span>C/C++ Linting Package</span>
     
   </span>
   
@@ -280,7 +280,7 @@
   
   
   <span class="md-ellipsis">
-    Pull Request Review Caveats
+    <span>Pull Request Review Caveats</span>
     
   </span>
   
@@ -303,7 +303,7 @@
   
   
   <span class="md-ellipsis">
-    Command Line Interface Options
+    <span>Command Line Interface Options</span>
     
   </span>
   
@@ -326,7 +326,7 @@
   
   
   <span class="md-ellipsis">
-    Token Permissions
+    <span>Token Permissions</span>
     
   </span>
   
@@ -349,7 +349,7 @@
   
   
   <span class="md-ellipsis">
-    Contributing
+    <span>Contributing</span>
     
   </span>
   
@@ -380,7 +380,7 @@
   
   
   <span class="md-ellipsis">
-    API modules
+    <span>API modules</span>
     
   </span>
   
@@ -391,7 +391,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            API modules
+            <span>API modules</span>
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -408,7 +408,7 @@
   
   
   <span class="md-ellipsis">
-    __<wbr>init__<wbr>
+    <span>__<wbr>init__<wbr></span>
     
   </span>
   
@@ -432,7 +432,7 @@
   
   
   <span class="md-ellipsis">
-    clang_<wbr>tools
+    <span>clang_<wbr>tools</span>
     
   </span>
   
@@ -456,7 +456,7 @@
   
   
   <span class="md-ellipsis">
-    clang_<wbr>tools.<wbr>clang_<wbr>format
+    <span>clang_<wbr>tools.<wbr>clang_<wbr>format</span>
     
   </span>
   
@@ -480,7 +480,7 @@
   
   
   <span class="md-ellipsis">
-    clang_<wbr>tools.<wbr>clang_<wbr>tidy
+    <span>clang_<wbr>tools.<wbr>clang_<wbr>tidy</span>
     
   </span>
   
@@ -504,7 +504,7 @@
   
   
   <span class="md-ellipsis">
-    clang_<wbr>tools.<wbr>patcher
+    <span>clang_<wbr>tools.<wbr>patcher</span>
     
   </span>
   
@@ -528,7 +528,7 @@
   
   
   <span class="md-ellipsis">
-    rest_<wbr>api
+    <span>rest_<wbr>api</span>
     
   </span>
   
@@ -552,7 +552,7 @@
   
   
   <span class="md-ellipsis">
-    rest_<wbr>api.<wbr>github_<wbr>api
+    <span>rest_<wbr>api.<wbr>github_<wbr>api</span>
     
   </span>
   
@@ -576,7 +576,7 @@
   
   
   <span class="md-ellipsis">
-    git
+    <span>git</span>
     
   </span>
   
@@ -600,7 +600,7 @@
   
   
   <span class="md-ellipsis">
-    git.<wbr>git_<wbr>str
+    <span>git.<wbr>git_<wbr>str</span>
     
   </span>
   
@@ -624,7 +624,7 @@
   
   
   <span class="md-ellipsis">
-    loggers
+    <span>loggers</span>
     
   </span>
   
@@ -648,7 +648,7 @@
   
   
   <span class="md-ellipsis">
-    cli
+    <span>cli</span>
     
   </span>
   
@@ -672,7 +672,7 @@
   
   
   <span class="md-ellipsis">
-    common_<wbr>fs
+    <span>common_<wbr>fs</span>
     
   </span>
   
@@ -696,7 +696,7 @@
   
   
   <span class="md-ellipsis">
-    common_<wbr>fs.<wbr>file_<wbr>filter
+    <span>common_<wbr>fs.<wbr>file_<wbr>filter</span>
     
   </span>
   
@@ -728,7 +728,7 @@
   
   
   <span class="md-ellipsis">
-    How to build the docs
+    <span>How to build the docs</span>
     
   </span>
   
@@ -842,7 +842,9 @@
     <span class="c1">#: See :std:option:`--ignore-format`.</span>
     <span class="n">ignore_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="c1">#: See :std:option:`--passive-reviews`.</span>
-    <span class="n">passive_reviews</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
+    <span class="n">passive_reviews</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1">#: A subcommand if provided</span>
+    <span class="n">command</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -1172,6 +1174,11 @@
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">switches</span><span class="p">,</span> <span class="n">kwargs</span> <span class="ow">in</span> <span class="n">_parser_args</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">cli_parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="o">*</span><span class="n">switches</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">sub_parser</span> <span class="o">=</span> <span class="n">cli_parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Subcommands for special behavior&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;command&quot;</span>
+    <span class="p">)</span>
+    <span class="n">version_help</span> <span class="o">=</span> <span class="s2">&quot;Show the cpp-linter version and exit&quot;</span>
+    <span class="n">sub_parser</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">&quot;version&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">version_help</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">version_help</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cli_parser</span></div>
 
 </code></pre></div>

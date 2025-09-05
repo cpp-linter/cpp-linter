@@ -17,7 +17,7 @@ Command Line Interface Options
                [-t {true,false,update}] [-w STEP_SUMMARY]
                [-a FILE_ANNOTATIONS] [-x EXTRA_ARG] [-d TIDY_REVIEW]
                [-m FORMAT_REVIEW] [-R PASSIVE_REVIEWS] [-j JOBS]
-               [files ...]
+               [files ...] {version} ...
 
 
 Positional Arguments
@@ -328,3 +328,13 @@ Optional Arguments
     If set less than or equal to 0, the number of jobs will
     be set to the number of all available CPU cores.
     
+
+
+Subcommands
+-----------
+
+.. std:option:: version
+
+    :badge-version:`1.11.0`
+
+    Show the cpp-linter version and exit
