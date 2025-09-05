@@ -13,7 +13,7 @@ C/C++ Linting Package
 .. |codecov-badge| image:: https://codecov.io/gh/cpp-linter/cpp-linter/branch/main/graph/badge.svg?token=0814O9WHQU
     :alt: CodeCov
     :target: https://codecov.io/gh/cpp-linter/cpp-linter
-.. |doc-badge| image:: https://github.com/cpp-linter/cpp-linter/actions/workflows/build-docs.yml/badge.svg
+.. |doc-badge| image:: https://github.com/cpp-linter/cpp-linter/actions/workflows/docs.yml/badge.svg
     :alt: Docs
     :target: https://cpp-linter.github.io/cpp-linter
 .. |pypi-badge| image:: https://img.shields.io/pypi/dw/cpp-linter?color=dark-green&label=PyPI%20Downloads&logo=python&logoColor=white
