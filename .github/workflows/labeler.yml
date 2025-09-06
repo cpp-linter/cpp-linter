@@ -2,16 +2,14 @@ name: PR Autolabeler
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    branches: [main]
+
+permissions: {}
 
 jobs:
   # Auto label PRs during a PR event
   auto-label:
-    runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
-    steps:
-      - uses: release-drafter/release-drafter@6db134d15f3909ccc9eefd369f02bd1e9cffdf97 # v6.2.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: cpp-linter/.github/.github/workflows/labeler.yml@tag-release
