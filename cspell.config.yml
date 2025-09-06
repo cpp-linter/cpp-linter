@@ -63,3 +63,4 @@ ignorePaths:
   - pyproject.toml
   - .gitignore
   - "**/*.{yml,yaml,txt}"
+  - CHANGELOG.md
