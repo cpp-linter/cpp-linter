@@ -10,4 +10,6 @@ permissions: {}
 
 jobs:
   pre-commit:
-    uses: cpp-linter/.github/.github/workflows/pre-commit.yml@main
+    permissions:
+      contents: read
+    uses: cpp-linter/.github/.github/workflows/pre-commit.yml@check-pr-title
