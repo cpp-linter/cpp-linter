@@ -10,7 +10,9 @@ from ..loggers import logger
 from ..common_fs import FileObj
 from .patcher import PatchMixin, ReviewComments, Suggestion
 
-NOTE_HEADER = re.compile(r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+)\]$")
+NOTE_HEADER = re.compile(
+    r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+),?[^\]]*\]$"
+)
 FIXED_NOTE = re.compile(r"^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$")
 
 
