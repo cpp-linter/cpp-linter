@@ -455,7 +455,7 @@ def test_parse_diff(
             encoding="utf-8"
         )
         diff = diff.parse_diff(patch_to_stage)
-        repo.apply(diff, pygit2.GIT_APPLY_LOCATION_BOTH)
+        repo.apply(diff, pygit2.GIT_APPLY_LOCATION_BOTH)  # type: ignore[arg-type]
         repo.index.add_all(["tests/demo/demo.*"])
         repo.index.write()
     del repo
