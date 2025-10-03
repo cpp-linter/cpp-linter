@@ -166,7 +166,7 @@ class FileFilter:
         :returns: A list of `FileObj` objects without diff information.
         """
 
-        files = []
+        files = set()
         for ext in self.extensions:
             for rel_path in Path(".").rglob(f"*.{ext}"):
                 for parent in rel_path.parts[:-1]:
@@ -176,8 +176,8 @@ class FileFilter:
                     file_path = rel_path.as_posix()
                     logger.debug('"./%s" is a source code file', file_path)
                     if self.is_source_or_ignored(rel_path.as_posix()):
-                        files.append(FileObj(file_path))
-        return files
+                        files.add(file_path)
+        return [FileObj(f) for f in files]
 
 
 class TidyFileFilter(FileFilter):
