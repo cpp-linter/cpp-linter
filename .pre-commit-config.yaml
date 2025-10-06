@@ -1,4 +1,6 @@
 ci:
+  autofix_commit_msg: 'chore(dev): auto fixes from pre-commit.ci hooks'
+  autoupdate_commit_msg: 'chore(dev): pre-commit hooks autoupdate'
   autoupdate_schedule: quarterly
 
 repos:
