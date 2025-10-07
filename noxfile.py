@@ -55,7 +55,7 @@ def test(session: nox.Session):
     run_tests(session)
 
 
-MAX_VERSION = environ.get("MAX_PYTHON_VERSION", "3.13")
+MAX_VERSION = environ.get("MAX_PYTHON_VERSION", "3.14")
 
 
 @nox.session(
