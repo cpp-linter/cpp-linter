@@ -30,7 +30,7 @@ jobs:
         os: ['windows-latest', 'ubuntu-latest']
         version: ['21', '20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9']
     env:
-      MAX_PYTHON_VERSION: '3.13'
+      MAX_PYTHON_VERSION: '3.14'
       # only used when installing for a pre-released python version
       # LIBGIT2_VERSION: '1.9.0'
 
