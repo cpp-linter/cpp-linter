@@ -92,7 +92,10 @@ class TidyNotification:
             check_name_parts = self.diagnostic.split("-", maxsplit=2)
             assert len(check_name_parts) > 2, "diagnostic name malformed"
             return link + "clang-analyzer/{}.html)".format(check_name_parts[2])
-        return link + "{}/{}.html)".format(*self.diagnostic.split("-", maxsplit=1))
+        diag_split = self.diagnostic.split("-", maxsplit=1)
+        if len(diag_split) < 2:
+            return self.diagnostic
+        return link + "{}/{}.html)".format(*diag_split)
 
     def __repr__(self) -> str:
         return (
