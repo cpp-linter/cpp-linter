@@ -248,7 +248,8 @@ def run_clang_tidy(
         extra_args = extra_args[0].split()
     for extra_arg in extra_args:
         arg = extra_arg.strip('"')
-        cmds.append(f"--extra-arg={arg}")
+        if arg:  # avoid adding empty arg values
+            cmds.append(f"--extra-arg={arg}")
     if tidy_review:
         # clang-tidy overwrites the file contents when applying fixes.
         # create a cache of original contents
