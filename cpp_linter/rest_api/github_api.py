@@ -57,7 +57,10 @@ class GithubApiClient(RestApiClient):
         #: The HEAD commit's SHA
         self.sha = environ.get("GITHUB_SHA", "")
         #: A flag that describes if debug logs are enabled.
-        self.debug_enabled = environ.get("ACTIONS_STEP_DEBUG", "") == "true"
+        self.debug_enabled = (
+            environ.get("ACTIONS_STEP_DEBUG", "") == "true"
+            or environ.get("ACTIONS_RUNNER_DEBUG", "") == "true"
+        )
 
         #: The pull request number for the event (if applicable).
         self.pull_request = -1
