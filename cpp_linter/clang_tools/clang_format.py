@@ -187,7 +187,9 @@ def run_clang_format(
         file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
     for span in ranges:
-        cmds.append(f"--lines={span[0]}:{span[1]}")
+        cmds.append(
+            f"--lines={span[0]}:{span[1]}"
+        )  # line range (start and end) is inclusive
     cmds.append(PurePath(file_obj.name).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
     results = subprocess.run(cmds, capture_output=True)
