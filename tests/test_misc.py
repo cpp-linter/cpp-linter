@@ -165,7 +165,7 @@ def test_diagnostic_link_no_hyphen() -> None:
             1,
             "error",
             "Test rationale",
-            "no diagnostic name",
+            "no_diagnostic_name",
         )
     )
-    assert note.diagnostic_link == "no diagnostic name"
+    assert note.diagnostic_link == "no_diagnostic_name"
