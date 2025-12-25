@@ -153,3 +153,19 @@ def test_clang_analyzer_link():
             diagnostic_name.split("-", maxsplit=2)[2],
         )
     )
+
+
+@pytest.mark.no_clang
+def test_diagnostic_link_no_hyphen() -> None:
+    """Test that diagnostic_link returns diagnostic name if no hyphen is present."""
+    note = TidyNotification(
+        (
+            "test.cpp",
+            1,
+            1,
+            "error",
+            "Test rationale",
+            "no_diagnostic_name",
+        )
+    )
+    assert note.diagnostic_link == "no_diagnostic_name"
