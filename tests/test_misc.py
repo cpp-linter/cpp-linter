@@ -99,7 +99,7 @@ def test_serialize_file_obj():
     file_obj = FileObj("some_name", [5, 10], [2, 12])
     json_obj = (
         r'[{"filename": "some_name", "line_filter": {"diff_chunks": [2, 12], '
-        + r'"lines_added": [[5, 6], [10, 11]]}}]'
+        + r'"lines_added": [[5, 5], [10, 10]]}}]'
     )
     assert json.dumps([file_obj.serialize()]) == json_obj
 

@@ -67,10 +67,10 @@ class FileObj:
             if not i:
                 result.append([n])
             elif n - 1 != numbers[i - 1]:
-                result[-1].append(numbers[i - 1] + 1)
+                result[-1].append(numbers[i - 1])
                 result.append([n])
             if i == len(numbers) - 1:
-                result[-1].append(n + 1)
+                result[-1].append(n)
         return result
 
     def range_of_changed_lines(
