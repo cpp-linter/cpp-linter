@@ -13,6 +13,8 @@ class Args(UserDict):
     verbosity: bool = False
     #: See :std:option:`--database`.
     database: str = ""
+    #: See :std:option:`--parent`.
+    parent: str = "HEAD~1"
     #: See :std:option:`--style`.
     style: str = "llvm"
     #: See :std:option:`--tidy-checks`.
@@ -107,6 +109,16 @@ tree.
     Builds using ninja should explicitly specify this
     path. Otherwise, cpp-linter will have difficulty
     parsing clang-tidy output.""",
+)
+_parser_args[("-P", "--parent")] = dict(
+    default="HEAD~1",
+    type=lambda input: int(input) if input.isdigit() else str(input),
+    help="""The specific commit or git revision to use
+as the parent commit. For example, may be ``HEAD~5`` for
+the last five commits, or a branch name for the history
+diff since the common ancestor.
+
+Defaults to ``%(default)s``"""
 )
 _parser_args[("-s", "--style")] = dict(
     default="llvm",

@@ -26,8 +26,8 @@ from ..loggers import logger
 from .git_str import parse_diff as legacy_parse_diff
 
 
-def get_sha(repo: Repository, parent: Optional[int] = None) -> GitObject:
-    """Uses ``git`` to fetch the full SHA hash of the current commit.
+def get_sha(repo: Repository, parent: Optional[Union[int, str]] = None) -> GitObject:
+    """Uses ``git`` to fetch the full SHA hash of a commit.
 
     .. note::
         This function is only used in local development environments, not in a
@@ -36,10 +36,15 @@ def get_sha(repo: Repository, parent: Optional[int] = None) -> GitObject:
     :param repo: The object representing the git repository.
     :param parent: This parameter's default value will fetch the SHA of the last commit.
         Set this parameter to the number of parent commits from the current tree's HEAD
-        to get the desired commit's SHA hash instead.
+        or a valid git revision to get the desired commit's SHA hash instead.
     :returns: A `str` representing the commit's SHA hash.
     """
-    return repo.revparse_single("HEAD" + (f"~{parent}" if parent is not None else ""))
+    head = "HEAD"
+    if type(parent) is str:
+        head = parent
+    if type(parent) is int:
+        head += f"~{parent}"
+    return repo.revparse_single(head)
 
 
 STAGED_STATUS = (
@@ -49,7 +54,7 @@ STAGED_STATUS = (
 )
 
 
-def get_diff(parents: int = 1) -> Diff:
+def get_diff(parents: Union[int, str] = 1) -> Diff:
     """Retrieve the diff info about a specified commit.
 
     :param parents: The number of parent commits related to the current commit.

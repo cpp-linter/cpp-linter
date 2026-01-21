@@ -6,7 +6,7 @@ from abc import ABC
 from pathlib import PurePath
 import sys
 import time
-from typing import Optional, Dict, List, Any, cast, NamedTuple
+from typing import Optional, Dict, List, Any, cast, NamedTuple, Union
 import requests
 from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
@@ -161,6 +161,7 @@ class RestApiClient(ABC):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
+        parent: Union[int, str],
     ) -> List[FileObj]:
         """Fetch a list of the event's changed files.
 

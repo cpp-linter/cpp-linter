@@ -15,7 +15,7 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Dict, List, Any, cast, Optional
+from typing import Dict, List, Any, cast, Optional, Union
 
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
@@ -92,6 +92,7 @@ class GithubApiClient(RestApiClient):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
+        parent: Union[int, str],
     ) -> List[FileObj]:
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"
@@ -114,7 +115,7 @@ class GithubApiClient(RestApiClient):
                     files_link, lines_changed_only, file_filter
                 )
             return parse_diff(response.text, file_filter, lines_changed_only)
-        return parse_diff(get_diff(), file_filter, lines_changed_only)
+        return parse_diff(get_diff(parent), file_filter, lines_changed_only)
 
     def _get_changed_files_paginated(
         self, url: Optional[str], lines_changed_only: int, file_filter: FileFilter
