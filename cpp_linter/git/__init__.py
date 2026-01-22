@@ -40,9 +40,9 @@ def get_sha(repo: Repository, parent: Optional[Union[int, str]] = None) -> GitOb
     :returns: A `str` representing the commit's SHA hash.
     """
     head = "HEAD"
-    if type(parent) is str:
+    if isinstance(parent, str):
         head = parent
-    if type(parent) is int:
+    if isinstance(parent, int):
         head += f"~{parent}"
     return repo.revparse_single(head)
 
