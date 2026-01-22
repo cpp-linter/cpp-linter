@@ -37,7 +37,7 @@ def get_sha(repo: Repository, parent: Optional[Union[int, str]] = None) -> GitOb
     :param parent: This parameter's default value will fetch the SHA of the last commit.
         Set this parameter to the number of parent commits from the current tree's HEAD
         or a valid git revision to get the desired commit's SHA hash instead.
-    :returns: A `str` representing the commit's SHA hash.
+    :returns: A `GitObject` representing the resolved commit.
     """
     head = "HEAD"
     if isinstance(parent, str):
