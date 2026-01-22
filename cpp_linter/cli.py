@@ -2,7 +2,7 @@
 
 import argparse
 from collections import UserDict
-from typing import Optional, List, Dict, Any, Sequence
+from typing import Optional, List, Dict, Any, Sequence, Union
 
 
 class Args(UserDict):
@@ -13,8 +13,8 @@ class Args(UserDict):
     verbosity: bool = False
     #: See :std:option:`--database`.
     database: str = ""
-    #: See :std:option:`--parent`.
-    parent: str = "HEAD~1"
+    #: See :std:option:`--diff-base`.
+    diff_base: Union[int, str] = "HEAD~1"
     #: See :std:option:`--style`.
     style: str = "llvm"
     #: See :std:option:`--tidy-checks`.
@@ -110,15 +110,17 @@ tree.
     path. Otherwise, cpp-linter will have difficulty
     parsing clang-tidy output.""",
 )
-_parser_args[("-P", "--parent")] = dict(
+_parser_args[("-b", "--diff-base")] = dict(
     default="HEAD~1",
     type=lambda input: int(input) if input.isdigit() else str(input),
     help="""The specific commit or git revision to use
-as the parent commit. For example, may be ``HEAD~5`` for
-the last five commits, or a branch name for the history
-diff since the common ancestor.
+as the base for any git diffs. For example, may be ``HEAD~5``
+for the last five commits, or a branch name for the history
+diff since the common ancestor. If given as an integer, n, it
+will be treated as ``HEAD~n``. This option only applies to
+contexts in which GitHub CI is not present/used.
 
-Defaults to ``%(default)s``"""
+Defaults to ``%(default)s``""",
 )
 _parser_args[("-s", "--style")] = dict(
     default="llvm",

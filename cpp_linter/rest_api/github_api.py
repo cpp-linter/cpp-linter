@@ -92,7 +92,7 @@ class GithubApiClient(RestApiClient):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
-        parent: Union[int, str],
+        parent: Union[int, str] = 1,
     ) -> List[FileObj]:
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"

@@ -161,7 +161,7 @@ class RestApiClient(ABC):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
-        parent: Union[int, str],
+        parent: Union[int, str] = 1,
     ) -> List[FileObj]:
         """Fetch a list of the event's changed files.
 

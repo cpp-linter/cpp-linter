@@ -74,7 +74,7 @@ def get_diff(parents: Union[int, str] = 1) -> Diff:
         diff_obj = index.diff_to_tree(cast(Commit, head).tree)
         diff_name = f"HEAD...{head.short_id}"
     else:
-        base = get_sha(repo, parents)  # only concerned with latest commit's diff
+        base = get_sha(repo, parents)  # `parents` is usually the commit ref to get
         diff_obj = repo.diff(base, head)
         diff_name = f"{head.short_id}...{base.short_id}"
 
