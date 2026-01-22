@@ -54,10 +54,17 @@ STAGED_STATUS = (
 )
 
 
-def get_diff(parents: Union[int, str] = 1) -> Diff:
+def get_diff(
+    parents: Optional[Union[int, str]] = None, ignore_index: bool = False
+) -> Diff:
     """Retrieve the diff info about a specified commit.
 
-    :param parents: The number of parent commits related to the current commit.
+    :param parents: The commit or ref to use as the base of the diff.
+        If set to None, and there are staged changes to be used, then it will be HEAD and
+        the diff will consist of just the staged changes. If there are no staged changes or
+        the index is ignored, it will be HEAD~1.
+    :param ignore_index: Setting this flag to ``true`` will ignore any staged files
+        in the index when producing a diff.
     :returns: A `str` of the fetched diff.
     """
     repo = Repository(".")
@@ -69,12 +76,18 @@ def get_diff(parents: Union[int, str] = 1) -> Diff:
             has_staged_files = True
             break
 
-    if has_staged_files:
+    use_index = not ignore_index and has_staged_files
+
+    if not use_index and parents is None:
+        parents = 1
+
+    base = get_sha(repo, parents)
+
+    if use_index:
         index = repo.index
-        diff_obj = index.diff_to_tree(cast(Commit, head).tree)
-        diff_name = f"HEAD...{head.short_id}"
+        diff_obj = index.diff_to_tree(cast(Commit, base).tree)
+        diff_name = f"HEAD...{base.short_id}"
     else:
-        base = get_sha(repo, parents)  # `parents` is usually the commit ref to get
         diff_obj = repo.diff(base, head)
         diff_name = f"{head.short_id}...{base.short_id}"
 

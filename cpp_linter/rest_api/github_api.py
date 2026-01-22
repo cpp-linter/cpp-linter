@@ -92,7 +92,8 @@ class GithubApiClient(RestApiClient):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
-        parent: Union[int, str] = 1,
+        diff_base: Optional[Union[int, str]] = None,
+        ignore_index: bool = False,
     ) -> List[FileObj]:
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"
@@ -115,7 +116,9 @@ class GithubApiClient(RestApiClient):
                     files_link, lines_changed_only, file_filter
                 )
             return parse_diff(response.text, file_filter, lines_changed_only)
-        return parse_diff(get_diff(parent), file_filter, lines_changed_only)
+        return parse_diff(
+            get_diff(diff_base, ignore_index), file_filter, lines_changed_only
+        )
 
     def _get_changed_files_paginated(
         self, url: Optional[str], lines_changed_only: int, file_filter: FileFilter

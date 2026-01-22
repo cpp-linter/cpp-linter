@@ -161,12 +161,19 @@ class RestApiClient(ABC):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
-        parent: Union[int, str] = 1,
+        diff_base: Optional[Union[int, str]] = None,
+        ignore_index: bool = False,
     ) -> List[FileObj]:
         """Fetch a list of the event's changed files.
 
         :param file_filter: A `FileFilter` obj to filter files.
         :param lines_changed_only: A value that dictates what file changes to focus on.
+        :param diff_base: The commit or ref to use as the base of the diff.
+            If set to None, and there are staged changes to be used, then it will be HEAD and
+            the diff will consist of just the staged changes. If there are no staged changes or
+            the index is ignored, it will be HEAD~1.
+        :param ignore_index: Setting this flag to ``true`` will ignore any staged files
+            in the index when producing a diff.
         """
         raise NotImplementedError("must be implemented in the derivative")
 

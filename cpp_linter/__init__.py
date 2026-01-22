@@ -50,7 +50,7 @@ def main():
         files = rest_api_client.get_list_of_changed_files(
             file_filter=global_file_filter,
             lines_changed_only=args.lines_changed_only,
-            parent=args.diff_base,
+            diff_base=args.diff_base,
             ignore_index=args.ignore_index,
         )
         rest_api_client.verify_files_are_present(files)
@@ -63,7 +63,8 @@ def main():
             git_changes = rest_api_client.get_list_of_changed_files(
                 file_filter=global_file_filter,
                 lines_changed_only=0,  # prevent filtering out unchanged files
-                parent=args.diff_base,
+                diff_base=args.diff_base,
+                ignore_index=args.ignore_index,
             )
             # merge info from git changes into list of all files
             for git_file in git_changes:

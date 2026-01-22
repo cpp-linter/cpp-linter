@@ -14,7 +14,9 @@ class Args(UserDict):
     #: See :std:option:`--database`.
     database: str = ""
     #: See :std:option:`--diff-base`.
-    diff_base: Union[int, str] = "HEAD~1"
+    diff_base: Optional[Union[int, str]] = None
+    #: See :std:option:`--ignore-index`.
+    ignore_index: bool = False
     #: See :std:option:`--style`.
     style: str = "llvm"
     #: See :std:option:`--tidy-checks`.
@@ -111,14 +113,26 @@ tree.
     parsing clang-tidy output.""",
 )
 _parser_args[("-b", "--diff-base")] = dict(
-    default="HEAD~1",
+    default=None,
     type=lambda input: int(input) if input.isdigit() else str(input),
     help="""The specific commit or git revision to use
 as the base for any git diffs. For example, may be ``HEAD~5``
 for the last five commits, or a branch name for the history
 diff since the common ancestor. If given as an integer, n, it
-will be treated as ``HEAD~n``. This option only applies to
-contexts in which GitHub CI is not present/used.
+will be treated as ``HEAD~n``. When not set, diff behavior
+depends on the presence of staged files. This option only
+applies to contexts in which GitHub CI is not present/used.
+
+Defaults to ``%(default)s``""",
+)
+_parser_args[("--ignore-index",)] = dict(
+    default=False,
+    nargs="?",
+    type=lambda input: input.lower() == "true",
+    const=True,
+    help="""Setting this flag to ``true`` will ignore
+any staged files in the index when producing a diff.
+Useful when used with std:option:`--diff-base`.
 
 Defaults to ``%(default)s``""",
 )
