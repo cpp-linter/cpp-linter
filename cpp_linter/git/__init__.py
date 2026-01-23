@@ -65,7 +65,7 @@ def get_diff(
         the index is ignored, it will be HEAD~1.
     :param ignore_index: Setting this flag to ``true`` will ignore any staged files
         in the index when producing a diff.
-    :returns: A `str` of the fetched diff.
+    :returns: A `Diff` object representing the fetched diff.
     """
     repo = Repository(".")
     head = get_sha(repo)
