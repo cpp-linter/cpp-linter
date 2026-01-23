@@ -11,7 +11,7 @@ from cpp_linter.cli import get_cli_parser, Args
     [
         ("verbosity", "10", "verbosity", True),
         ("database", "build", "database", "build"),
-        ("diff-base", 5, "diff_base", 5),
+        ("diff-base", "5", "diff_base", 5),
         ("diff-base", "main", "diff_base", "main"),
         ("ignore-index", "tRuE", "ignore_index", True),
         ("ignore-index", None, "ignore_index", True),
