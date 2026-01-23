@@ -7,7 +7,7 @@ from pathlib import Path
 import urllib.parse
 import re
 import shutil
-from typing import Dict, cast, List, Optional
+from typing import Dict, cast, List, Optional, Tuple, Union
 import warnings
 
 import pygit2  # type: ignore
@@ -15,7 +15,7 @@ import pytest
 import requests_mock
 
 from cpp_linter.common_fs import FileObj, CACHE_PATH
-from cpp_linter.git import parse_diff, get_diff
+from cpp_linter.git import parse_diff, get_diff, get_sha
 from cpp_linter.clang_tools import capture_clang_tools_output, ClangVersions
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
@@ -170,6 +170,46 @@ def prep_tmp_dir(
     monkeypatch.chdir(repo_path)
 
     return (gh_client, files)
+
+
+@pytest.mark.parametrize(
+    "repo_commit_pair",
+    [
+        (TEST_REPO_COMMIT_PAIRS[3]),
+    ],
+    ids=lambda pair: pair["repo"],
+)
+@pytest.mark.parametrize(
+    "ref_pair",
+    [
+        (None, "HEAD"),
+        ("HEAD", "HEAD"),
+        (2, "HEAD~2"),
+    ],
+    ids=["none", "HEAD", 2],
+)
+def test_get_sha(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    repo_commit_pair: Dict[str, str],
+    ref_pair: Tuple[Optional[Union[int, str]], str],
+):
+    """Test sha resolution with get_sha."""
+    repo_name, _ = repo_commit_pair["repo"], repo_commit_pair["commit"]
+    repo_cache = tmp_path.parent / repo_name / "HEAD"
+    repo_cache.mkdir(parents=True, exist_ok=True)
+    monkeypatch.chdir(str(repo_cache))
+    if not (repo_cache / ".git").exists():
+        pygit2.clone_repository(f"https://github.com/{repo_name}", ".")
+    repo_path = tmp_path / repo_name.split("/")[1]
+    shutil.copytree(str(repo_cache), str(repo_path))
+    monkeypatch.chdir(repo_path)
+
+    repo = pygit2.Repository(".")
+    our_ref, their_ref = ref_pair
+    our_sha = get_sha(repo, our_ref)
+    their_sha = repo.revparse_single(their_ref)
+    assert our_sha == their_sha
 
 
 @pytest.mark.parametrize(
