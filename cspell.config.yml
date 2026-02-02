@@ -50,6 +50,7 @@ words:
   - tofile
   - tomli
   - undoc
+  - urllib
   - vararg
   - venv
   - viewcode
