@@ -53,6 +53,7 @@ words:
   - vararg
   - venv
   - viewcode
+  - virtualenv
   - zizmor
 ignorePaths:
   - .env/**
