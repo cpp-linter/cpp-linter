@@ -169,10 +169,18 @@ class RestApiClient(ABC):
         :param file_filter: A `FileFilter` obj to filter files.
         :param lines_changed_only: A value that dictates what file changes to focus on.
         :param diff_base: The commit or ref to use as the base of the diff.
-            If set to None, and there are staged changes to be used, then it will be HEAD and
-            the diff will consist of just the staged changes. If there are no staged changes or
-            the index is ignored, it will be HEAD~1.
-        :param ignore_index: Setting this flag to ``true`` will ignore any staged files
+           
+            .. csv-table::
+                :header-rows: 1
+
+                "Parameter Value", "Git index state", "Scope of diff"
+                "`None` (the default)", "No staged changes", "``HEAD..HEAD~1``"
+                "`None` (the default)", "Has staged changes", "``index..HEAD``"
+                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "No staged changes", "``HEAD..HEAD~2``"
+                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "Has staged changes", "``index..HEAD~2``"
+           
+            Use ``ignore_index`` parameter to exclude the staged changes in the local index.
+        :param ignore_index: Setting this flag to `True` will ignore any staged changes
             in the index when producing a diff.
         """
         raise NotImplementedError("must be implemented in the derivative")
