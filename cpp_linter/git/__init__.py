@@ -37,7 +37,7 @@ def get_sha(repo: Repository, parent: Optional[Union[int, str]] = None) -> GitOb
     :param parent: This parameter's default value will fetch the SHA of the last commit.
         Set this parameter to the number of parent commits from the current tree's HEAD
         or a valid git revision to get the desired commit's SHA hash instead.
-    :returns: A `~pygit2.Object` representing the resolved commit.
+    :returns: A `pygit2.Object` representing the resolved commit.
     """
     head = "HEAD"
     if isinstance(parent, str):
@@ -65,7 +65,7 @@ def get_diff(
         the index is ignored, it will be HEAD~1.
     :param ignore_index: Setting this flag to ``true`` will ignore any staged files
         in the index when producing a diff.
-    :returns: A `Diff` object representing the fetched diff.
+    :returns: A `pygit2.Diff` object representing the fetched diff.
     """
     repo = Repository(".")
     head = get_sha(repo)
