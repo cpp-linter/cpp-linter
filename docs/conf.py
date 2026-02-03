@@ -238,6 +238,7 @@ REQUIRED_VERSIONS = {
     "1.8.1": ["jobs"],
     "1.9.0": ["ignore_tidy", "ignore_format"],
     "1.10.0": ["passive_reviews"],
+    "1.12.0": ["diff_base", "ignore_index"],
 }
 SUBCOMMAND_VERSIONS = {"version": "1.11.0"}
 
