@@ -26,8 +26,8 @@ from ..loggers import logger
 from .git_str import parse_diff as legacy_parse_diff
 
 
-def get_sha(repo: Repository, parent: Optional[int] = None) -> GitObject:
-    """Uses ``git`` to fetch the full SHA hash of the current commit.
+def get_sha(repo: Repository, parent: Optional[Union[int, str]] = None) -> GitObject:
+    """Uses ``git`` to fetch the full SHA hash of a commit.
 
     .. note::
         This function is only used in local development environments, not in a
@@ -36,10 +36,15 @@ def get_sha(repo: Repository, parent: Optional[int] = None) -> GitObject:
     :param repo: The object representing the git repository.
     :param parent: This parameter's default value will fetch the SHA of the last commit.
         Set this parameter to the number of parent commits from the current tree's HEAD
-        to get the desired commit's SHA hash instead.
-    :returns: A `str` representing the commit's SHA hash.
+        or a valid git revision to get the desired commit's SHA hash instead.
+    :returns: A `pygit2.Object` representing the resolved commit.
     """
-    return repo.revparse_single("HEAD" + (f"~{parent}" if parent is not None else ""))
+    head = "HEAD"
+    if isinstance(parent, str):
+        head = parent
+    if isinstance(parent, int):
+        head += f"~{parent}"
+    return repo.revparse_single(head)
 
 
 STAGED_STATUS = (
@@ -49,11 +54,18 @@ STAGED_STATUS = (
 )
 
 
-def get_diff(parents: int = 1) -> Diff:
+def get_diff(
+    parents: Optional[Union[int, str]] = None, ignore_index: bool = False
+) -> Diff:
     """Retrieve the diff info about a specified commit.
 
-    :param parents: The number of parent commits related to the current commit.
-    :returns: A `str` of the fetched diff.
+    :param parents: The commit or ref to use as the base of the diff.
+        If set to None, and there are staged changes to be used, then it will be HEAD and
+        the diff will consist of just the staged changes. If there are no staged changes or
+        the index is ignored, it will be HEAD~1.
+    :param ignore_index: Setting this flag to ``true`` will ignore any staged files
+        in the index when producing a diff.
+    :returns: A `pygit2.Diff` object representing the fetched diff.
     """
     repo = Repository(".")
     head = get_sha(repo)
@@ -64,12 +76,18 @@ def get_diff(parents: int = 1) -> Diff:
             has_staged_files = True
             break
 
-    if has_staged_files:
+    use_index = not ignore_index and has_staged_files
+
+    if not use_index and parents is None:
+        parents = 1
+
+    base = get_sha(repo, parents)
+
+    if use_index:
         index = repo.index
-        diff_obj = index.diff_to_tree(cast(Commit, head).tree)
-        diff_name = f"HEAD...{head.short_id}"
+        diff_obj = index.diff_to_tree(cast(Commit, base).tree)
+        diff_name = f"HEAD...{base.short_id}"
     else:
-        base = get_sha(repo, parents)  # only concerned with latest commit's diff
         diff_obj = repo.diff(base, head)
         diff_name = f"{head.short_id}...{base.short_id}"
 

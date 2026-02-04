@@ -2,7 +2,7 @@
 
 import argparse
 from collections import UserDict
-from typing import Optional, List, Dict, Any, Sequence
+from typing import Optional, List, Dict, Any, Sequence, Union
 
 
 class Args(UserDict):
@@ -13,6 +13,10 @@ class Args(UserDict):
     verbosity: bool = False
     #: See :std:option:`--database`.
     database: str = ""
+    #: See :std:option:`--diff-base`.
+    diff_base: Optional[Union[int, str]] = None
+    #: See :std:option:`--ignore-index`.
+    ignore_index: bool = False
     #: See :std:option:`--style`.
     style: str = "llvm"
     #: See :std:option:`--tidy-checks`.
@@ -107,6 +111,28 @@ tree.
     Builds using ninja should explicitly specify this
     path. Otherwise, cpp-linter will have difficulty
     parsing clang-tidy output.""",
+)
+_parser_args[("-b", "--diff-base")] = dict(
+    default=None,
+    type=lambda input: int(input) if input.isdigit() else str(input),
+    help="""The specific commit or git revision to use
+as the base for any git diffs. For example, may be ``HEAD~5``
+for the last five commits, or a branch name for the history
+diff since the common ancestor. If given as an integer, n, it
+will be treated as ``HEAD~n``. When not set, diff behavior
+depends on the presence of staged files. This option only
+applies to contexts in which GitHub CI is not present/used.
+
+Defaults to ``%(default)s``""",
+)
+_parser_args[("--ignore-index",)] = dict(
+    default=False,
+    action="store_true",
+    help="""Enabling this switch will ignore
+any staged files in the index when producing a diff.
+Useful when used with :std:option:`--diff-base`.
+
+Defaults to ``%(default)s``""",
 )
 _parser_args[("-s", "--style")] = dict(
     default="llvm",

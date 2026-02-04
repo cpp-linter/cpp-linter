@@ -6,7 +6,7 @@ from abc import ABC
 from pathlib import PurePath
 import sys
 import time
-from typing import Optional, Dict, List, Any, cast, NamedTuple
+from typing import Optional, Dict, List, Any, cast, NamedTuple, Union
 import requests
 from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
@@ -161,11 +161,27 @@ class RestApiClient(ABC):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
+        diff_base: Optional[Union[int, str]] = None,
+        ignore_index: bool = False,
     ) -> List[FileObj]:
         """Fetch a list of the event's changed files.
 
         :param file_filter: A `FileFilter` obj to filter files.
         :param lines_changed_only: A value that dictates what file changes to focus on.
+        :param diff_base: The commit or ref to use as the base of the diff.
+
+            .. csv-table::
+                :header-rows: 1
+
+                "Parameter Value", "Git index state", "Scope of diff"
+                "`None` (the default)", "No staged changes", "``HEAD~1..HEAD``"
+                "`None` (the default)", "Has staged changes", "``HEAD..index``"
+                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "No staged changes", "``HEAD~2..HEAD``"
+                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "Has staged changes", "``HEAD~2..index``"
+
+            Use ``ignore_index`` parameter to exclude the staged changes in the local index.
+        :param ignore_index: Setting this flag to `True` will ignore any staged changes
+            in the index when producing a diff.
         """
         raise NotImplementedError("must be implemented in the derivative")
 

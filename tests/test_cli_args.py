@@ -1,6 +1,6 @@
 """Tests related parsing input from CLI arguments."""
 
-from typing import List, Union
+from typing import List, Optional, Union
 import pytest
 from cpp_linter.cli import get_cli_parser, Args
 
@@ -11,6 +11,9 @@ from cpp_linter.cli import get_cli_parser, Args
     [
         ("verbosity", "10", "verbosity", True),
         ("database", "build", "database", "build"),
+        ("diff-base", "5", "diff_base", 5),
+        ("diff-base", "main", "diff_base", "main"),
+        ("ignore-index", None, "ignore_index", True),
         ("style", "file", "style", "file"),
         ("tidy-checks", "-*", "tidy_checks", "-*"),
         ("version", "14", "version", "14"),
@@ -41,12 +44,17 @@ from cpp_linter.cli import get_cli_parser, Args
 )
 def test_arg_parser(
     arg_name: str,
-    arg_value: str,
+    arg_value: Optional[str],
     attr_name: str,
     attr_value: Union[int, str, List[str], bool, None],
 ):
     """parameterized test of specific args compared to their parsed value"""
-    args = get_cli_parser().parse_args([f"--{arg_name}={arg_value}"], namespace=Args())
+    if arg_value is None:
+        args = get_cli_parser().parse_args([f"--{arg_name}"], namespace=Args())
+    else:
+        args = get_cli_parser().parse_args(
+            [f"--{arg_name}={arg_value}"], namespace=Args()
+        )
     assert getattr(args, attr_name) == attr_value
     assert args.command is None
 
