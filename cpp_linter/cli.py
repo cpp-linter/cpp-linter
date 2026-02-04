@@ -127,9 +127,7 @@ Defaults to ``%(default)s``""",
 )
 _parser_args[("--ignore-index",)] = dict(
     default=False,
-    nargs="?",
-    type=lambda input: input.lower() == "true",
-    const=True,
+    action="store_true",
     help="""Setting this flag to ``true`` will ignore
 any staged files in the index when producing a diff.
 Useful when used with :std:option:`--diff-base`.
