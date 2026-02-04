@@ -174,10 +174,10 @@ class RestApiClient(ABC):
                 :header-rows: 1
 
                 "Parameter Value", "Git index state", "Scope of diff"
-                "`None` (the default)", "No staged changes", "``HEAD..HEAD~1``"
-                "`None` (the default)", "Has staged changes", "``index..HEAD``"
-                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "No staged changes", "``HEAD..HEAD~2``"
-                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "Has staged changes", "``index..HEAD~2``"
+                "`None` (the default)", "No staged changes", "``HEAD~1..HEAD``"
+                "`None` (the default)", "Has staged changes", "``HEAD..index``"
+                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "No staged changes", "``HEAD~2..HEAD``"
+                "`int` (eg ``2``) or `str` (eg ``HEAD~2``)", "Has staged changes", "``HEAD~2..index``"
 
             Use ``ignore_index`` parameter to exclude the staged changes in the local index.
         :param ignore_index: Setting this flag to `True` will ignore any staged changes
