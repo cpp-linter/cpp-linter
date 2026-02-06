@@ -75,6 +75,8 @@ class Args(UserDict):
     passive_reviews: bool = False
     #: A subcommand if provided
     command: str | None = None
+    #: See :std:option:`--delete-review-comments`.
+    delete_review_comments: bool = False
 
 
 _parser_args: dict[Sequence[str], Any] = {}
@@ -385,6 +387,16 @@ _parser_args[("-R", "--passive-reviews")] = dict(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
+)
+_parser_args[("-C", "--delete-review-comments")] = dict(
+    default="false",
+    type=lambda input: input.lower() == "true",
+    help="""Set to ``true`` to delete existing outdated/unused
+Pull request review comments, ``false`` to just set them to resolved.
+This only affects review comments made when either
+:std:option:`--tidy-review` or :std:option:`--format-review` is enabled.
+
+Defaults to ``%(default)s``.""",
 )
 
 
