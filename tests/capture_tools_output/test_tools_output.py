@@ -188,6 +188,7 @@ def prep_tmp_dir(
     ],
     ids=["none", "HEAD", 2],
 )
+@pytest.mark.no_clang
 def test_get_sha(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
