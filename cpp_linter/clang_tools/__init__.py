@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Optional, List, Dict, Tuple, cast
+from typing import cast
 import shutil
 
 from ..common_fs import FileObj, FileIOTimeout
@@ -14,7 +14,7 @@ from .clang_format import run_clang_format, FormatAdvice
 from ..cli import Args
 
 
-def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[str]:
+def assemble_version_exec(tool_name: str, specified_version: str) -> str | None:
     """Assembles the command to the executable of the given clang tool based on given
     version information.
 
@@ -37,13 +37,13 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> Optional[st
 def _run_on_single_file(
     file: FileObj,
     log_lvl: int,
-    tidy_cmd: Optional[str],
-    db_json: Optional[List[Dict[str, str]]],
-    format_cmd: Optional[str],
-    format_filter: Optional[FormatFileFilter],
-    tidy_filter: Optional[TidyFileFilter],
+    tidy_cmd: str | None,
+    db_json: list[dict[str, str]] | None,
+    format_cmd: str | None,
+    format_filter: FormatFileFilter | None,
+    tidy_filter: TidyFileFilter | None,
     args: Args,
-) -> Tuple[str, str, Optional[TidyAdvice], Optional[FormatAdvice]]:
+) -> tuple[str, str, TidyAdvice | None, FormatAdvice | None]:
     log_stream = worker_log_init(log_lvl)
     filename = Path(file.name).as_posix()
 
@@ -115,11 +115,11 @@ def _capture_tool_version(cmd: str) -> str:
 
 class ClangVersions:
     def __init__(self) -> None:
-        self.tidy: Optional[str] = None
-        self.format: Optional[str] = None
+        self.tidy: str | None = None
+        self.format: str | None = None
 
 
-def capture_clang_tools_output(files: List[FileObj], args: Args) -> ClangVersions:
+def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersions:
     """Execute and capture all output from clang-tidy and clang-format. This aggregates
     results in the :attr:`~cpp_linter.Globals.OUTPUT`.
 
@@ -150,7 +150,7 @@ def capture_clang_tools_output(files: List[FileObj], args: Args) -> ClangVersion
             ignore_value=args.ignore_tidy,
         )
 
-    db_json: Optional[List[Dict[str, str]]] = None
+    db_json: list[dict[str, str]] | None = None
     if args.database:
         db = Path(args.database)
         if not db.is_absolute():

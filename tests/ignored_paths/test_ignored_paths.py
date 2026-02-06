@@ -1,7 +1,6 @@
 """Tests that focus on the ``ignore`` option's parsing."""
 
 from pathlib import Path, PurePath
-from typing import List
 import pytest
 from cpp_linter.common_fs.file_filter import FileFilter
 
@@ -39,8 +38,8 @@ from cpp_linter.common_fs.file_filter import FileFilter
 def test_ignore(
     caplog: pytest.LogCaptureFixture,
     user_in: str,
-    is_ignored: List[str],
-    is_not_ignored: List[str],
+    is_ignored: list[str],
+    is_not_ignored: list[str],
 ):
     """test ignoring of a specified path."""
     caplog.set_level(10)
@@ -66,7 +65,7 @@ def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
     "user_input", [[], ["file1", "file2"]], ids=["none", "multiple"]
 )
 @pytest.mark.no_clang
-def test_positional_arg(user_input: List[str]):
+def test_positional_arg(user_input: list[str]):
     """Make sure positional arg value(s) are added to not_ignored list."""
     file_filter = FileFilter(not_ignored=user_input)
     assert set(user_input) == file_filter.not_ignored

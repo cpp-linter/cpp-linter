@@ -7,7 +7,7 @@ from pathlib import Path
 import urllib.parse
 import re
 import shutil
-from typing import Dict, cast, List, Optional, Tuple, Union
+from typing import cast
 import warnings
 
 import pygit2  # type: ignore
@@ -28,7 +28,7 @@ DEFAULT_CLANG_VERSION = "16"
 CLANG_VERSION = os.getenv("CLANG_VERSION", DEFAULT_CLANG_VERSION)
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
-TEST_REPO_COMMIT_PAIRS: List[Dict[str, str]] = [
+TEST_REPO_COMMIT_PAIRS: list[dict[str, str]] = [
     dict(
         repo="chocolate-doom/chocolate-doom",
         commit="67715d6e2725322e6132e9ff99b9a2a3f3b10c83",
@@ -63,7 +63,7 @@ def _translate_lines_changed_only_value(value: int) -> str:
 
 
 def make_comment(
-    files: List[FileObj],
+    files: list[FileObj],
 ):
     format_checks_failed = tally_format_advice(files)
     tidy_checks_failed = tally_tidy_advice(files)
@@ -191,8 +191,8 @@ def prep_tmp_dir(
 def test_get_sha(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    repo_commit_pair: Dict[str, str],
-    ref_pair: Tuple[Optional[Union[int, str]], str],
+    repo_commit_pair: dict[str, str],
+    ref_pair: tuple[None | int | str, str],
 ):
     """Test sha resolution with get_sha."""
     repo_name, _ = repo_commit_pair["repo"], repo_commit_pair["commit"]
@@ -233,8 +233,8 @@ def test_get_sha(
 def test_lines_changed_only(
     caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
-    repo_commit_pair: Dict[str, str],
-    extensions: List[str],
+    repo_commit_pair: dict[str, str],
+    extensions: list[str],
     lines_changed_only: int,
 ):
     """Test for lines changes in diff.
@@ -274,7 +274,7 @@ def test_lines_changed_only(
         raise RuntimeError("test failed to find files")
 
 
-def match_file_json(filename: str, files: List[FileObj]) -> Optional[FileObj]:
+def match_file_json(filename: str, files: list[FileObj]) -> None | FileObj:
     """A helper function to match a given filename with a file object's name."""
     for file_obj in files:
         if file_obj.name == filename:
@@ -348,7 +348,7 @@ def test_format_annotations(
             if lines_changed_only == 0:
                 continue
             ranges = cast(
-                List[List[int]],
+                list[list[int]],
                 file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
             )
             for line in lines:
@@ -438,7 +438,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path))
 
-    files: List[FileObj] = []  # no files to test means no concerns to note
+    files: list[FileObj] = []  # no files to test means no concerns to note
 
     args = Args()
     args.tidy_checks = "-*"
@@ -467,7 +467,7 @@ def test_all_ok_comment(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 def test_parse_diff(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    repo_commit_pair: Dict[str, str],
+    repo_commit_pair: dict[str, str],
     patch: str,
 ):
     """Use a git clone to test run parse_diff()."""
@@ -520,7 +520,7 @@ def test_parse_diff(
 def test_tidy_extra_args(
     capsys: pytest.CaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
-    user_input: List[str],
+    user_input: list[str],
 ):
     """Just make sure --extra-arg is passed to clang-tidy properly"""
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")

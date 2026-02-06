@@ -2,7 +2,7 @@
 
 from pathlib import PurePath
 import subprocess
-from typing import List, cast
+from typing import cast
 
 import xml.etree.ElementTree as ET
 
@@ -45,7 +45,7 @@ class FormatReplacementLine:
         self.line = line_numb
 
         #: A list of `FormatReplacement` object(s) representing suggestions.
-        self.replacements: List[FormatReplacement] = []
+        self.replacements: list[FormatReplacement] = []
 
     def __repr__(self):
         return (
@@ -66,7 +66,7 @@ class FormatAdvice(PatchMixin):
         #: The source file that the suggestion concerns.
         self.filename = PurePath(filename).as_posix()
 
-        self.replaced_lines: List[FormatReplacementLine] = []
+        self.replaced_lines: list[FormatReplacementLine] = []
         """A list of `FormatReplacementLine` representing replacement(s)
         on a single line."""
 
@@ -85,7 +85,7 @@ class FormatAdvice(PatchMixin):
         return "clang-format"
 
 
-def tally_format_advice(files: List[FileObj]) -> int:
+def tally_format_advice(files: list[FileObj]) -> int:
     """Returns the sum of clang-format errors"""
     format_checks_failed = 0
     for file_obj in files:
@@ -126,7 +126,7 @@ def parse_format_replacements_xml(
     if not xml_out:
         return format_advice
     ranges = cast(
-        List[List[int]],
+        list[list[int]],
         file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
     tree = ET.fromstring(xml_out)
@@ -183,7 +183,7 @@ def run_clang_format(
         "--output-replacements-xml",
     ]
     ranges = cast(
-        List[List[int]],
+        list[list[int]],
         file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
     for span in ranges:

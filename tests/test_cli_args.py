@@ -1,6 +1,5 @@
 """Tests related parsing input from CLI arguments."""
 
-from typing import List, Optional, Union
 import pytest
 from cpp_linter.cli import get_cli_parser, Args
 
@@ -44,9 +43,9 @@ from cpp_linter.cli import get_cli_parser, Args
 )
 def test_arg_parser(
     arg_name: str,
-    arg_value: Optional[str],
+    arg_value: None | str,
     attr_name: str,
-    attr_value: Union[int, str, List[str], bool, None],
+    attr_value: int | str | list[str] | bool | None,
 ):
     """parameterized test of specific args compared to their parsed value"""
     if arg_value is None:

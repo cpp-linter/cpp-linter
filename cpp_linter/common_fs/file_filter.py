@@ -1,6 +1,5 @@
 import configparser
 from pathlib import Path, PurePath
-from typing import List, Optional, Set
 from . import FileObj
 from ..loggers import logger
 
@@ -19,16 +18,16 @@ class FileFilter:
     def __init__(
         self,
         ignore_value: str = "",
-        extensions: Optional[List[str]] = None,
-        not_ignored: Optional[List[str]] = None,
-        tool_specific_name: Optional[str] = None,
+        extensions: list[str] | None = None,
+        not_ignored: list[str] | None = None,
+        tool_specific_name: str | None = None,
     ) -> None:
         #: A set of file extensions that are considered C/C++ sources.
-        self.extensions: Set[str] = set(extensions or [])
+        self.extensions: set[str] = set(extensions or [])
         #: A set of ignore patterns.
-        self.ignored: Set[str] = set()
+        self.ignored: set[str] = set()
         #: A set of not-ignore patterns.
-        self.not_ignored: Set[str] = set(not_ignored or [])
+        self.not_ignored: set[str] = set(not_ignored or [])
         self._tool_name = tool_specific_name or ""
         self._parse_ignore_option(paths=ignore_value)
 
@@ -158,7 +157,7 @@ class FileFilter:
             or not self.is_file_in_list(ignored=True, file_name=file_path)
         )
 
-    def list_source_files(self) -> List[FileObj]:
+    def list_source_files(self) -> list[FileObj]:
         """Make a list of source files to be checked.
         This will recursively walk the file tree collecting matches to
         anything that would return ``True`` from `is_source_or_ignored()`.
@@ -186,8 +185,8 @@ class TidyFileFilter(FileFilter):
     def __init__(
         self,
         ignore_value: str = "",
-        extensions: Optional[List[str]] = None,
-        not_ignored: Optional[List[str]] = None,
+        extensions: list[str] | None = None,
+        not_ignored: list[str] | None = None,
     ) -> None:
         super().__init__(
             ignore_value=ignore_value,
@@ -203,8 +202,8 @@ class FormatFileFilter(FileFilter):
     def __init__(
         self,
         ignore_value: str = "",
-        extensions: Optional[List[str]] = None,
-        not_ignored: Optional[List[str]] = None,
+        extensions: list[str] | None = None,
+        not_ignored: list[str] | None = None,
     ) -> None:
         super().__init__(
             ignore_value=ignore_value,

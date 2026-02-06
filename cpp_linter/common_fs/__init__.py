@@ -1,7 +1,7 @@
 from os import environ
 from pathlib import Path
 import time
-from typing import List, Dict, Any, Union, Tuple, Optional, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 from pygit2 import DiffHunk  # type: ignore
 from ..loggers import logger
 
@@ -28,32 +28,32 @@ class FileObj:
     def __init__(
         self,
         name: str,
-        additions: Optional[List[int]] = None,
-        diff_chunks: Optional[List[List[int]]] = None,
+        additions: list[int] | None = None,
+        diff_chunks: list[list[int]] | None = None,
     ):
         self.name: str = name  #: The file name
-        self.additions: List[int] = additions or []
+        self.additions: list[int] = additions or []
         """A list of line numbers that contain added changes. This will be empty if
         not focusing on lines changed only."""
-        self.diff_chunks: List[List[int]] = diff_chunks or []
+        self.diff_chunks: list[list[int]] = diff_chunks or []
         """A list of line numbers that define the beginning and ending of hunks in the
         diff. This will be empty if not focusing on lines changed only."""
-        self.lines_added: List[List[int]] = FileObj._consolidate_list_to_ranges(
+        self.lines_added: list[list[int]] = FileObj._consolidate_list_to_ranges(
             additions or []
         )
         """A list of line numbers that define the beginning and ending of ranges that
         have added changes. This will be empty if not focusing on lines changed only.
         """
         #: The results from clang-tidy
-        self.tidy_advice: Optional["TidyAdvice"] = None
+        self.tidy_advice: "TidyAdvice" | None = None
         #: The results from clang-format
-        self.format_advice: Optional["FormatAdvice"] = None
+        self.format_advice: "FormatAdvice" | None = None
 
     def __repr__(self) -> str:
         return f"<FileObj {self.name} added:{self.additions} chunks:{self.diff_chunks}>"
 
     @staticmethod
-    def _consolidate_list_to_ranges(numbers: List[int]) -> List[List[int]]:
+    def _consolidate_list_to_ranges(numbers: list[int]) -> list[list[int]]:
         """A helper function that is only used after parsing the lines from a diff that
         contain additions.
 
@@ -62,7 +62,7 @@ class FileObj:
         :returns: A consolidated sequence of lists. Each list will have 2 items
             describing the starting and ending lines of all line ``numbers``.
         """
-        result: List[List[int]] = []
+        result: list[list[int]] = []
         for i, n in enumerate(numbers):
             if not i:
                 result.append([n])
@@ -75,7 +75,7 @@ class FileObj:
 
     def range_of_changed_lines(
         self, lines_changed_only: int, get_ranges: bool = False
-    ) -> Union[List[int], List[List[int]]]:
+    ) -> list[int] | list[list[int]]:
         """Assemble a list of lines changed.
 
         :param lines_changed_only: A flag to indicate the focus of certain lines.
@@ -100,7 +100,7 @@ class FileObj:
         # we return an empty list (instead of None) here so we can still iterate it
         return []  # type: ignore[return-value]
 
-    def serialize(self) -> Dict[str, Any]:
+    def serialize(self) -> dict[str, Any]:
         """For easy debugging, use this method to serialize the `FileObj` into a json
         compatible `dict`."""
         return {
@@ -111,7 +111,7 @@ class FileObj:
             },
         }
 
-    def is_hunk_contained(self, hunk: DiffHunk) -> Optional[Tuple[int, int]]:
+    def is_hunk_contained(self, hunk: DiffHunk) -> tuple[int, int] | None:
         """Does a given ``hunk`` start and end within a single diff hunk?
 
         This also includes some compensations for hunk headers that are oddly formed.
@@ -134,7 +134,7 @@ class FileObj:
             end = start
         return self.is_range_contained(start, end)
 
-    def is_range_contained(self, start: int, end: int) -> Optional[Tuple[int, int]]:
+    def is_range_contained(self, start: int, end: int) -> tuple[int, int] | None:
         """Does the given ``start`` and ``end`` line numbers fit within a single diff
         hunk?
 
@@ -172,7 +172,7 @@ class FileObj:
         """
         contents = b""
         success = False
-        exception: Union[OSError, FileIOTimeout] = FileIOTimeout(
+        exception: OSError | FileIOTimeout = FileIOTimeout(
             f"Failed to read from file '{self.name}' within "
             + f"{round(timeout_ns / 1_000_000_000, 2)} seconds"
         )
@@ -194,7 +194,7 @@ class FileObj:
 
     def read_write_with_timeout(
         self,
-        data: Union[bytes, bytearray],
+        data: bytes | bytearray,
         timeout_ns: int = 1_000_000_000,
     ) -> bytes:
         """Read then write the entire file's contents.
@@ -210,7 +210,7 @@ class FileObj:
         :raises OSError: When the file could not be opened due to an `OSError`.
         """
         success = False
-        exception: Union[OSError, FileIOTimeout] = FileIOTimeout(
+        exception: OSError | FileIOTimeout = FileIOTimeout(
             f"Failed to read then write file '{self.name}' within "
             + f"{round(timeout_ns / 1_000_000_000, 2)} seconds"
         )
@@ -245,7 +245,7 @@ class FileIOTimeout(Exception):
 
 
 def has_line_changes(
-    lines_changed_only: int, diff_chunks: List[List[int]], additions: List[int]
+    lines_changed_only: int, diff_chunks: list[list[int]], additions: list[int]
 ) -> bool:
     """Does this file actually apply to condition specified by ``lines_changed_only``?
 
@@ -265,7 +265,7 @@ def has_line_changes(
     )
 
 
-def get_line_cnt_from_cols(data: bytes, offset: int) -> Tuple[int, int]:
+def get_line_cnt_from_cols(data: bytes, offset: int) -> tuple[int, int]:
     """Gets a line count and columns offset from a file's absolute offset.
 
     :param data: Bytes content to analyze.

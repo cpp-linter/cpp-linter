@@ -5,7 +5,7 @@ import os
 from pathlib import Path, PurePath
 import re
 import subprocess
-from typing import Tuple, Union, List, cast, Optional, Dict, Set
+from typing import cast
 from ..loggers import logger
 from ..common_fs import FileObj
 from .patcher import PatchMixin, ReviewComments, Suggestion
@@ -30,8 +30,8 @@ class TidyNotification:
 
     def __init__(
         self,
-        notification_line: Tuple[str, Union[int, str], Union[int, str], str, str, str],
-        database: Optional[List[Dict[str, str]]] = None,
+        notification_line: tuple[str, int | str, int | str, str, str, str],
+        database: list[dict[str, str]] | None = None,
     ):
         # logger.debug("Creating tidy note from line %s", notification_line)
         (
@@ -78,9 +78,9 @@ class TidyNotification:
         #: The source filename concerning the notification.
         self.filename = rel_path
         #: A `list` of lines for the code-block in the notification.
-        self.fixit_lines: List[str] = []
+        self.fixit_lines: list[str] = []
         #: A list of line numbers where a suggested fix was applied.
-        self.applied_fixes: Set[int] = set()
+        self.applied_fixes: set[int] = set()
 
     @property
     def diagnostic_link(self) -> str:
@@ -105,7 +105,7 @@ class TidyNotification:
 
 
 class TidyAdvice(PatchMixin):
-    def __init__(self, notes: List[TidyNotification]) -> None:
+    def __init__(self, notes: list[TidyNotification]) -> None:
         #: A buffer of the applied fixes from clang-tidy
         super().__init__()
         self.notes = notes
@@ -174,7 +174,7 @@ class TidyAdvice(PatchMixin):
                         review_comments.suggestions.append(suggestion)
 
 
-def tally_tidy_advice(files: List[FileObj]) -> int:
+def tally_tidy_advice(files: list[FileObj]) -> int:
     """Returns the sum of clang-format errors"""
     tidy_checks_failed = 0
     for file_obj in files:
@@ -194,8 +194,8 @@ def run_clang_tidy(
     checks: str,
     lines_changed_only: int,
     database: str,
-    extra_args: List[str],
-    db_json: Optional[List[Dict[str, str]]],
+    extra_args: list[str],
+    db_json: list[dict[str, str]] | None,
     tidy_review: bool,
     style: str,
 ) -> TidyAdvice:
@@ -277,7 +277,7 @@ def run_clang_tidy(
 
 
 def parse_tidy_output(
-    tidy_out: str, database: Optional[List[Dict[str, str]]]
+    tidy_out: str, database: list[dict[str, str]] | None
 ) -> TidyAdvice:
     """Parse clang-tidy stdout.
 
@@ -300,7 +300,7 @@ def parse_tidy_output(
             if " " not in diagnostic_name and "-" in diagnostic_name:
                 notification = TidyNotification(
                     cast(
-                        Tuple[str, Union[int, str], Union[int, str], str, str, str],
+                        tuple[str, int | str, int | str, str, str, str],
                         note_match.groups(),
                     ),
                     database,

@@ -15,7 +15,7 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Dict, List, Any, cast, Optional, Union
+from typing import Any, cast
 
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
@@ -66,7 +66,7 @@ class GithubApiClient(RestApiClient):
         self.pull_request = -1
         event_path = environ.get("GITHUB_EVENT_PATH", "")
         if event_path:
-            event_payload: Dict[str, Any] = json.loads(
+            event_payload: dict[str, Any] = json.loads(
                 Path(event_path).read_text(encoding="utf-8")
             )
             self.pull_request = cast(int, event_payload.get("number", -1))
@@ -74,8 +74,8 @@ class GithubApiClient(RestApiClient):
     def set_exit_code(
         self,
         checks_failed: int,
-        format_checks_failed: Optional[int] = None,
-        tidy_checks_failed: Optional[int] = None,
+        format_checks_failed: int | None = None,
+        tidy_checks_failed: int | None = None,
     ):
         if "GITHUB_OUTPUT" in environ:
             with open(environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as env_file:
@@ -92,9 +92,9 @@ class GithubApiClient(RestApiClient):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
-        diff_base: Optional[Union[int, str]] = None,
+        diff_base: None | int | str = None,
         ignore_index: bool = False,
-    ) -> List[FileObj]:
+    ) -> list[FileObj]:
         if environ.get("CI", "false") == "true":
             files_link = f"{self.api_url}/repos/{self.repo}/"
             if self.event_name == "pull_request":
@@ -121,8 +121,8 @@ class GithubApiClient(RestApiClient):
         )
 
     def _get_changed_files_paginated(
-        self, url: Optional[str], lines_changed_only: int, file_filter: FileFilter
-    ) -> List[FileObj]:
+        self, url: None | str, lines_changed_only: int, file_filter: FileFilter
+    ) -> list[FileObj]:
         """A fallback implementation of getting file changes using a paginated
         REST API endpoint."""
         logger.info(
@@ -137,7 +137,7 @@ class GithubApiClient(RestApiClient):
         while url is not None:
             response = self.api_request(url)
             url = RestApiClient.has_more_pages(response)
-            file_list: List[Dict[str, Any]]
+            file_list: list[dict[str, Any]]
             if self.event_name == "pull_request":
                 file_list = response.json()
             else:
@@ -178,7 +178,7 @@ class GithubApiClient(RestApiClient):
                 files.extend(parse_diff(file_diff, file_filter, lines_changed_only))
         return files
 
-    def verify_files_are_present(self, files: List[FileObj]) -> None:
+    def verify_files_are_present(self, files: list[FileObj]) -> None:
         """Download the files if not present.
 
         :param files: A list of files to check for existence.
@@ -203,7 +203,7 @@ class GithubApiClient(RestApiClient):
                 Path.mkdir(file_name.parent, parents=True, exist_ok=True)
                 file_name.write_bytes(response.content)
 
-    def make_headers(self, use_diff: bool = False) -> Dict[str, str]:
+    def make_headers(self, use_diff: bool = False) -> dict[str, str]:
         headers = {
             "Accept": "application/vnd.github." + ("diff" if use_diff else "raw+json"),
         }
@@ -215,14 +215,14 @@ class GithubApiClient(RestApiClient):
 
     def post_feedback(
         self,
-        files: List[FileObj],
+        files: list[FileObj],
         args: Args,
         clang_versions: ClangVersions,
     ):
         format_checks_failed = tally_format_advice(files)
         tidy_checks_failed = tally_tidy_advice(files)
         checks_failed = format_checks_failed + tidy_checks_failed
-        comment: Optional[str] = None
+        comment: None | str = None
 
         if args.step_summary and "GITHUB_STEP_SUMMARY" in environ:
             comment = super().make_comment(
@@ -291,7 +291,7 @@ class GithubApiClient(RestApiClient):
 
     def make_annotations(
         self,
-        files: List[FileObj],
+        files: list[FileObj],
         style: str,
     ) -> None:
         """Use github log commands to make annotations from clang-format and
@@ -368,7 +368,7 @@ class GithubApiClient(RestApiClient):
             logger.debug("payload body:\n%s", payload)
             self.api_request(url=comments_url, method=req_meth, data=payload)
 
-    def remove_bot_comments(self, comments_url: str, delete: bool) -> Optional[str]:
+    def remove_bot_comments(self, comments_url: str, delete: bool) -> None | str:
         """Traverse the list of comments made by a specific user
         and remove all.
 
@@ -379,15 +379,15 @@ class GithubApiClient(RestApiClient):
         :returns: If updating a comment, this will return the comment URL.
         """
         logger.debug("comments_url: %s", comments_url)
-        comment_url: Optional[str] = None
+        comment_url: None | str = None
         page = 1
-        next_page: Optional[str] = comments_url + f"?page={page}&per_page=100"
+        next_page: None | str = comments_url + f"?page={page}&per_page=100"
         while next_page:
             response = self.api_request(url=next_page)
             next_page = self.has_more_pages(response)
             page += 1
 
-            comments = cast(List[Dict[str, Any]], response.json())
+            comments = cast(list[dict[str, Any]], response.json())
             if logger.level >= logging.DEBUG:
                 json_comments = Path(f"{CACHE_PATH}/comments-pg{page}.json")
                 json_comments.write_text(
@@ -417,7 +417,7 @@ class GithubApiClient(RestApiClient):
 
     def post_review(
         self,
-        files: List[FileObj],
+        files: list[FileObj],
         tidy_review: bool,
         format_review: bool,
         no_lgtm: bool,
@@ -428,8 +428,8 @@ class GithubApiClient(RestApiClient):
         response = self.api_request(url=url)
         url += "/reviews"
         pr_info = response.json()
-        is_draft = cast(Dict[str, bool], pr_info).get("draft", False)
-        is_open = cast(Dict[str, str], pr_info).get("state", "open") == "open"
+        is_draft = cast(dict[str, bool], pr_info).get("draft", False)
+        is_open = cast(dict[str, str], pr_info).get("state", "open") == "open"
         if "GITHUB_TOKEN" not in environ:
             logger.error("A GITHUB_TOKEN env var is required to post review comments")
             sys.exit(1)
@@ -482,7 +482,7 @@ class GithubApiClient(RestApiClient):
 
     @staticmethod
     def create_review_comments(
-        files: List[FileObj],
+        files: list[FileObj],
         tidy_tool: bool,
         summary_only: bool,
         review_comments: ReviewComments,
@@ -499,7 +499,7 @@ class GithubApiClient(RestApiClient):
         tool_name = "clang-tidy" if tidy_tool else "clang-format"
         review_comments.tool_total[tool_name] = 0
         for file_obj in files:
-            tool_advice: Optional[PatchMixin]
+            tool_advice: None | PatchMixin
             if tidy_tool:
                 tool_advice = file_obj.tidy_advice
             else:
@@ -512,12 +512,12 @@ class GithubApiClient(RestApiClient):
 
     def _dismiss_stale_reviews(self, url: str):
         """Dismiss all reviews that were previously created by cpp-linter"""
-        next_page: Optional[str] = url + "?page=1&per_page=100"
+        next_page: str | None = url + "?page=1&per_page=100"
         while next_page:
             response = self.api_request(url=next_page)
             next_page = self.has_more_pages(response)
 
-            reviews: List[Dict[str, Any]] = response.json()
+            reviews: list[dict[str, Any]] = response.json()
             for review in reviews:
                 if (
                     "body" in review

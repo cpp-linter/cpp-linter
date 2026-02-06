@@ -1,6 +1,5 @@
 """Tests specific to specifying the compilation database path."""
 
-from typing import List
 from pathlib import Path, PurePath
 import logging
 import os
@@ -39,7 +38,7 @@ def test_db_detection(
     capsys: pytest.CaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
     database: str,
-    expected_args: List[str],
+    expected_args: list[str],
 ):
     """test clang-tidy using a implicit path to the compilation database."""
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
