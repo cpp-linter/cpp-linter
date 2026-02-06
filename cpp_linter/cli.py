@@ -2,7 +2,7 @@
 
 import argparse
 from collections import UserDict
-from typing import Optional, List, Dict, Any, Sequence
+from typing import Any, Sequence
 
 
 class Args(UserDict):
@@ -27,7 +27,7 @@ class Args(UserDict):
     #: See :std:option:`--version`.
     version: str = ""
     #: See :std:option:`--extensions`.
-    extensions: List[str] = [
+    extensions: list[str] = [
         "c",
         "h",
         "C",
@@ -56,17 +56,17 @@ class Args(UserDict):
     #: See :std:option:`--file-annotations`.
     file_annotations: bool = True
     #: See :std:option:`--extra-arg`.
-    extra_arg: List[str] = []
+    extra_arg: list[str] = []
     #: See :std:option:`--no-lgtm`.
     no_lgtm: bool = True
     #: See :std:option:`files`.
-    files: List[str] = []
+    files: list[str] = []
     #: See :std:option:`--tidy-review`.
     tidy_review: bool = False
     #: See :std:option:`--format-review`.
     format_review: bool = False
     #: See :std:option:`--jobs`.
-    jobs: Optional[int] = 1
+    jobs: int | None = 1
     #: See :std:option:`--ignore-tidy`.
     ignore_tidy: str = ""
     #: See :std:option:`--ignore-format`.
@@ -74,10 +74,10 @@ class Args(UserDict):
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
     #: A subcommand if provided
-    command: Optional[str] = None
+    command: str | None = None
 
 
-_parser_args: Dict[Sequence[str], Any] = {}
+_parser_args: dict[Sequence[str], Any] = {}
 _parser_args[("-v", "--verbosity")] = dict(
     type=lambda a: a.lower() in ["debug", "10"],
     default="info",
@@ -388,7 +388,7 @@ reviews from requesting or approving changes.""",
 )
 
 
-def _parse_jobs(val: str) -> Optional[int]:
+def _parse_jobs(val: str) -> int | None:
     try:
         jobs = int(val)
     except ValueError as exc:
