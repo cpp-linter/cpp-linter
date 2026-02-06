@@ -6,7 +6,7 @@ from abc import ABC
 from pathlib import PurePath
 import sys
 import time
-from typing import Optional, Dict, List, Any, cast, NamedTuple, Union
+from typing import Any, cast, NamedTuple
 import requests
 from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
@@ -49,7 +49,7 @@ class RestApiClient(ABC):
         # a counter for avoiding secondary rate limits
         self._rate_limit_back_step = 0
         # the rate limit reset time
-        self._rate_limit_reset: Optional[time.struct_time] = None
+        self._rate_limit_reset: time.struct_time | None = None
         # the rate limit HTTP response header keys
         self._rate_limit_headers = rate_limit_headers
 
@@ -66,9 +66,9 @@ class RestApiClient(ABC):
     def api_request(
         self,
         url: str,
-        method: Optional[str] = None,
-        data: Optional[str] = None,
-        headers: Optional[Dict[str, Any]] = None,
+        method: str | None = None,
+        data: str | None = None,
+        headers: dict[str, Any] | None = None,
         strict: bool = True,
     ) -> requests.Response:
         """A helper function to streamline handling of HTTP requests' responses.
@@ -129,8 +129,8 @@ class RestApiClient(ABC):
     def set_exit_code(
         self,
         checks_failed: int,
-        format_checks_failed: Optional[int] = None,
-        tidy_checks_failed: Optional[int] = None,
+        format_checks_failed: int | None = None,
+        tidy_checks_failed: int | None = None,
     ):
         """Set the action's output values and shows them in the log output.
 
@@ -148,7 +148,7 @@ class RestApiClient(ABC):
         logger.info("%d checks-failed", checks_failed)
         return checks_failed
 
-    def make_headers(self, use_diff: bool = False) -> Dict[str, str]:
+    def make_headers(self, use_diff: bool = False) -> dict[str, str]:
         """Create a `dict` for use in REST API headers.
 
         :param use_diff: A flag to indicate that the returned format should be in diff
@@ -161,9 +161,9 @@ class RestApiClient(ABC):
         self,
         file_filter: FileFilter,
         lines_changed_only: int,
-        diff_base: Optional[Union[int, str]] = None,
+        diff_base: None | int | str = None,
         ignore_index: bool = False,
-    ) -> List[FileObj]:
+    ) -> list[FileObj]:
         """Fetch a list of the event's changed files.
 
         :param file_filter: A `FileFilter` obj to filter files.
@@ -187,11 +187,11 @@ class RestApiClient(ABC):
 
     @staticmethod
     def make_comment(
-        files: List[FileObj],
+        files: list[FileObj],
         format_checks_failed: int,
         tidy_checks_failed: int,
         clang_versions: ClangVersions,
-        len_limit: Optional[int] = None,
+        len_limit: None | int = None,
     ) -> str:
         """Make an MarkDown comment from the given advice. Also returns a count of
         checks failed for each tool (clang-format and clang-tidy)
@@ -207,7 +207,7 @@ class RestApiClient(ABC):
         opener = f"{COMMENT_MARKER}# Cpp-Linter Report "
         comment = ""
 
-        def adjust_limit(limit: Optional[int], text: str) -> Optional[int]:
+        def adjust_limit(limit: int | None, text: str) -> int | None:
             if limit is not None:
                 return limit - len(text)
             return limit
@@ -238,10 +238,10 @@ class RestApiClient(ABC):
 
     @staticmethod
     def _make_format_comment(
-        files: List[FileObj],
+        files: list[FileObj],
         checks_failed: int,
-        len_limit: Optional[int] = None,
-        version: Optional[str] = None,
+        len_limit: None | int = None,
+        version: None | str = None,
     ) -> str:
         """make a comment describing clang-format errors"""
         comment = "\n<details><summary>clang-format{} reports: <strong>".format(
@@ -264,10 +264,10 @@ class RestApiClient(ABC):
 
     @staticmethod
     def _make_tidy_comment(
-        files: List[FileObj],
+        files: list[FileObj],
         checks_failed: int,
-        len_limit: Optional[int] = None,
-        version: Optional[str] = None,
+        len_limit: None | int = None,
+        version: None | str = None,
     ) -> str:
         """make a comment describing clang-tidy errors"""
         comment = "\n<details><summary>clang-tidy{} reports: <strong>".format(
@@ -306,7 +306,7 @@ class RestApiClient(ABC):
 
     def post_feedback(
         self,
-        files: List[FileObj],
+        files: list[FileObj],
         args: Args,
         clang_versions: ClangVersions,
     ):
@@ -319,7 +319,7 @@ class RestApiClient(ABC):
         raise NotImplementedError("Must be defined in the derivative")
 
     @staticmethod
-    def has_more_pages(response: requests.Response) -> Optional[str]:
+    def has_more_pages(response: requests.Response) -> None | str:
         """A helper function to parse a HTTP request's response headers to determine if
         the previous REST API call is paginated.
 

@@ -3,7 +3,7 @@ binds to). The `parse_diff()` function here is only used when
 :py:meth:`pygit2.Diff.parse_diff()` function fails in `cpp_linter.git.parse_diff()`"""
 
 import re
-from typing import Optional, List, Tuple, cast
+from typing import cast
 from ..common_fs import FileObj, has_line_changes
 from ..common_fs.file_filter import FileFilter
 from ..loggers import logger
@@ -16,7 +16,7 @@ DIFF_BINARY_FILE = re.compile(r"^Binary\sfiles\s", re.MULTILINE)
 HUNK_INFO = re.compile(r"^@@\s\-\d+,?\d*\s\+(\d+,?\d*)\s@@", re.MULTILINE)
 
 
-def _get_filename_from_diff(front_matter: str) -> Optional[re.Match]:
+def _get_filename_from_diff(front_matter: str) -> re.Match | None:
     """Get the filename from content in the given diff front matter."""
     filename_match = DIFF_FILE_NAME.search(front_matter)
     if filename_match is not None:
@@ -41,7 +41,7 @@ def parse_diff(
     full_diff: str,
     file_filter: FileFilter,
     lines_changed_only: int,
-) -> List[FileObj]:
+) -> list[FileObj]:
     """Parse a given diff into file objects.
 
     :param full_diff: The complete diff for an event.
@@ -50,7 +50,7 @@ def parse_diff(
     :returns: A `list` of `FileObj` instances containing information about the files
         changed.
     """
-    file_objects: List[FileObj] = []
+    file_objects: list[FileObj] = []
     logger.error("Using pure python to parse diff because pygit2 failed!")
     file_diffs = DIFF_FILE_DELIMITER.split(full_diff.lstrip("\n"))
     for diff in file_diffs:
@@ -73,7 +73,7 @@ def parse_diff(
     return file_objects
 
 
-def _parse_patch(full_patch: str) -> Tuple[List[List[int]], List[int]]:
+def _parse_patch(full_patch: str) -> tuple[list[list[int]], list[int]]:
     """Parse a diff's patch accordingly.
 
     :param full_patch: The entire patch of hunks for 1 file.
@@ -84,9 +84,9 @@ def _parse_patch(full_patch: str) -> Tuple[List[List[int]], List[int]]:
           2 element `list` describing the starting and ending line numbers.
         - Index 1 is a `list` of the line numbers that contain additions.
     """
-    ranges: List[List[int]] = []
+    ranges: list[list[int]] = []
     # additions is a list line numbers in the diff containing additions
-    additions: List[int] = []
+    additions: list[int] = []
     line_numb_in_diff: int = 0
     chunks = HUNK_INFO.split(full_patch)
     for index, chunk in enumerate(chunks):

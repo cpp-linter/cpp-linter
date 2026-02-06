@@ -2,7 +2,7 @@
 by the clang tool's output."""
 
 from abc import ABC
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Any
 from pygit2 import Patch  # type: ignore
 from ..common_fs import FileObj
 from pygit2.enums import DiffOption  # type: ignore
@@ -27,7 +27,7 @@ class Suggestion:
         #: The markdown comment about the suggestion.
         self.comment: str = ""
 
-    def serialize_to_github_payload(self) -> Dict[str, Any]:
+    def serialize_to_github_payload(self) -> dict[str, Any]:
         """Serialize this object into a JSON compatible with Github's REST API."""
         assert self.line_end > 0, "ending line number unknown"
         from ..rest_api import COMMENT_MARKER  # workaround circular import
@@ -47,9 +47,9 @@ class ReviewComments:
 
     def __init__(self) -> None:
         #: The list of actual comments
-        self.suggestions: List[Suggestion] = []
+        self.suggestions: list[Suggestion] = []
 
-        self.tool_total: Dict[str, Optional[int]] = {
+        self.tool_total: dict[str, int | None] = {
             "clang-tidy": None,
             "clang-format": None,
         }
@@ -62,7 +62,7 @@ class ReviewComments:
         A `None` value means a review was not requested from the corresponding tool.
         """
 
-        self.full_patch: Dict[str, str] = {"clang-tidy": "", "clang-format": ""}
+        self.full_patch: dict[str, str] = {"clang-tidy": "", "clang-format": ""}
         """The full patch of all the suggestions (including those that will not
         fit within the diff)"""
 
@@ -84,9 +84,9 @@ class ReviewComments:
     def serialize_to_github_payload(
         # avoid circular imports by accepting primitive types (instead of ClangVersions)
         self,
-        tidy_version: Optional[str],
-        format_version: Optional[str],
-    ) -> Tuple[str, List[Dict[str, Any]]]:
+        tidy_version: str | None,
+        format_version: str | None,
+    ) -> tuple[str, list[dict[str, Any]]]:
         """Serialize this object into a summary and list of comments compatible
         with Github's REST API.
 
@@ -143,7 +143,7 @@ class PatchMixin(ABC):
 
     def __init__(self) -> None:
         #: A unified diff of the applied fixes from the clang tool's output
-        self.patched: Optional[bytes] = None
+        self.patched: bytes | None = None
 
     def get_suggestion_help(self, start, end) -> str:
         """Create helpful text about what the suggestion aims to fix.

@@ -2,7 +2,7 @@
 
 import argparse
 from collections import UserDict
-from typing import Optional, List, Dict, Any, Sequence, Union
+from typing import Optional, List, Dict, Any, Sequence
 
 
 class Args(UserDict):
@@ -14,7 +14,7 @@ class Args(UserDict):
     #: See :std:option:`--database`.
     database: str = ""
     #: See :std:option:`--diff-base`.
-    diff_base: Optional[Union[int, str]] = None
+    diff_base: int | str | None = None
     #: See :std:option:`--ignore-index`.
     ignore_index: bool = False
     #: See :std:option:`--style`.

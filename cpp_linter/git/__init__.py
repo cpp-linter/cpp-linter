@@ -3,7 +3,7 @@ related to parsing diff output into a list of changed files."""
 
 import logging
 from pathlib import Path
-from typing import Tuple, List, Optional, cast, Union
+from typing import cast
 
 from pygit2 import (  # type: ignore
     Repository,
@@ -26,7 +26,7 @@ from ..loggers import logger
 from .git_str import parse_diff as legacy_parse_diff
 
 
-def get_sha(repo: Repository, parent: Optional[Union[int, str]] = None) -> GitObject:
+def get_sha(repo: Repository, parent: None | int | str = None) -> GitObject:
     """Uses ``git`` to fetch the full SHA hash of a commit.
 
     .. note::
@@ -54,9 +54,7 @@ STAGED_STATUS = (
 )
 
 
-def get_diff(
-    parents: Optional[Union[int, str]] = None, ignore_index: bool = False
-) -> Diff:
+def get_diff(parents: None | int | str = None, ignore_index: bool = False) -> Diff:
     """Retrieve the diff info about a specified commit.
 
     :param parents: The commit or ref to use as the base of the diff.
@@ -68,7 +66,7 @@ def get_diff(
     :returns: A `pygit2.Diff` object representing the fetched diff.
     """
     repo = Repository(".")
-    head = get_sha(repo)
+    head = get_sha(repo).peel(Commit)
 
     has_staged_files = False
     for _, status in repo.status().items():
@@ -81,11 +79,11 @@ def get_diff(
     if not use_index and parents is None:
         parents = 1
 
-    base = get_sha(repo, parents)
+    base = get_sha(repo, parents).peel(Commit)
 
     if use_index:
         index = repo.index
-        diff_obj = index.diff_to_tree(cast(Commit, base).tree)
+        diff_obj = index.diff_to_tree(base.tree)
         diff_name = f"HEAD...{base.short_id}"
     else:
         diff_obj = repo.diff(base, head)
@@ -103,10 +101,10 @@ ADDITIVE_STATUS = (GIT_DELTA_RENAMED, GIT_DELTA_MODIFIED, GIT_DELTA_ADDED)
 
 
 def parse_diff(
-    diff_obj: Union[Diff, str],
+    diff_obj: Diff | str,
     file_filter: FileFilter,
     lines_changed_only: int,
-) -> List[FileObj]:
+) -> list[FileObj]:
     """Parse a given diff into file objects.
 
     :param diff_obj: The complete git diff object for an event.
@@ -116,13 +114,15 @@ def parse_diff(
 
         .. note:: Deleted files are omitted because we only want to analyze updates.
     """
-    file_objects: List[FileObj] = []
+    file_objects: list[FileObj] = []
     if isinstance(diff_obj, str):
         try:
             diff_obj = Diff.parse_diff(diff_obj)
         except GitError as exc:
             logger.warning(f"pygit2.Diff.parse_diff() threw {exc}")
-            return legacy_parse_diff(diff_obj, file_filter, lines_changed_only)
+            return legacy_parse_diff(
+                cast(str, diff_obj), file_filter, lines_changed_only
+            )
     for patch in diff_obj:
         if patch.delta.status not in ADDITIVE_STATUS:
             continue
@@ -136,7 +136,7 @@ def parse_diff(
     return file_objects
 
 
-def parse_patch(patch: List[DiffHunk]) -> Tuple[List[List[int]], List[int]]:
+def parse_patch(patch: list[DiffHunk]) -> tuple[list[list[int]], list[int]]:
     """Parse a diff's patch accordingly.
 
     :param patch: The patch of hunks for 1 file.
@@ -147,9 +147,9 @@ def parse_patch(patch: List[DiffHunk]) -> Tuple[List[List[int]], List[int]]:
           2 element `list` describing the starting and ending line numbers.
         - Index 1 is a `list` of the line numbers that contain additions.
     """
-    ranges: List[List[int]] = []
+    ranges: list[list[int]] = []
     # additions is a list line numbers in the diff containing additions
-    additions: List[int] = []
+    additions: list[int] = []
 
     for hunk in patch:
         start_line, hunk_length = (hunk.new_start, hunk.new_lines)

@@ -5,7 +5,7 @@ import os
 import json
 from pathlib import Path
 import shutil
-from typing import List, cast
+from typing import cast
 
 import pytest
 
@@ -73,7 +73,7 @@ def test_start_group(caplog: pytest.LogCaptureFixture):
 def test_list_src_files(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
-    extensions: List[str],
+    extensions: list[str],
 ):
     """List the source files in the root folder of this repo."""
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
