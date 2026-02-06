@@ -16,7 +16,9 @@ words:
   - cstdio
   - declval
   - docutils
+  - endfor
   - endgroup
+  - endmacro
   - Fixit
   - fontawesome
   - gitmodules
@@ -46,9 +48,11 @@ words:
   - srcdir
   - stddef
   - tada
+  - timeit
   - toctree
   - tofile
   - tomli
+  - topo
   - undoc
   - urllib
   - vararg

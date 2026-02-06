@@ -1,0 +1,64 @@
+name: Tag Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      component:
+        description: >-
+          The version component to bump.
+          If set to `auto`, then the component will be
+          determined based on the git commit history since
+          the previous release.
+        default: auto
+        required: true
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+
+permissions: {}
+
+jobs:
+  create-release:
+    # NOTE: This job requires a PAT (stored under `secrets.BUMP_N_RELEASE`).
+    # Using the generic `secrets.GITHUB_TOKEN` to create a release will
+    # not trigger other CI workflows, namely the release.yml (for deployments).
+    runs-on: ubuntu-latest
+    # These permissions must be granted by the token stored in `secrets.BUMP_N_RELEASE`
+    # permissions:
+    #   # write permission needed to create a GitHub release
+    #   contents: write
+    #   # read permission needed to parse PRs corresponding to commits
+    #   pull-requests: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # credentials needed because `git` is used in tag-release.nu script
+          persist-credentials: true
+          token: ${{ secrets.BUMP_N_RELEASE }}
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Install uv
+        uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7.2.1
+      - name: Setup Nu shell
+        uses: hustcer/setup-nu@985d59ec83ae3e3418f9d36471cda38b9d8b9879 # v3.20
+        with:
+          version: ${{ vars.NUSHELL_VERSION || '*' }}
+      - name: Tag version (${{ inputs.component }})
+        env:
+          UV_CONSTRAINT: .github/requirements.txt
+          # GITHUB_TOKEN used by git-cliff and gh-cli
+          GITHUB_TOKEN: ${{ secrets.BUMP_N_RELEASE }}
+          # Some gh-cli commands expect GH_TOKEN instead of GITHUB_TOKEN
+          GH_TOKEN: ${{ secrets.BUMP_N_RELEASE }}
+          # for git-cliff exclusively
+          GITHUB_REPO: ${{ github.repository }}
+          GIT_CLIFF_CONFIG: .github/cliff.toml
+          INPUTS_COMPONENT: ${{ inputs.component }}
+        working-directory: project-repo
+        run: >-
+          nu
+          .github/workflows/tag-release.nu
+          "${INPUTS_COMPONENT}"
