@@ -400,7 +400,7 @@ Defaults to ``%(default)s``.""",
 )
 
 
-def _parse_jobs(val: str) -> Optional[int]:
+def _parse_jobs(val: str) -> int | None:
     try:
         jobs = int(val)
     except ValueError as exc:

@@ -54,7 +54,7 @@ class ExistingSuggestion(Suggestion):
 
 class ExistingThread:
     def __init__(self) -> None:
-        self.comments: List[ExistingSuggestion] = []
+        self.comments: list[ExistingSuggestion] = []
         #: Is the review thread resolved?
         self.is_resolved: bool = False
         #: Is the review thread collapsed?
@@ -87,7 +87,7 @@ class ReviewComments:
         """The full patch of all the suggestions (including those that will not
         fit within the diff)"""
 
-        self.tool_reused: Dict[str, int] = {
+        self.tool_reused: dict[str, int] = {
             "clang-tidy": 0,
             "clang-format": 0,
         }
@@ -166,7 +166,7 @@ class ReviewComments:
                 summary += f"No concerns from {tool_name}.\n"
         return (summary, comments)
 
-    def remove_reused_suggestions(self, existing_review_comments: List[Suggestion]):
+    def remove_reused_suggestions(self, existing_review_comments: list[Suggestion]):
         """Remove any reused ``Suggestion`` from the internal list and update counts"""
         if not existing_review_comments:
             return

@@ -15,7 +15,7 @@ from os import environ
 from pathlib import Path
 import urllib.parse
 import sys
-from typing import Any, cast
+from typing import Any, cast, NamedTuple
 
 from ..common_fs import FileObj, CACHE_PATH
 from ..common_fs.file_filter import FileFilter
@@ -42,7 +42,7 @@ RATE_LIMIT_HEADERS = RateLimitHeaders(
     retry="retry-after",
 )
 
-GRAPHQL_PAGE_INFO = Dict[str, Union[str, bool]]
+GRAPHQL_PAGE_INFO = dict[str, str | bool]
 
 QUERY_REVIEW_COMMENTS = """query($owner: String!, $name: String!, $number: Int!, $afterThread: String, $afterComment: String) {
   repository(owner: $owner, name: $name) {
@@ -567,13 +567,13 @@ class GithubApiClient(RestApiClient):
         self,
         delete_review_comments: bool,
         review_comments: ReviewComments,
-    ) -> List[str]:
+    ) -> list[str]:
         """This will sort through the threads of PR reviews and return a list of
         bot comments' IDs to be kept.
 
         This will also resolve (or delete if ``delete_review_comments`` is `True`)
         any outdated unresolved comment."""
-        ignored_reviews: List[str] = []
+        ignored_reviews: list[str] = []
         found_threads = self._get_existing_review_comments(
             no_dismissed=not delete_review_comments
         )
@@ -700,10 +700,10 @@ class GithubApiClient(RestApiClient):
             is_collapsed: bool
 
         # aggregate threads into map of reviews' ID corresponding to
-        found_threads: Dict[ThreadInfo, List[ExistingSuggestion]] = {}
+        found_threads: dict[ThreadInfo, list[ExistingSuggestion]] = {}
         repo_owner, repo_name = self.repo.split("/")
-        after_thread: Optional[str] = None
-        after_comment: Optional[str] = None
+        after_thread: str | None = None
+        after_comment: str | None = None
         has_next_pg = True
         default_pg_info: GRAPHQL_PAGE_INFO = {"hasNextPage": False, "endCursor": ""}
         while has_next_pg:
@@ -728,7 +728,7 @@ class GithubApiClient(RestApiClient):
             data = response.json()
             try:
                 threads = cast(
-                    Dict[str, Any],
+                    dict[str, Any],
                     data["data"]["repository"]["pullRequest"]["reviewThreads"],
                 )
             except KeyError as exc:  # pragma: no cover
@@ -739,8 +739,8 @@ class GithubApiClient(RestApiClient):
             thread_pg_info = cast(
                 GRAPHQL_PAGE_INFO, threads.pop("pageInfo", default_pg_info)
             )
-            for thread in cast(List[Dict[str, Any]], threads.get("nodes", [])):
-                comment_data = cast(Dict[str, Any], thread["comments"])
+            for thread in cast(list[dict[str, Any]], threads.get("nodes", [])):
+                comment_data = cast(dict[str, Any], thread["comments"])
                 comment_pg_info = cast(
                     GRAPHQL_PAGE_INFO, comment_data.pop("pageInfo", default_pg_info)
                 )
@@ -749,7 +749,7 @@ class GithubApiClient(RestApiClient):
                     is_resolved=thread.get("isResolved", False),
                     is_collapsed=thread.get("isCollapsed", False),
                 )
-                for comment in cast(List[Dict[str, Any]], thread.get("nodes", [])):
+                for comment in cast(list[dict[str, Any]], thread.get("nodes", [])):
                     if (
                         "id" in comment
                         and "path" in comment
@@ -777,7 +777,7 @@ class GithubApiClient(RestApiClient):
                         )
                         suggestion.comment = comment["body"]
                         review_info = cast(
-                            Dict[str, Union[str, bool]], comment["pullRequestReview"]
+                            dict[str, str | bool], comment["pullRequestReview"]
                         )
                         suggestion.review_id = cast(str, review_info["id"])
                         suggestion.review_is_minimized = cast(
@@ -797,7 +797,7 @@ class GithubApiClient(RestApiClient):
                 else:
                     after_thread = cast(str, thread_pg_info.get("endCursor"))
         # serialize threads into data structure for further processing
-        result: List[ExistingThread] = []
+        result: list[ExistingThread] = []
         for thread_info, comments in found_threads.items():
             review_thread = ExistingThread()
             review_thread.id = thread_info.id
@@ -834,16 +834,16 @@ class GithubApiClient(RestApiClient):
             node_id,
         )
 
-    def _hide_stale_reviews(self, url: str, ignored_reviews: List[str]):
+    def _hide_stale_reviews(self, url: str, ignored_reviews: list[str]):
         """Hide all review comments that were previously created by cpp-linter
 
         :param ignored_reviews: List of review comments to keep displayed.
         """
-        next_page: Optional[str] = url + "?page=1&per_page=100"
+        next_page: str | None = url + "?page=1&per_page=100"
         while next_page:
             response = self.api_request(url=next_page)
             next_page = self.has_more_pages(response)
-            reviews: List[Dict[str, Any]] = response.json()
+            reviews: list[dict[str, Any]] = response.json()
             for review in reviews:
                 if (
                     "body" in review
