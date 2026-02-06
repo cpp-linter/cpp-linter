@@ -48,9 +48,7 @@ def get_sha(repo: Repository, parent: None | int | str = None) -> GitObject:
 
 
 STAGED_STATUS = (
-    GIT_STATUS_INDEX_NEW,
-    GIT_STATUS_INDEX_MODIFIED,
-    GIT_STATUS_INDEX_RENAMED,
+    GIT_STATUS_INDEX_NEW | GIT_STATUS_INDEX_MODIFIED | GIT_STATUS_INDEX_RENAMED
 )
 
 
@@ -66,15 +64,12 @@ def get_diff(parents: None | int | str = None, ignore_index: bool = False) -> Di
     :returns: A `pygit2.Diff` object representing the fetched diff.
     """
     repo = Repository(".")
-    head = get_sha(repo).peel(Commit)
 
-    has_staged_files = False
-    for _, status in repo.status().items():
-        if status in STAGED_STATUS:
-            has_staged_files = True
-            break
-
-    use_index = not ignore_index and has_staged_files
+    use_index = (
+        False
+        if ignore_index
+        else any(status & STAGED_STATUS for status in repo.status().values())
+    )
 
     if not use_index and parents is None:
         parents = 1
@@ -86,6 +81,7 @@ def get_diff(parents: None | int | str = None, ignore_index: bool = False) -> Di
         diff_obj = index.diff_to_tree(base.tree)
         diff_name = f"HEAD...{base.short_id}"
     else:
+        head = get_sha(repo).peel(Commit)
         diff_obj = repo.diff(base, head)
         diff_name = f"{head.short_id}...{base.short_id}"
 
@@ -112,7 +108,7 @@ def parse_diff(
     :param lines_changed_only: A value that dictates what file changes to focus on.
     :returns: A `list` of `FileObj` describing information about the files changed.
 
-        .. note:: Deleted files are omitted because we only want to analyze updates.
+        .. note:: Deleted files are omitted because we only want to analyze additions.
     """
     file_objects: list[FileObj] = []
     if isinstance(diff_obj, str):

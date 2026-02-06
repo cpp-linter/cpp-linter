@@ -9,7 +9,7 @@ from pathlib import Path
 import time
 from typing import cast
 from importlib.metadata import version as get_version
-import docutils
+import docutils  # type: ignore[import-untyped]
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxRole
 from sphinx_immaterial.inline_icons import load_svg_into_builder_env
