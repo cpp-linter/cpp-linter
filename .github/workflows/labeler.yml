@@ -2,16 +2,75 @@ name: PR Autolabeler
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    branches: [main]
+
+permissions: {}
 
 jobs:
-  # Auto label PRs during a PR event
-  auto-label:
-    runs-on: ubuntu-latest
+  update-pr-labels:
+    # Only execute this job when the PR is not from a fork. If the PR is from a fork,
+    # then the needed permission (pull-requests: write) is not granted.
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
     permissions:
+      # needed to read info like git refs and changed files
       contents: read
+      # needed to make changes to a PR's labels
       pull-requests: write
+    runs-on: ubuntu-latest
     steps:
-      - uses: release-drafter/release-drafter@6db134d15f3909ccc9eefd369f02bd1e9cffdf97 # v6.2.0
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6.0.1
+        id: labeler
+        # This step doesn't require a `git checkout`.
+        # The above checkout step only pulls in the org config.
+        with:
+          # If the config file does not exist, then this action will default to
+          # trying to read the config in project repo
+          configuration-path: .github/labeler.yml
+          # allow removing labels to keep them in sync with file changes
+          sync-labels: true
+
+      # The rest of this simply adds labels based on the PR title.
+      # This isn't really necessary due to how git-cliff parses commits.
+      # This can be removed once actions/labeler resolves the feature request:
+      # https://github.com/actions/labeler/issues/809
+      - name: Setup Nu shell
+        # because using bash to manipulate arrays is nonsensical
+        uses: hustcer/setup-nu@985d59ec83ae3e3418f9d36471cda38b9d8b9879 # v3.20
+        with:
+          version: ${{ vars.NUSHELL_VERSION || '*' }}
+      - name: Label from PR title
+        shell: nu {0}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          # includes all existing and added labels from previous step
+          ALL_LABELS: ${{ steps.labeler.outputs.all-labels }}
+        run: |-
+          let title = (
+            ^gh pr view $env.PR_NUMBER --repo $env.GH_REPO --json "title" -q ".title"
+          )
+          print $"Analyzing title: ($title)"
+          let labels = $env.ALL_LABELS | split row ","
+          mut new_labels = []
+          if (
+            ($title | str contains --ignore-case "fix")
+            and not ("bug" in $labels)
+          ) {
+            $new_labels = $new_labels | append "bug"
+          }
+          if (
+            ($title | str contains --ignore-case "feat")
+            and not ("enhancement" in $labels)
+          ) {
+            $new_labels = $new_labels | append "enhancement"
+          }
+          if ($new_labels | is-not-empty) {
+            print $"Adding the following labels: ($new_labels | str join ' ')"
+            gh pr edit $env.PR_NUMBER --add-label ($new_labels | str join ",")
+          } else {
+            print "No new labels added based on the PR title"
+          }
