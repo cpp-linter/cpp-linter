@@ -1,0 +1,25 @@
+# The config for actions/labeler.
+# See https://github.com/actions/labeler for more details.
+
+documentation:
+  - all:
+    - changed-files:
+      - any-glob-to-any-file:
+        - "**/*.md"
+        - "**/*.rst"
+      - all-globs-to-all-files:
+        - "!CHANGELOG.md"
+  - any:
+    - head-branch:
+      - "^docs?"
+      - "docs?"
+bug:
+  - head-branch:
+      - "^fix"
+      - "fix"
+enhancement:
+  - head-branch:
+      - "^feature"
+      - "feature"
+      - "^feat"
+      - "feat"
