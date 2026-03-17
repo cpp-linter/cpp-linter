@@ -387,7 +387,7 @@ def test_tidy_annotations(
         monkeypatch,
         **TEST_REPO_COMMIT_PAIRS[4],
         lines_changed_only=lines_changed_only,
-        copy_configs=False,
+        copy_configs=(checks == ""),  # copy config if test will use them
     )
 
     args = Args()

@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['windows-latest', 'ubuntu-latest']
-        version: ['21', '20', '19', '18', '17', '16', '15', '14', '13', '12', '11', '10', '9']
+        version: ['22', '21', '20', '19', '18', '17', '16', '15', '14', '13', '12', '11']
     env:
       MAX_PYTHON_VERSION: '3.14'
       # only used when installing for a pre-released python version
@@ -121,6 +121,9 @@ jobs:
   coverage-report:
     needs: [test]
     runs-on: ubuntu-latest
+    environment:
+      name: test-coverage
+      url: https://app.codecov.io/gh/cpp-linter/cpp-linter
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
