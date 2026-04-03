@@ -139,7 +139,8 @@ def parse_format_replacements_xml(
             line, cols = get_line_cnt_from_cols(content, offset)
             is_line_in_ranges = False
             for r in ranges:
-                if line in range(r[0], r[1]):  # range is inclusive
+                # range() is partially inclusive: [r0, r1)
+                if line in range(r[0], r[1] + 1):
                     is_line_in_ranges = True
                     break
             if is_line_in_ranges or lines_changed_only == 0:
