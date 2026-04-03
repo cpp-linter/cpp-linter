@@ -354,7 +354,8 @@ def test_format_annotations(
             )
             for line in lines:
                 for r in ranges:  # an empty list if lines_changed_only == 0
-                    if line in range(r[0], r[1]):
+                    # range() is partially inclusive: [r0, r1)
+                    if line in range(r[0], r[1] + 1):
                         break
                 else:  # pragma: no cover
                     raise RuntimeError(f"line {line} not in ranges {repr(ranges)}")
