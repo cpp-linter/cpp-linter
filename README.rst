@@ -19,8 +19,11 @@ C/C++ Linting Package
 .. |pypi-badge| image:: https://img.shields.io/pypi/dw/cpp-linter?color=dark-green&label=PyPI%20Downloads&logo=python&logoColor=white
     :target: https://pepy.tech/project/cpp-linter
     :alt: PyPI - Downloads
+.. |hub-badge| image:: https://img.shields.io/badge/%F0%9F%8F%A0_cpp--linter_hub-%E2%86%90_home-22863a
+    :alt: cpp-linter hub
+    :target: https://cpp-linter.github.io/
 
-|latest-version| |python-version| |license-badge| |codecov-badge| |doc-badge| |pypi-badge|
+|latest-version| |python-version| |license-badge| |codecov-badge| |doc-badge| |pypi-badge| |hub-badge|
 
 A Python package for linting C/C++ code with clang-tidy and/or clang-format to collect feedback provided in the form of thread comments and/or file annotations.
 
