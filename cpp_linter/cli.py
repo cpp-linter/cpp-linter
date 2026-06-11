@@ -73,6 +73,8 @@ class Args(UserDict):
     ignore_format: str = ""
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
+    #: See :std:option:`--fix`.
+    fix: bool = False
     #: A subcommand if provided
     command: str | None = None
 
@@ -385,6 +387,19 @@ _parser_args[("-R", "--passive-reviews")] = dict(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
+)
+_parser_args[("-F", "--fix")] = dict(
+    default=False,
+    action="store_true",
+    help="""Apply clang-format fixes in-place to files with
+style issues. This will format the entire file
+(ignoring the ``--lines-changed-only`` setting).
+
+.. note::
+    This option only applies to clang-format.
+    clang-tidy fixes are not applied automatically.
+
+Defaults to ``%(default)s``""",
 )
 
 
