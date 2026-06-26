@@ -390,7 +390,7 @@ reviews from requesting or approving changes.""",
 )
 _parser_args[("-o", "--summary-output-file")] = dict(
     default="",
-    help="""Supply a path to write the step summary to.
+    help="""Supply a path to which the step summary will be written.
 Leave empty to not write summary to a file.
     """,
 )
