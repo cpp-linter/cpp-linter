@@ -241,15 +241,18 @@ class GithubApiClient(RestApiClient):
                     summary.write(f"\n{comment}\n")
             if args.summary_output_file:
                 summary_output_path = Path(args.summary_output_file)
-                if summary_output_path.is_dir():
-                    log_commander.error(
-                        f"Failed to write to '{summary_output_path}': Is a directory."
-                    )
-                else:
+                try:
+                    summary_output_path.parent.mkdir(parents=True, exist_ok=True)
                     with summary_output_path.open(
                         "w", encoding="utf-8"
                     ) as summary_file:
                         summary_file.write(f"\n{comment}\n")
+                except OSError as e:
+                    log_commander.error(
+                        "Failed to write summary output file '%s': %s",
+                        summary_output_path,
+                        e,
+                    )
 
         if args.file_annotations:
             self.make_annotations(
