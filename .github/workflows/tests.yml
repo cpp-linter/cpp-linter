@@ -91,7 +91,7 @@ jobs:
       - name: Install clang-tools
         run: |
           python -m pip install clang-tools
-          clang-tools install ${{ matrix.version }}
+          clang-tools install clang-format clang-tidy --version ${{ matrix.version }}
 
       - name: Is clang-only tests?
         id: clang-dep
