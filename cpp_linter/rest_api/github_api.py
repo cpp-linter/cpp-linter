@@ -244,7 +244,7 @@ class GithubApiClient(RestApiClient):
                 try:
                     summary_output_path.parent.mkdir(parents=True, exist_ok=True)
                     summary_output_path.write_text(f"\n{comment}\n", encoding="utf-8")
-                except OSError as e:
+                except (OSError, ValueError) as e:
                     log_commander.error(
                         "Failed to write summary output file '%s': %s",
                         summary_output_path,

@@ -70,7 +70,7 @@ def test_post_feedback(
         # cover the summary_output_file branch with a writable file path
         args.summary_output_file = str(tmp_path / "summary.md")
     elif thread_comments == "false" and no_lgtm:
-        # cover the summary_output_file branch where the path is a directory
+        # cover the summary_output_file branch where the path is erroneously a directory
         args.summary_output_file = str(tmp_path)
     clang_versions = capture_clang_tools_output(files, args=args)
     # add a non project file to tidy_advice to intentionally cover a log.debug()

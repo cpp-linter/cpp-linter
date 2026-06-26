@@ -392,7 +392,8 @@ _parser_args[("-o", "--summary-output-file")] = dict(
     default="",
     help="""Supply a path to which the step summary will be written.
 Leave empty to not write summary to a file.
-    """,
+Any relative path shall be relative to the
+:std:option:`--repo-root` path.""",
 )
 
 
