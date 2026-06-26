@@ -11,25 +11,25 @@ designed around GitHub's REST API.
 
 import json
 import logging
+import sys
+import urllib.parse
 from os import environ
 from pathlib import Path
-import urllib.parse
-import sys
 from typing import Any, cast
 
-from ..common_fs import FileObj, CACHE_PATH
-from ..common_fs.file_filter import FileFilter
+from ..clang_tools import ClangVersions
 from ..clang_tools.clang_format import (
     formalize_style_name,
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import tally_tidy_advice
-from ..clang_tools.patcher import ReviewComments, PatchMixin
-from ..clang_tools import ClangVersions
+from ..clang_tools.patcher import PatchMixin, ReviewComments
 from ..cli import Args
-from ..loggers import logger, log_commander
-from ..git import parse_diff, get_diff
-from . import RestApiClient, USER_AGENT, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
+from ..common_fs import CACHE_PATH, FileObj
+from ..common_fs.file_filter import FileFilter
+from ..git import get_diff, parse_diff
+from ..loggers import log_commander, logger
+from . import COMMENT_MARKER, USER_AGENT, USER_OUTREACH, RateLimitHeaders, RestApiClient
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -243,10 +243,7 @@ class GithubApiClient(RestApiClient):
                 summary_output_path = Path(args.summary_output_file).resolve()
                 try:
                     summary_output_path.parent.mkdir(parents=True, exist_ok=True)
-                    with summary_output_path.open(
-                        "w", encoding="utf-8"
-                    ) as summary_file:
-                        summary_file.write(f"\n{comment}\n")
+                    summary_output_path.write_text(f"\n{comment}\n", encoding="utf-8")
                 except OSError as e:
                     log_commander.error(
                         "Failed to write summary output file '%s': %s",
