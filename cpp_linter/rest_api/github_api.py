@@ -224,7 +224,9 @@ class GithubApiClient(RestApiClient):
         checks_failed = format_checks_failed + tidy_checks_failed
         comment: None | str = None
 
-        if args.step_summary and "GITHUB_STEP_SUMMARY" in environ:
+        write_step_summary = args.step_summary and "GITHUB_STEP_SUMMARY" in environ
+
+        if write_step_summary or args.summary_output_file:
             comment = super().make_comment(
                 files=files,
                 format_checks_failed=format_checks_failed,
@@ -232,8 +234,22 @@ class GithubApiClient(RestApiClient):
                 clang_versions=clang_versions,
                 len_limit=None,
             )
-            with open(environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-                summary.write(f"\n{comment}\n")
+            if write_step_summary:
+                with open(
+                    environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8"
+                ) as summary:
+                    summary.write(f"\n{comment}\n")
+            if args.summary_output_file:
+                summary_output_path = Path(args.summary_output_file)
+                if summary_output_path.is_dir():
+                    log_commander.error(
+                        f"Failed to write to '{summary_output_path}': Is a directory."
+                    )
+                else:
+                    with summary_output_path.open(
+                        "w", encoding="utf-8"
+                    ) as summary_file:
+                        summary_file.write(f"\n{comment}\n")
 
         if args.file_annotations:
             self.make_annotations(
