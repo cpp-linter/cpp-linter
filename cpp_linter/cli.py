@@ -73,6 +73,8 @@ class Args(UserDict):
     ignore_format: str = ""
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
+    #: See :std:option:`--summary-output-file`.
+    summary_output_file: str = ""
     #: A subcommand if provided
     command: str | None = None
 
@@ -385,6 +387,13 @@ _parser_args[("-R", "--passive-reviews")] = dict(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
+)
+_parser_args[("-o", "--summary-output-file")] = dict(
+    default="",
+    help="""Supply a path to which the step summary will be written.
+Leave empty to not write summary to a file.
+Any relative path shall be relative to the
+:std:option:`--repo-root` path.""",
 )
 
 
