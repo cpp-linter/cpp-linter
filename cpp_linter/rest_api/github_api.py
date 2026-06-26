@@ -240,7 +240,7 @@ class GithubApiClient(RestApiClient):
                 ) as summary:
                     summary.write(f"\n{comment}\n")
             if args.summary_output_file:
-                summary_output_path = Path(args.summary_output_file)
+                summary_output_path = Path(args.summary_output_file).resolve()
                 try:
                     summary_output_path.parent.mkdir(parents=True, exist_ok=True)
                     with summary_output_path.open(
