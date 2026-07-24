@@ -58,6 +58,7 @@ def _run_on_single_file(
                 style=args.style,
                 lines_changed_only=args.lines_changed_only,
                 format_review=args.format_review,
+                fix=args.fix,
             )
         except FileIOTimeout:  # pragma: no cover
             logger.error(
@@ -194,31 +195,5 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
                         break
                 else:  # pragma: no cover
                     raise ValueError(f"Failed to find {file_name} in list of files.")
-
-    if args.fix and format_cmd:
-        start_log_group("Applying clang-format fixes")
-        files_fixed = 0
-        for file in files:
-            if file.format_advice and file.format_advice.replaced_lines:
-                fix_cmd = [
-                    format_cmd,
-                    f"-style={args.style}",
-                    "-i",
-                    Path(file.name).as_posix(),
-                ]
-                logger.info('Running "%s"', " ".join(fix_cmd))
-                result = subprocess.run(fix_cmd, capture_output=True)
-                if result.returncode:  # pragma: no cover
-                    logger.error(
-                        "Failed to apply clang-format fixes to %s:\n%s",
-                        file.name,
-                        result.stderr.decode(),
-                    )
-                    continue
-                # clear the format advice now that the file has been formatted
-                file.format_advice = FormatAdvice(file.name)
-                files_fixed += 1
-        logger.info("Fixed %d file(s)", files_fixed)
-        end_log_group()
 
     return clang_versions

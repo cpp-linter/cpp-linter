@@ -166,6 +166,7 @@ def run_clang_format(
     style: str,
     lines_changed_only: int,
     format_review: bool,
+    fix: bool = False,
 ) -> FormatAdvice:
     """Run clang-format on a certain file
 
@@ -177,6 +178,8 @@ def run_clang_format(
         diff info.
     :param format_review: A flag to enable/disable creating a diff suggestion for
         PR review comments.
+    :param fix: A flag to enable applying clang-format's fixes in-place. Only the
+        lines selected by ``lines_changed_only`` are reformatted.
     """
     cmds = [
         command,
@@ -200,6 +203,23 @@ def run_clang_format(
     advice = parse_format_replacements_xml(
         results.stdout.decode(encoding="utf-8").strip(), file_obj, lines_changed_only
     )
+    if fix and advice.replaced_lines:
+        # Reuse the assembled (range-aware) args to apply fixes in-place. This
+        # runs in the same parallel worker as the analysis above, and honors
+        # --lines-changed-only via the --lines args already in `cmds`.
+        fix_cmds = [arg for arg in cmds if arg != "--output-replacements-xml"]
+        fix_cmds.insert(-1, "-i")  # apply edits in-place, just before the file path
+        logger.info('Applying formatting fixes with "%s"', " ".join(fix_cmds))
+        fix_results = subprocess.run(fix_cmds, capture_output=True)
+        if fix_results.returncode:  # pragma: no cover
+            logger.error(
+                "Failed to apply clang-format fixes to %s:\n%s",
+                file_obj.name,
+                fix_results.stderr.decode(),
+            )
+        else:
+            # The file is now formatted, so report no outstanding issues.
+            return FormatAdvice(file_obj.name)
     if format_review:
         del cmds[2]  # remove `--output-replacements-xml` flag
         logger.info('Getting fixes with "%s"', " ".join(cmds))

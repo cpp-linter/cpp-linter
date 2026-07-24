@@ -394,8 +394,8 @@ _parser_args[("-F", "--fix")] = dict(
     default=False,
     action="store_true",
     help="""Apply clang-format fixes in-place to files with
-style issues. This will format the entire file
-(ignoring the ``--lines-changed-only`` setting).
+style issues. Only the lines selected by
+:std:option:`--lines-changed-only` are reformatted.
 
 .. note::
     This option only applies to clang-format.
