@@ -402,6 +402,7 @@ style issues. This will format the entire file
     clang-tidy fixes are not applied automatically.
 
 Defaults to ``%(default)s``""",
+)
 _parser_args[("-o", "--summary-output-file")] = dict(
     default="",
     help="""Supply a path to which the step summary will be written.
