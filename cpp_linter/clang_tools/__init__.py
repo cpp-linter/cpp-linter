@@ -204,7 +204,7 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
                     format_cmd,
                     f"-style={args.style}",
                     "-i",
-                    PurePath(file.name).as_posix(),
+                    Path(file.name).as_posix(),
                 ]
                 logger.info('Running "%s"', " ".join(fix_cmd))
                 subprocess.run(fix_cmd, check=True)
