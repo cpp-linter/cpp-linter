@@ -207,7 +207,15 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
                     Path(file.name).as_posix(),
                 ]
                 logger.info('Running "%s"', " ".join(fix_cmd))
-                subprocess.run(fix_cmd, check=True)
+                result = subprocess.run(fix_cmd, capture_output=True)
+                if result.returncode:  # pragma: no cover
+                    logger.error(
+                        "Failed to apply clang-format fixes to %s:\n%s",
+                        file.name,
+                        result.stderr.decode(),
+                    )
+                    continue
+                # clear the format advice now that the file has been formatted
                 file.format_advice = FormatAdvice(file.name)
                 files_fixed += 1
         logger.info("Fixed %d file(s)", files_fixed)
