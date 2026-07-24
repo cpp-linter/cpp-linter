@@ -239,6 +239,7 @@ REQUIRED_VERSIONS = {
     "1.9.0": ["ignore_tidy", "ignore_format"],
     "1.10.0": ["passive_reviews"],
     "1.12.0": ["diff_base", "ignore_index"],
+    "1.13.0": ["summary_output_file"],
 }
 SUBCOMMAND_VERSIONS = {"version": "1.11.0"}
 

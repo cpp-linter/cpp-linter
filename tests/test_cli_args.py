@@ -40,6 +40,18 @@ from cpp_linter.cli import get_cli_parser, Args
         pytest.param("jobs", "x", "jobs", 0, marks=pytest.mark.xfail),
         ("ignore-tidy", "!src|", "ignore_tidy", "!src|"),
         ("fix", None, "fix", True),
+        (
+            "summary-output-file",
+            "test-output-file.md",
+            "summary_output_file",
+            "test-output-file.md",
+        ),
+        (
+            "summary-output-file",
+            "",
+            "summary_output_file",
+            "",
+        ),
     ],
 )
 def test_arg_parser(

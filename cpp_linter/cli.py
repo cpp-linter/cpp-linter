@@ -75,6 +75,8 @@ class Args(UserDict):
     passive_reviews: bool = False
     #: See :std:option:`--fix`.
     fix: bool = False
+    #: See :std:option:`--summary-output-file`.
+    summary_output_file: str = ""
     #: A subcommand if provided
     command: str | None = None
 
@@ -400,6 +402,12 @@ style issues. This will format the entire file
     clang-tidy fixes are not applied automatically.
 
 Defaults to ``%(default)s``""",
+_parser_args[("-o", "--summary-output-file")] = dict(
+    default="",
+    help="""Supply a path to which the step summary will be written.
+Leave empty to not write summary to a file.
+Any relative path shall be relative to the
+:std:option:`--repo-root` path.""",
 )
 
 
