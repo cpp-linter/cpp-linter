@@ -23,12 +23,38 @@ on:
 permissions: {}
 
 jobs:
+  pre-seed-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.extract-version-range.outputs.versions }}
+    steps:
+      - env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release download
+          -R cpp-linter/clang-tools-static-binaries
+          --pattern versions.json
+          --output versions.json
+      - name: Extract version range
+        id: extract-version-range
+        shell: python
+        run: |-
+          import json
+          from os import environ
+          from pathlib import Path
+          content = Path("versions.json").read_text(encoding="utf-8")
+          metadata = json.loads(content)
+          versions = list(metadata["llvm_versions"].keys())
+          versions.sort()
+          with open(environ["GITHUB_OUTPUT"], mode="a") as gh_out:
+              gh_out.write(f"versions={json.dumps(versions)}\n")
   test:
+    needs: pre-seed-versions
     strategy:
       fail-fast: false
       matrix:
         os: ['windows-latest', 'ubuntu-latest']
-        version: ['22', '21', '20', '19', '18', '17', '16', '15', '14', '13', '12']
+        version: ${{ fromJSON(needs.pre-seed-versions.outputs.versions) }}
     env:
       MAX_PYTHON_VERSION: '3.14'
       # only used when installing for a pre-released python version
@@ -36,11 +62,11 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: 3.x
 
@@ -60,7 +86,7 @@ jobs:
       #     sudo cmake --install build
 
       - name: Install uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -76,30 +102,38 @@ jobs:
       - name: Install Linux clang dependencies
         if: runner.os == 'Linux'
         shell: bash
+        env:
+          CLANG_VERSION: ${{ matrix.version }}
         run: |
           sudo apt-get update
           # First try installing from default Ubuntu repositories before trying LLVM script
-          if ! sudo apt-get install -y clang-format-${{ matrix.version }} clang-tidy-${{ matrix.version }}; then
+          if ! sudo apt-get install -y clang-format-${CLANG_VERSION} clang-tidy-${CLANG_VERSION}; then
             # This LLVM script will add the relevant LLVM PPA: https://apt.llvm.org/
             wget https://apt.llvm.org/llvm.sh -O ${{ runner.temp }}/llvm_install.sh
             chmod +x ${{ runner.temp }}/llvm_install.sh
-            if sudo ${{ runner.temp }}/llvm_install.sh ${{ matrix.version }}; then
-              sudo apt-get install -y clang-format-${{ matrix.version }} clang-tidy-${{ matrix.version }}
+            if sudo ${{ runner.temp }}/llvm_install.sh ${CLANG_VERSION}; then
+              sudo apt-get install -y clang-format-${CLANG_VERSION} clang-tidy-${CLANG_VERSION}
             fi
           fi
 
       - name: Install clang-tools
+        shell: bash
+        env:
+          CLANG_VERSION: ${{ matrix.version }}
         run: |
           python -m pip install clang-tools
-          clang-tools install clang-format clang-tidy --version ${{ matrix.version }}
+          clang-tools install clang-format clang-tidy --version "${CLANG_VERSION}"
 
       - name: Is clang-only tests?
         id: clang-dep
         shell: python
+        env:
+          CLANG_VERSION: ${{ matrix.version }}
         run: |-
           from os import environ
           with open(environ["GITHUB_OUTPUT"], mode="a") as gh_out:
-            if "${{ matrix.version }}" == "21":
+            curr_test_ver = environ["CLANG_VERSION"]
+            if curr_test_ver == "21":
                 gh_out.write("args=\n")
             else:
                 gh_out.write("args=not no_clang\n")
@@ -125,7 +159,7 @@ jobs:
       name: test-coverage
       url: https://app.codecov.io/gh/cpp-linter/cpp-linter
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -136,12 +170,12 @@ jobs:
           merge-multiple: true
 
       - name: Setup python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
 
       - name: Install uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
