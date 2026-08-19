@@ -218,8 +218,14 @@ def run_clang_format(
                 fix_results.stderr.decode(),
             )
         else:
-            # The file is now formatted, so report no outstanding issues.
-            return FormatAdvice(file_obj.name)
+            # The file is now formatted, so it has no outstanding issues.
+            advice = FormatAdvice(file_obj.name)
+            if not format_review:
+                return advice
+            # A review was asked for, so `patched` still has to be populated:
+            # the review pass asserts on it. Fall through and re-run
+            # clang-format on the now-formatted file -- it returns the file
+            # unchanged, so the review carries no suggestions for it.
     if format_review:
         del cmds[2]  # remove `--output-replacements-xml` flag
         logger.info('Getting fixes with "%s"', " ".join(cmds))

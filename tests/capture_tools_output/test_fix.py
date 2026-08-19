@@ -9,6 +9,7 @@ import pytest
 from cpp_linter.common_fs import FileObj
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
+from cpp_linter.clang_tools.patcher import ReviewComments
 from cpp_linter.cli import Args
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
@@ -137,3 +138,42 @@ def test_fix_does_not_shift_tidy_diagnostics(
 
     # The point of the test: fixing changes the file, not the diagnostics.
     assert fixed_lines == baseline_lines
+
+
+def test_fix_with_format_review(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """``--fix`` combined with a clang-format PR review must still patch.
+
+    A fixed file has no outstanding advice, but the review pass walks every
+    file's advice and asserts each one carries a ``patched`` blob. Handing it a
+    bare ``FormatAdvice`` there took the review down with an AssertionError.
+    """
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
+
+    demo_dir = Path(__file__).parent.parent / "demo"
+    shutil.copytree(str(demo_dir), str(tmp_path / "demo"))
+    monkeypatch.chdir(str(tmp_path))
+
+    demo_file = "demo/demo.cpp"
+    args = _fix_args("file")
+    args.format_review = True
+
+    files = [FileObj(demo_file)]
+    capture_clang_tools_output(files, args=args)
+
+    advice = files[0].format_advice
+    assert advice is not None
+    # The file was fixed, so nothing is left to report...
+    assert tally_format_advice(files) == 0
+    # ...but the review still needs something to diff against.
+    assert advice.patched is not None
+
+    # And that diff is empty, so the review carries no suggestion for the file.
+    review = ReviewComments()
+    review.tool_total["clang-format"] = 0
+    advice.get_suggestions_from_patch(files[0], False, review)
+    assert review.suggestions == []
+    assert review.tool_total["clang-format"] == 0
+    assert review.full_patch["clang-format"] == ""
