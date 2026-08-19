@@ -122,7 +122,7 @@ def test_fix_does_not_shift_tidy_diagnostics(
     clang-format's ``-i`` rewrites the file, but clang-tidy's ``--line-filter``
     and the PR review comments built from its output are both keyed to the
     event's diff. Running clang-format first would shift every diagnostic that
-    follows a reflowed line, silently dropping some and mislocating the rest.
+    follows a reflowed line, silently dropping some and misplacing the rest.
     """
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
 

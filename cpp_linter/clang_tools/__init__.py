@@ -51,7 +51,7 @@ def _run_on_single_file(
     # file in place. clang-tidy reports line numbers from the file on disk, but
     # its `--line-filter` (and the PR review comments built from its output) use
     # line numbers from the event's diff. Formatting first would shift every
-    # subsequent diagnostic, silently dropping some and mislocating the rest.
+    # subsequent diagnostic, silently dropping some and misplacing the rest.
     tidy_note = None
     if tidy_cmd is not None and (
         tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
