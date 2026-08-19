@@ -1,0 +1,21 @@
+tests/capture_tools_output/test_fix.py
+  s_3763234cc4c94a::t_5f4d27645c78ed 125
+cpp_linter/clang_tools/__init__.py
+  s_3763234cc4c94a::t_5f4d27645c78ed 54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "283a16a69420c5a50c68cec623b40f9229996f3a",
+  "prompts": {},
+  "sessions": {
+    "s_3763234cc4c94a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "253280e6-71e2-433d-a3a4-21e7534da9c2",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
