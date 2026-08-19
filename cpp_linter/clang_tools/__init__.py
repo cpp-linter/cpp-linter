@@ -47,28 +47,11 @@ def _run_on_single_file(
     log_stream = worker_log_init(log_lvl)
     filename = Path(file.name).as_posix()
 
-    format_advice = None
-    if format_cmd is not None and (
-        format_filter is None or format_filter.is_source_or_ignored(file.name)
-    ):
-        try:
-            format_advice = run_clang_format(
-                command=format_cmd,
-                file_obj=file,
-                style=args.style,
-                lines_changed_only=args.lines_changed_only,
-                format_review=args.format_review,
-            )
-        except FileIOTimeout:  # pragma: no cover
-            logger.error(
-                "Failed to read or write contents of %s when running clang-format",
-                filename,
-            )
-        except OSError:  # pragma: no cover
-            logger.error(
-                "Failed to open the file %s when running clang-format", filename
-            )
-
+    # clang-tidy must run *before* clang-format, because `--fix` rewrites the
+    # file in place. clang-tidy reports line numbers from the file on disk, but
+    # its `--line-filter` (and the PR review comments built from its output) use
+    # line numbers from the event's diff. Formatting first would shift every
+    # subsequent diagnostic, silently dropping some and misplacing the rest.
     tidy_note = None
     if tidy_cmd is not None and (
         tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
@@ -91,6 +74,29 @@ def _run_on_single_file(
             )
         except OSError:  # pragma: no cover
             logger.error("Failed to open the file %s when running clang-tidy", filename)
+
+    format_advice = None
+    if format_cmd is not None and (
+        format_filter is None or format_filter.is_source_or_ignored(file.name)
+    ):
+        try:
+            format_advice = run_clang_format(
+                command=format_cmd,
+                file_obj=file,
+                style=args.style,
+                lines_changed_only=args.lines_changed_only,
+                format_review=args.format_review,
+                fix=args.fix,
+            )
+        except FileIOTimeout:  # pragma: no cover
+            logger.error(
+                "Failed to read or write contents of %s when running clang-format",
+                filename,
+            )
+        except OSError:  # pragma: no cover
+            logger.error(
+                "Failed to open the file %s when running clang-format", filename
+            )
 
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 
@@ -194,4 +200,5 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
                         break
                 else:  # pragma: no cover
                     raise ValueError(f"Failed to find {file_name} in list of files.")
+
     return clang_versions
