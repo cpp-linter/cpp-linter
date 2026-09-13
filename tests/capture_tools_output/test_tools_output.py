@@ -542,10 +542,9 @@ def test_tidy_extra_args(
     stdout = capsys.readouterr().out
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
     if msg_match is None:  # pragma: no cover
-        # Seen to fail intermittently on Linux CI runners with otherwise
-        # unchanged code (cpp-linter/cpp-linter#202). Captured stdout is
-        # included because "not found" alone doesn't say whether the
-        # worker's log buffer was empty, truncated, or malformed.
+        # If the captured stdout below is rich-formatted (wrapped, padded),
+        # the worker process did not get CPP_LINTER_PYTEST_NO_RICH; see
+        # should_use_rich() in cpp_linter.loggers for why that can happen.
         raise RuntimeError(
             "failed to find args passed in clang-tidy in log records; "
             f"captured stdout was {stdout!r}"

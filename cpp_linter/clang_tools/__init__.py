@@ -8,7 +8,13 @@ import shutil
 
 from ..common_fs import FileObj, FileIOTimeout
 from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
-from ..loggers import start_log_group, end_log_group, worker_log_init, logger
+from ..loggers import (
+    start_log_group,
+    end_log_group,
+    worker_log_init,
+    should_use_rich,
+    logger,
+)
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 from ..cli import Args
@@ -37,6 +43,7 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> str | None:
 def _run_on_single_file(
     file: FileObj,
     log_lvl: int,
+    use_rich: bool,
     tidy_cmd: str | None,
     db_json: list[dict[str, str]] | None,
     format_cmd: str | None,
@@ -44,7 +51,7 @@ def _run_on_single_file(
     tidy_filter: TidyFileFilter | None,
     args: Args,
 ) -> tuple[str, str, TidyAdvice | None, FormatAdvice | None]:
-    log_stream = worker_log_init(log_lvl)
+    log_stream = worker_log_init(log_lvl, use_rich)
     filename = Path(file.name).as_posix()
 
     # clang-tidy must run *before* clang-format, because `--fix` rewrites the
@@ -167,11 +174,15 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
 
     with ProcessPoolExecutor(args.jobs) as executor:
         log_lvl = logger.getEffectiveLevel()
+        # Decided here, not in the worker: with the forkserver start method
+        # workers do not see environment changes made after the server started.
+        use_rich = should_use_rich()
         futures = [
             executor.submit(
                 _run_on_single_file,
                 file,
                 log_lvl=log_lvl,
+                use_rich=use_rich,
                 tidy_cmd=tidy_cmd,
                 db_json=db_json,
                 format_cmd=format_cmd,
