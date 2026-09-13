@@ -1,0 +1,21 @@
+tests/capture_tools_output/test_database_path.py
+  s_0da9b18608c2a0::t_766c3726d02333 65-72
+tests/capture_tools_output/test_tools_output.py
+  s_0da9b18608c2a0::t_da6ddc435ae34c 545-552
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9256175db496d3eab3cb4d0f0f3dc7bbb3c0e4ad",
+  "prompts": {},
+  "sessions": {
+    "s_0da9b18608c2a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1ae0c79-9ddb-4e6b-a8e1-2213cfd3c2b6",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
