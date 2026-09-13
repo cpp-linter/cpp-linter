@@ -73,6 +73,8 @@ class Args(UserDict):
     ignore_format: str = ""
     #: See :std:option:`--passive-reviews`.
     passive_reviews: bool = False
+    #: See :std:option:`--fix`.
+    fix: bool = False
     #: See :std:option:`--summary-output-file`.
     summary_output_file: str = ""
     #: A subcommand if provided
@@ -387,6 +389,19 @@ _parser_args[("-R", "--passive-reviews")] = dict(
     type=lambda input: input.lower() == "true",
     help="""Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
+)
+_parser_args[("-F", "--fix")] = dict(
+    default=False,
+    action="store_true",
+    help="""Apply clang-format fixes in-place to files with
+style issues. Only the lines selected by
+:std:option:`--lines-changed-only` are reformatted.
+
+.. note::
+    This option only applies to clang-format.
+    clang-tidy fixes are not applied automatically.
+
+Defaults to ``%(default)s``""",
 )
 _parser_args[("-o", "--summary-output-file")] = dict(
     default="",

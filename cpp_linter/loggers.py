@@ -57,16 +57,36 @@ def log_response_msg(response: Response):
         )
 
 
-def worker_log_init(log_lvl: int):
+def should_use_rich() -> bool:
+    """Decide whether log output should be rendered with ``rich``.
+
+    Call this in the parent process and hand the result to worker processes.
+    With the ``forkserver`` start method (the default on Linux since Python 3.14)
+    workers inherit the environment of the long-lived forkserver, not the parent's
+    current environment, so a check of ``os.environ`` inside the worker can be stale.
+    """
+    return FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ
+
+
+def worker_log_init(log_lvl: int, use_rich: bool | None = None):
+    """Set up logging inside a worker process.
+
+    :param log_lvl: The log level to apply; passed in because Windows does not
+        copy the parent's log level to subprocesses.
+    :param use_rich: Whether to render logs with ``rich``. Compute this in the
+        parent with :func:`should_use_rich` and pass it in; ``None`` falls back to
+        evaluating it in the current process.
+    """
     log_stream = io.StringIO()
 
     logger.handlers.clear()
     logger.propagate = False
 
+    if use_rich is None:
+        use_rich = should_use_rich()
+
     handler: logging.Handler
-    if (
-        FOUND_RICH_LIB and "CPP_LINTER_PYTEST_NO_RICH" not in os.environ
-    ):  # pragma: no cover
+    if use_rich:  # pragma: no cover
         console = get_console()
         console.file = log_stream
         handler = RichHandler(show_time=False, console=console)

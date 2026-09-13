@@ -62,7 +62,13 @@ def test_db_detection(
     assert "Error while trying to load a compilation database" not in stdout
     msg_match = CLANG_TIDY_COMMAND.search(stdout)
     if msg_match is None:  # pragma: no cover
-        pytest.fail("failed to find args passed in clang-tidy in log records")
+        # If the captured stdout below is rich-formatted (wrapped, padded),
+        # the worker process did not get CPP_LINTER_PYTEST_NO_RICH; see
+        # should_use_rich() in cpp_linter.loggers for why that can happen.
+        pytest.fail(
+            "failed to find args passed in clang-tidy in log records; "
+            f"captured stdout was {stdout!r}"
+        )
     matched_args = msg_match.group(0).split()[1:]
     expected_args.append(demo_src.replace("/", os.sep) + '"')
     assert expected_args == matched_args

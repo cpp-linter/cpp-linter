@@ -8,7 +8,13 @@ import shutil
 
 from ..common_fs import FileObj, FileIOTimeout
 from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
-from ..loggers import start_log_group, end_log_group, worker_log_init, logger
+from ..loggers import (
+    start_log_group,
+    end_log_group,
+    worker_log_init,
+    should_use_rich,
+    logger,
+)
 from .clang_tidy import run_clang_tidy, TidyAdvice
 from .clang_format import run_clang_format, FormatAdvice
 from ..cli import Args
@@ -37,6 +43,7 @@ def assemble_version_exec(tool_name: str, specified_version: str) -> str | None:
 def _run_on_single_file(
     file: FileObj,
     log_lvl: int,
+    use_rich: bool,
     tidy_cmd: str | None,
     db_json: list[dict[str, str]] | None,
     format_cmd: str | None,
@@ -44,31 +51,14 @@ def _run_on_single_file(
     tidy_filter: TidyFileFilter | None,
     args: Args,
 ) -> tuple[str, str, TidyAdvice | None, FormatAdvice | None]:
-    log_stream = worker_log_init(log_lvl)
+    log_stream = worker_log_init(log_lvl, use_rich)
     filename = Path(file.name).as_posix()
 
-    format_advice = None
-    if format_cmd is not None and (
-        format_filter is None or format_filter.is_source_or_ignored(file.name)
-    ):
-        try:
-            format_advice = run_clang_format(
-                command=format_cmd,
-                file_obj=file,
-                style=args.style,
-                lines_changed_only=args.lines_changed_only,
-                format_review=args.format_review,
-            )
-        except FileIOTimeout:  # pragma: no cover
-            logger.error(
-                "Failed to read or write contents of %s when running clang-format",
-                filename,
-            )
-        except OSError:  # pragma: no cover
-            logger.error(
-                "Failed to open the file %s when running clang-format", filename
-            )
-
+    # clang-tidy must run *before* clang-format, because `--fix` rewrites the
+    # file in place. clang-tidy reports line numbers from the file on disk, but
+    # its `--line-filter` (and the PR review comments built from its output) use
+    # line numbers from the event's diff. Formatting first would shift every
+    # subsequent diagnostic, silently dropping some and misplacing the rest.
     tidy_note = None
     if tidy_cmd is not None and (
         tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
@@ -91,6 +81,29 @@ def _run_on_single_file(
             )
         except OSError:  # pragma: no cover
             logger.error("Failed to open the file %s when running clang-tidy", filename)
+
+    format_advice = None
+    if format_cmd is not None and (
+        format_filter is None or format_filter.is_source_or_ignored(file.name)
+    ):
+        try:
+            format_advice = run_clang_format(
+                command=format_cmd,
+                file_obj=file,
+                style=args.style,
+                lines_changed_only=args.lines_changed_only,
+                format_review=args.format_review,
+                fix=args.fix,
+            )
+        except FileIOTimeout:  # pragma: no cover
+            logger.error(
+                "Failed to read or write contents of %s when running clang-format",
+                filename,
+            )
+        except OSError:  # pragma: no cover
+            logger.error(
+                "Failed to open the file %s when running clang-format", filename
+            )
 
     return file.name, log_stream.getvalue(), tidy_note, format_advice
 
@@ -161,11 +174,15 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
 
     with ProcessPoolExecutor(args.jobs) as executor:
         log_lvl = logger.getEffectiveLevel()
+        # Decided here, not in the worker: with the forkserver start method
+        # workers do not see environment changes made after the server started.
+        use_rich = should_use_rich()
         futures = [
             executor.submit(
                 _run_on_single_file,
                 file,
                 log_lvl=log_lvl,
+                use_rich=use_rich,
                 tidy_cmd=tidy_cmd,
                 db_json=db_json,
                 format_cmd=format_cmd,
@@ -194,4 +211,5 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
                         break
                 else:  # pragma: no cover
                     raise ValueError(f"Failed to find {file_name} in list of files.")
+
     return clang_versions

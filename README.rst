@@ -34,6 +34,16 @@ For usage in a CI workflow, see `the cpp-linter/cpp-linter-action repository <ht
 
 For the description of supported Command Line Interface options, see `the CLI documentation <https://cpp-linter.github.io/cpp-linter/cli_args.html>`_
 
+Applying fixes
+--------------
+
+Passing the ``--fix`` option makes cpp-linter apply clang-format fixes in-place to
+any files that have formatting problems.
+
+.. note::
+    ``--fix`` only applies **clang-format** fixes. clang-tidy fixes are not applied
+    automatically.
+
 Have question or feedback?
 --------------------------
 
