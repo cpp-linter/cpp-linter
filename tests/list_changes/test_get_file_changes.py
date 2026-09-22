@@ -201,7 +201,7 @@ def test_paginated_files_without_patches(
         )
         file_filter = FileFilter(extensions=["cpp"])
         if lines_changed_only > 0 and status != "removed":
-            with pytest.raises(KeyError, match="src/large.cpp has no patch info"):
+            with pytest.raises(KeyError, match=r"src/large\.cpp has no patch info"):
                 client.get_list_of_changed_files(file_filter, lines_changed_only)
         else:
             files = client.get_list_of_changed_files(file_filter, lines_changed_only)
