@@ -150,7 +150,7 @@ class GithubApiClient(RestApiClient):
                         f"Missing 'filename' key in file:\n{json.dumps(file, indent=2)}"
                     )
                     raise exc
-                if file.get("status") == "removed":
+                if file.get("status", "") == "removed":
                     continue
                 if not file_filter.is_source_or_ignored(file_name):
                     continue
