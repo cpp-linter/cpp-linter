@@ -154,3 +154,60 @@ def test_get_changed_files(
             if lines_changed_only == 0:
                 expected.append("include/test/tree.hpp")
             assert file.name in expected
+
+
+@pytest.mark.no_clang
+@pytest.mark.parametrize("event_name", ["pull_request", "push"])
+@pytest.mark.parametrize("status", ["added", "modified", "renamed", "removed"])
+@pytest.mark.parametrize("lines_changed_only", [0, 1, 2])
+def test_paginated_files_without_patches(
+    monkeypatch: pytest.MonkeyPatch,
+    event_name: str,
+    status: str,
+    lines_changed_only: int,
+):
+    """Missing patches permit whole-file linting, but not line filtering."""
+    monkeypatch.setenv("CI", "true")
+    monkeypatch.setenv("GITHUB_EVENT_PATH", "")
+    client = GithubApiClient()
+    client.event_name = event_name
+    client.api_url = TEST_API_URL
+    client.repo = TEST_REPO
+    client.sha = TEST_SHA
+    client.pull_request = TEST_PR
+    endpoint = f"{TEST_API_URL}/repos/{TEST_REPO}/commits/{TEST_SHA}"
+    if event_name == "pull_request":
+        endpoint = f"{TEST_API_URL}/repos/{TEST_REPO}/pulls/{TEST_PR}"
+
+    entries = [
+        {
+            "filename": "src/deleted.cpp",
+            "status": "removed",
+            "changes": 1,
+            "patch": "@@ -1 +0,0 @@\n-int removed;",
+        },
+        {"filename": "src/large.cpp", "status": status, "changes": 1000},
+    ]
+    with requests_mock.Mocker() as mock:
+        mock.get(
+            endpoint,
+            request_headers={"Accept": "application/vnd.github.diff"},
+            status_code=406,
+        )
+        mock.get(
+            endpoint + ("/files" if event_name == "pull_request" else ""),
+            request_headers={"Accept": "application/vnd.github.raw+json"},
+            json=entries if event_name == "pull_request" else {"files": entries},
+        )
+        file_filter = FileFilter(extensions=["cpp"])
+        if lines_changed_only > 0 and status != "removed":
+            with pytest.raises(KeyError, match="src/large.cpp has no patch info"):
+                client.get_list_of_changed_files(file_filter, lines_changed_only)
+        else:
+            files = client.get_list_of_changed_files(file_filter, lines_changed_only)
+            assert [file.name for file in files] == (
+                [] if status == "removed" else ["src/large.cpp"]
+            )
+            for file in files:
+                assert file.lines_added == []
+                assert file.diff_chunks == []

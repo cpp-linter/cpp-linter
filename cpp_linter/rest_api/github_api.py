@@ -150,6 +150,8 @@ class GithubApiClient(RestApiClient):
                         f"Missing 'filename' key in file:\n{json.dumps(file, indent=2)}"
                     )
                     raise exc
+                if file.get("status") == "removed":
+                    continue
                 if not file_filter.is_source_or_ignored(file_name):
                     continue
                 if lines_changed_only > 0 and cast(int, file.get("changes", 0)) == 0:
@@ -160,15 +162,11 @@ class GithubApiClient(RestApiClient):
                 if "patch" not in file:
                     if lines_changed_only > 0:
                         # diff info is needed for further operations
-                        raise KeyError(  # pragma: no cover
+                        raise KeyError(
                             f"{file_name} has no patch info:\n{json.dumps(file, indent=2)}"
                         )
-                    elif (
-                        cast(int, file.get("changes", 0)) == 0
-                    ):  # in case files-changed-only is true
-                        # file was likely renamed without source changes
-                        files.append(FileObj(file_name))  # scan entire file instead
-                        continue
+                    files.append(FileObj(file_name))  # scan entire file instead
+                    continue
                 file_diff = (
                     f"diff --git a/{old_name} b/{file_name}\n"
                     + f"--- a/{old_name}\n+++ b/{file_name}\n"
