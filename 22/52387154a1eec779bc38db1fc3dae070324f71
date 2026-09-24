@@ -1,0 +1,21 @@
+docs/conf.py
+  s_0da9b18608c2a0::t_40287aac9db220 55,64,74,84
+docs/index.rst
+  s_0da9b18608c2a0::t_bc05c9897c53da 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2252387154a1eec779bc38db1fc3dae070324f71",
+  "prompts": {},
+  "sessions": {
+    "s_0da9b18608c2a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1ae0c79-9ddb-4e6b-a8e1-2213cfd3c2b6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
