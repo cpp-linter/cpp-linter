@@ -31,3 +31,4 @@
    :hidden:
 
    building_docs
+   ← cpp-linter hub <https://cpp-linter.github.io/>
