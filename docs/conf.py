@@ -52,7 +52,7 @@ html_theme = "sphinx_immaterial"
 html_static_path = ["_static"]
 html_logo = "_static/logo.png"
 html_favicon = "_static/favicon.ico"
-html_css_files = ["extra_css.css"]
+html_css_files = ["https://cpp-linter.github.io/stylesheets/shared.css"]
 html_title = "cpp-linter"
 
 html_theme_options = {
@@ -61,7 +61,7 @@ html_theme_options = {
     "palette": [
         {
             "media": "(prefers-color-scheme)",
-            "primary": "blue",
+            "primary": "indigo",
             "accent": "cyan",
             "toggle": {
                 "icon": "material/brightness-auto",
@@ -71,7 +71,7 @@ html_theme_options = {
         {
             "media": "(prefers-color-scheme: light)",
             "scheme": "default",
-            "primary": "light-blue",
+            "primary": "indigo",
             "accent": "cyan",
             "toggle": {
                 "icon": "material/lightbulb-outline",
@@ -81,7 +81,7 @@ html_theme_options = {
         {
             "media": "(prefers-color-scheme: dark)",
             "scheme": "slate",
-            "primary": "light-blue",
+            "primary": "indigo",
             "accent": "cyan",
             "toggle": {
                 "icon": "material/lightbulb",
