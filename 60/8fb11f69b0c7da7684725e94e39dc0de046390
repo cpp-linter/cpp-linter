@@ -1,0 +1,19 @@
+cpp_linter/cli.py
+  s_fb9a2b74d1e9dc::t_0bd8256d266312 91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "608fb11f69b0c7da7684725e94e39dc0de046390",
+  "prompts": {},
+  "sessions": {
+    "s_fb9a2b74d1e9dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c7234209-6abf-43ab-99a6-e68dabc8c7f4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
