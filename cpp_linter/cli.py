@@ -88,7 +88,7 @@ _parser_args[("-v", "--verbosity")] = dict(
     help="""This controls the action's verbosity in the workflow's
 logs. Supported options are ``debug`` and ``info``.
 The numerical representations of these log levels
-defined by the `logging <logging-levels>`_ library
+defined by the `logging <https://docs.python.org/3/library/logging.html#logging-levels>`_ library
 (``10`` for ``debug``, and ``20`` for ``info``) are
 also supported.
 
