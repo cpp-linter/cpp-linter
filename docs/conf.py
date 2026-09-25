@@ -58,6 +58,9 @@ html_title = "cpp-linter"
 html_theme_options = {
     "repo_url": "https://github.com/cpp-linter/cpp-linter",
     "repo_name": "cpp-linter",
+    # The fonts come with the shared styles loaded from cpp-linter.github.io
+    # (html_css_files), so don't fetch the theme's default fonts from Google.
+    "font": False,
     "palette": [
         {
             "media": "(prefers-color-scheme)",
