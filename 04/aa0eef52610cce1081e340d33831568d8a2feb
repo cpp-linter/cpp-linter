@@ -1,0 +1,39 @@
+cpp_linter/rest_api/local_api.py
+  s_0da9b18608c2a0::t_e7addbef2c1b62 1-119
+cpp_linter/loggers.py
+  s_0da9b18608c2a0::t_7555ce91e8f108 38-39,42-45,49-54
+cpp_linter/rest_api/__init__.py
+  s_0da9b18608c2a0::t_ca87e6a1433962 156-163
+  s_0da9b18608c2a0::t_cdb42c6f033c91 47-51
+tests/test_local_api.py
+  s_0da9b18608c2a0::t_bb4378eee19bb1 1-124
+  s_0da9b18608c2a0::t_1cfae56456355d 125-143
+cpp_linter/__init__.py
+  s_0da9b18608c2a0::t_8e6492494d1553 11,13,17-28,42
+cpp_linter/cli.py
+  s_0da9b18608c2a0::t_c5458310d0daed 121-123,128-131,447
+docs/API-Reference/cpp_linter.rest_api.local_api.rst
+  s_0da9b18608c2a0::t_e86a8134373c6a 1-5
+docs/index.rst
+  s_0da9b18608c2a0::t_fb07051f7c3f72 23
+tests/test_cli_args.py
+  s_0da9b18608c2a0::t_e13c1e72084552 15
+tests/test_misc.py
+  s_0da9b18608c2a0::t_a9ed79131e5fa4 45-50,52,57-60,65-70,72,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "04aa0eef52610cce1081e340d33831568d8a2feb",
+  "prompts": {},
+  "sessions": {
+    "s_0da9b18608c2a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1ae0c79-9ddb-4e6b-a8e1-2213cfd3c2b6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
