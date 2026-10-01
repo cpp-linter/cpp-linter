@@ -1,36 +1,42 @@
-C/C++ Linting Package
-=====================
+cpp-linter
+==========
 
-.. |latest-version| image:: https://img.shields.io/github/v/release/cpp-linter/cpp-linter
-    :alt: Latest Version
-    :target: https://github.com/cpp-linter/cpp-linter/releases
-.. |python-version| image:: https://img.shields.io/pypi/pyversions/cpp-linter
-    :alt: Python Version
-    :target: https://pypi.org/project/cpp-linter
-.. |license-badge| image:: https://img.shields.io/github/license/cpp-linter/cpp-linter?label=license&logo=github
-    :alt: License
-    :target: https://github.com/cpp-linter/cpp-linter/blob/main/LICENSE
-.. |codecov-badge| image:: https://codecov.io/gh/cpp-linter/cpp-linter/branch/main/graph/badge.svg?token=0814O9WHQU
-    :alt: CodeCov
+.. |pypi| image:: https://img.shields.io/pypi/v/cpp-linter?labelColor=454a63&color=007ec6
+    :alt: PyPI
+    :target: https://pypi.org/project/cpp-linter/
+.. |ci| image:: https://img.shields.io/github/actions/workflow/status/cpp-linter/cpp-linter/tests.yml?branch=main&label=ci&labelColor=454a63
+    :alt: ci
+    :target: https://github.com/cpp-linter/cpp-linter/actions/workflows/tests.yml
+.. |coverage| image:: https://img.shields.io/codecov/c/github/cpp-linter/cpp-linter?labelColor=454a63
+    :alt: coverage
     :target: https://codecov.io/gh/cpp-linter/cpp-linter
-.. |doc-badge| image:: https://github.com/cpp-linter/cpp-linter/actions/workflows/docs.yml/badge.svg
-    :alt: Docs
-    :target: https://cpp-linter.github.io/cpp-linter
-.. |pypi-badge| image:: https://img.shields.io/pypi/dw/cpp-linter?color=dark-green&label=PyPI%20Downloads&logo=python&logoColor=white
-    :target: https://pepy.tech/project/cpp-linter
-    :alt: PyPI - Downloads
-.. |hub-badge| image:: https://img.shields.io/badge/%F0%9F%8F%A0_cpp--linter_hub-%E2%86%90_home-22863a
-    :alt: cpp-linter hub
+.. |part-of| image:: https://img.shields.io/badge/part%20of-cpp--linter-ffc20a?labelColor=454a63
+    :alt: part of cpp-linter
     :target: https://cpp-linter.github.io/
 
-|latest-version| |python-version| |license-badge| |codecov-badge| |doc-badge| |pypi-badge| |hub-badge|
+|pypi| |ci| |coverage| |part-of|
 
-A Python package for linting C/C++ code with clang-tidy and/or clang-format to collect feedback provided in the form of thread comments and/or file annotations.
+The Python command behind cpp-linter-action: it runs clang-format and clang-tidy on C and C++ files, locally or in other CI.
+
+`Website <https://cpp-linter.github.io/>`_ ·
+`Documentation <https://cpp-linter.github.io/cpp-linter/>`_ ·
+`Get started <https://cpp-linter.github.io/getting-started/#locally-or-in-other-ci>`_ ·
+`Discussions <https://github.com/orgs/cpp-linter/discussions>`_
+
+Quick start
+-----------
+
+With the clang tools installed (see `Limitations`_):
+
+.. code-block:: shell
+
+    pip install cpp-linter
+    cpp-linter --version=21 --style=file --tidy-checks=''
 
 Usage
 -----
 
-For usage in a CI workflow, see `the cpp-linter/cpp-linter-action repository <https://github.com/cpp-linter/cpp-linter-action>`_
+For usage in a GitHub Actions workflow, see `the cpp-linter/cpp-linter-action repository <https://github.com/cpp-linter/cpp-linter-action>`_
 
 For the description of supported Command Line Interface options, see `the CLI documentation <https://cpp-linter.github.io/cpp-linter/cli_args.html>`_
 
@@ -44,12 +50,23 @@ any files that have formatting problems.
     ``--fix`` only applies **clang-format** fixes. clang-tidy fixes are not applied
     automatically.
 
-Have question or feedback?
---------------------------
+Limitations
+-----------
 
-To provide feedback (requesting a feature or reporting a bug) please post to `issues <https://github.com/cpp-linter/cpp-linter/issues>`_.
+- cpp-linter does not install the clang tools. Install them first, for example with
+  `clang-tools <https://cpp-linter.github.io/clang-tools-pip/>`_; without them, ``--version=21``
+  falls back to whatever ``clang-format`` and ``clang-tidy`` are on your ``PATH``.
+- It exits 0 even when checks fail, so it reports findings but does not fail a build.
+- Locally, ``--files-changed-only`` and ``--lines-changed-only`` read the local git diff. In other CI,
+  check the whole repository (the default): most CI systems set ``CI=true``, and with it those
+  options ask the GitHub API for the changed files.
+
+Contributing
+------------
+
+To provide feedback (requesting a feature or reporting a bug) please post to `issues <https://github.com/cpp-linter/cpp-linter/issues>`_. To contribute changes, see `CONTRIBUTING.rst <https://github.com/cpp-linter/cpp-linter/blob/main/CONTRIBUTING.rst>`_.
 
 License
 -------
 
-The scripts and documentation in this project are released under the `MIT License <https://github.com/cpp-linter/cpp-linter/blob/master/LICENSE>`_.
+The scripts and documentation in this project are released under the `MIT License <https://github.com/cpp-linter/cpp-linter/blob/main/LICENSE>`_.
