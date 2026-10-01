@@ -1,0 +1,23 @@
+tests/test_misc.py
+  s_66212c309e21f0::t_48f284acb78153 20
+  s_66212c309e21f0::t_c6c60f92d87bf2 66-88
+  s_66212c309e21f0::t_1bee4b82235fb4 89-90
+pyproject.toml
+  s_66212c309e21f0::t_990c86644b548e 87-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d3dd5b0fd58f591453eeded388099670666af81d",
+  "prompts": {},
+  "sessions": {
+    "s_66212c309e21f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8763d161-5362-48a1-ae9b-11f7bcd83469",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
