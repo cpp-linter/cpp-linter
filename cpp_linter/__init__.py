@@ -8,8 +8,22 @@ from .common_fs.file_filter import FileFilter
 from .loggers import start_log_group, end_log_group, logger
 from .clang_tools import capture_clang_tools_output
 from .cli import get_cli_parser, Args
+from .rest_api import RestApiClient
 from .rest_api.github_api import GithubApiClient
+from .rest_api.local_api import LocalApiClient
 from ._version import version
+
+
+def select_client() -> RestApiClient:
+    """Choose the REST API client for the environment cpp-linter runs in.
+
+    The GitHub client is used only in GitHub Actions. Anywhere else, including other
+    CI systems that set ``CI=true``, changed files come from the local git repository
+    and nothing is posted to a git server.
+    """
+    if os.environ.get("GITHUB_ACTIONS", "") == "true":
+        return GithubApiClient()
+    return LocalApiClient()
 
 
 def main():
@@ -25,7 +39,7 @@ def main():
     if args.lines_changed_only:
         args.files_changed_only = True
 
-    rest_api_client = GithubApiClient()
+    rest_api_client = select_client()
     logger.info("processing %s event", rest_api_client.event_name)
     is_pr_event = rest_api_client.event_name == "pull_request"
     if not is_pr_event:

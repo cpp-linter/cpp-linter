@@ -118,14 +118,17 @@ tree.
 )
 _parser_args[("-b", "--diff-base")] = dict(
     default=None,
-    type=lambda input: int(input) if input.isdigit() else str(input),
+    type=lambda input: (
+        None if not input else int(input) if input.isdigit() else str(input)
+    ),
     help="""The specific commit or git revision to use
 as the base for any git diffs. For example, may be ``HEAD~5``
 for the last five commits, or a branch name for the history
 diff since the common ancestor. If given as an integer, n, it
-will be treated as ``HEAD~n``. When not set, diff behavior
-depends on the presence of staged files. This option only
-applies to contexts in which GitHub CI is not present/used.
+will be treated as ``HEAD~n``. When not set (or set to an empty
+value), diff behavior depends on the presence of staged files.
+This option is ignored in GitHub Actions, where the changed
+files come from GitHub's REST API.
 
 Defaults to ``%(default)s``""",
 )
@@ -441,7 +444,7 @@ def get_cli_parser() -> argparse.ArgumentParser:
     cli_parser = argparse.ArgumentParser(
         description=(
             "Run clang-tidy and clang-format on a list of changed files "
-            + "provided by GitHub's REST API."
+            + "provided by GitHub's REST API or, outside GitHub Actions, by git."
         ),
         formatter_class=argparse.RawTextHelpFormatter,
     )

@@ -42,24 +42,39 @@ def test_exit_output(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 
 # see https://github.com/pytest-dev/pytest/issues/5997
 @pytest.mark.no_clang
-def test_end_group(caplog: pytest.LogCaptureFixture):
+@pytest.mark.parametrize("github_actions", ["true", ""])
+def test_end_group(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    github_actions: str,
+):
     """Test the output that concludes a group of runner logs."""
+    monkeypatch.setenv("GITHUB_ACTIONS", github_actions)
     caplog.set_level(logging.INFO, logger=log_commander.name)
     log_commander.propagate = True
     end_log_group()
     messages = caplog.messages
-    assert "::endgroup::" in messages
+    if github_actions:
+        assert "::endgroup::" in messages
+    else:
+        assert not messages
 
 
 # see https://github.com/pytest-dev/pytest/issues/5997
 @pytest.mark.no_clang
-def test_start_group(caplog: pytest.LogCaptureFixture):
+@pytest.mark.parametrize("github_actions", ["true", ""])
+def test_start_group(
+    caplog: pytest.LogCaptureFixture,
+    monkeypatch: pytest.MonkeyPatch,
+    github_actions: str,
+):
     """Test the output that begins a group of runner logs."""
+    monkeypatch.setenv("GITHUB_ACTIONS", github_actions)
     caplog.set_level(logging.INFO, logger=log_commander.name)
     log_commander.propagate = True
     start_log_group("TEST")
     messages = caplog.messages
-    assert "::group::TEST" in messages
+    assert ("::group::TEST" if github_actions else "TEST") in messages
 
 
 @pytest.mark.parametrize(

@@ -20,6 +20,7 @@
    API-Reference/cpp_linter.clang_tools.patcher
    API-Reference/cpp_linter.rest_api
    API-Reference/cpp_linter.rest_api.github_api
+   API-Reference/cpp_linter.rest_api.local_api
    API-Reference/cpp_linter.git
    API-Reference/cpp_linter.git.git_str
    API-Reference/cpp_linter.loggers
