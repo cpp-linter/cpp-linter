@@ -28,23 +28,34 @@ TEST_DIFF = (Path(__file__).parent / "list_changes" / "patch.diff").read_text(
     "env,expected",
     [
         ({"GITHUB_ACTIONS": "true", "CI": "true"}, GithubApiClient),
+        (
+            {"GITEA_ACTIONS": "true", "GITHUB_ACTIONS": "true", "CI": "true"},
+            LocalApiClient,
+        ),
         ({"GITLAB_CI": "true", "CI": "true"}, LocalApiClient),
         ({"CI": "true"}, LocalApiClient),
         ({}, LocalApiClient),
     ],
-    ids=["github-actions", "gitlab-ci", "other-ci", "local"],
+    ids=["github-actions", "gitea-actions", "gitlab-ci", "other-ci", "local"],
 )
 def test_select_client(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
     env: dict[str, str],
     expected: type,
 ):
-    """Only GitHub Actions gets the GitHub client."""
-    for name in ("GITHUB_ACTIONS", "GITLAB_CI", "CI", "GITHUB_EVENT_PATH"):
+    """Only GitHub Actions gets the GitHub client; Gitea Actions gets a warning."""
+    names = ("GITHUB_ACTIONS", "GITEA_ACTIONS", "GITLAB_CI", "CI", "GITHUB_EVENT_PATH")
+    for name in names:
         monkeypatch.setenv(name, "")
     for name, value in env.items():
         monkeypatch.setenv(name, value)
-    assert type(select_client()) is expected
+    caplog.set_level(logging.WARNING, logger=log_commander.name)
+    monkeypatch.setattr(log_commander, "propagate", True)
+    client = select_client()
+    assert isinstance(client, expected)
+    gitea_warned = any("Gitea Actions is not supported" in m for m in caplog.messages)
+    assert gitea_warned == ("GITEA_ACTIONS" in env)
 
 
 @pytest.mark.no_clang

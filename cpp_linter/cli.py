@@ -116,11 +116,21 @@ tree.
     path. Otherwise, cpp-linter will have difficulty
     parsing clang-tidy output.""",
 )
+
+
+def type_diff_base(input: None | str) -> None | str | int:
+    """A custom type check for the ``--diff-base`` arg."""
+    if not input:
+        return None
+    if input.isdigit():
+        return int(input)
+    else:
+        return str(input)
+
+
 _parser_args[("-b", "--diff-base")] = dict(
     default=None,
-    type=lambda input: (
-        None if not input else int(input) if input.isdigit() else str(input)
-    ),
+    type=type_diff_base,
     help="""The specific commit or git revision to use
 as the base for any git diffs. For example, may be ``HEAD~5``
 for the last five commits, or a branch name for the history

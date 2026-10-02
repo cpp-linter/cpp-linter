@@ -1,5 +1,8 @@
-"""A module for running outside GitHub Actions: on a developer's machine or in another
-CI system, such as GitLab CI or Jenkins. Nothing is posted to a git server."""
+"""A module for running outside GitHub Actions.
+
+This covers a developer's machine and other CI systems, such as GitLab CI or
+Jenkins. Nothing is posted to a git server.
+"""
 
 from pathlib import Path
 
@@ -77,10 +80,9 @@ class LocalApiClient(RestApiClient):
             tidy_checks_failed=tidy_checks_failed,
         )
 
-        if args.thread_comments != "false" or args.tidy_review or args.format_review:
+        if args.thread_comments != "false":
             logger.warning(
-                "Thread comments and pull request reviews are only posted when "
-                "running in GitHub Actions."
+                "Thread comments are only posted when running in GitHub Actions."
             )
 
     @staticmethod
