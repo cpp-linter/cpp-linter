@@ -44,6 +44,11 @@ class RestApiClient(ABC):
         #: The brand name of the git server that provides the REST API.
         self._name: str = "Generic"
 
+        #: The triggering event type's name
+        self.event_name: str = "unknown"
+        #: A flag that describes if debug logs are enabled.
+        self.debug_enabled: bool = False
+
         # The remain API requests allowed under the given token (if any).
         self._rate_limit_remaining = -1  # -1 means unknown
         # a counter for avoiding secondary rate limits
@@ -147,6 +152,14 @@ class RestApiClient(ABC):
         logger.info("%d clang-tidy-checks-failed", tidy_checks_failed or 0)
         logger.info("%d checks-failed", checks_failed)
         return checks_failed
+
+    def verify_files_are_present(self, files: list[FileObj]) -> None:
+        """Make sure the listed files exist in the working directory.
+
+        The default does nothing; a derivative may download missing files.
+
+        :param files: A list of files to check for existence.
+        """
 
     def make_headers(self, use_diff: bool = False) -> dict[str, str]:
         """Create a `dict` for use in REST API headers.

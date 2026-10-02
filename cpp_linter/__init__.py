@@ -5,11 +5,31 @@ If executed from command-line, then `main()` is the entrypoint.
 import os
 from .common_fs import CACHE_PATH
 from .common_fs.file_filter import FileFilter
-from .loggers import start_log_group, end_log_group, logger
+from .loggers import start_log_group, end_log_group, logger, log_commander
 from .clang_tools import capture_clang_tools_output
 from .cli import get_cli_parser, Args
+from .rest_api import RestApiClient
 from .rest_api.github_api import GithubApiClient
+from .rest_api.local_api import LocalApiClient
 from ._version import version
+
+
+def select_client() -> RestApiClient:
+    """Choose the REST API client for the environment cpp-linter runs in.
+
+    The GitHub client is used only in GitHub Actions. Anywhere else, including Gitea
+    Actions (which also sets ``GITHUB_ACTIONS``) and other CI systems that set
+    ``CI=true``, changed files come from the local git repository and nothing is
+    posted to a git server.
+    """
+    if os.environ.get("GITEA_ACTIONS", "") == "true":
+        log_commander.warning(
+            "Gitea Actions is not supported; CI-specific operations are disabled",
+        )
+        return LocalApiClient()
+    if os.environ.get("GITHUB_ACTIONS", "") == "true":
+        return GithubApiClient()
+    return LocalApiClient()
 
 
 def main():
@@ -25,10 +45,16 @@ def main():
     if args.lines_changed_only:
         args.files_changed_only = True
 
-    rest_api_client = GithubApiClient()
+    rest_api_client = select_client()
     logger.info("processing %s event", rest_api_client.event_name)
     is_pr_event = rest_api_client.event_name == "pull_request"
     if not is_pr_event:
+        if isinstance(rest_api_client, LocalApiClient) and (
+            args.tidy_review or args.format_review
+        ):
+            logger.warning(
+                "Pull request reviews are only posted when running in GitHub Actions."
+            )
         args.tidy_review = False
         args.format_review = False
 

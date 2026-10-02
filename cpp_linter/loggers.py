@@ -35,14 +35,23 @@ log_commander.propagate = False
 def start_log_group(name: str) -> None:
     """Begin a collapsible group of log statements.
 
+    Outside GitHub Actions, only the group's name is printed.
+
     :param name: The name of the collapsible group
     """
-    log_commander.fatal("::group::%s", name)
+    if os.environ.get("GITHUB_ACTIONS", "") == "true":
+        log_commander.fatal("::group::%s", name)
+    else:
+        log_commander.fatal("%s", name)
 
 
 def end_log_group() -> None:
-    """End a collapsible group of log statements."""
-    log_commander.fatal("::endgroup::")
+    """End a collapsible group of log statements.
+
+    Outside GitHub Actions, this prints nothing.
+    """
+    if os.environ.get("GITHUB_ACTIONS", "") == "true":
+        log_commander.fatal("::endgroup::")
 
 
 def log_response_msg(response: Response):
