@@ -78,7 +78,17 @@ dynamic_context = "test_function"
 # These options are useful if combining coverage data from multiple tested envs
 parallel = true
 relative_files = true
-source = ["cpp_linter/", "tests/"]
+# Measure the shipped package by import name (not by directory) so coverage does
+# not depend on the current working directory. The clang tools run in
+# multiprocessing workers, and several tests chdir into a temp directory before
+# invoking them; a directory-based source would resolve relative to each worker's
+# cwd and silently drop the lines executed there (e.g. the --fix and PR-review
+# paths). ``tests`` stays directory-based: it is only ever executed in the main
+# process, so the "module not imported" warning it raises in those workers is
+# expected and muted.
+source_pkgs = ["cpp_linter"]
+source = ["tests"]
+disable_warnings = ["module-not-imported"]
 concurrency = ["thread", "multiprocessing"]
 
 [tool.coverage.json]
