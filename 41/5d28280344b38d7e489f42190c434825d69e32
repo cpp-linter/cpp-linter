@@ -1,0 +1,27 @@
+cpp_linter/__init__.py
+  s_0da9b18608c2a0::t_436aeeb57421c3 8,20-23,25-29,52-57
+cpp_linter/cli.py
+  s_0da9b18608c2a0::t_e86aa404407717 119-130,133
+cpp_linter/rest_api/local_api.py
+  s_0da9b18608c2a0::t_2ef043c4b5cd75 1-5,83,85
+cspell.config.yml
+  s_0da9b18608c2a0::t_1e2fbe853a5afd 22
+tests/test_local_api.py
+  s_0da9b18608c2a0::t_0b75f392e411dc 31-34,39,43,47-49,53-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "415d28280344b38d7e489f42190c434825d69e32",
+  "prompts": {},
+  "sessions": {
+    "s_0da9b18608c2a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1ae0c79-9ddb-4e6b-a8e1-2213cfd3c2b6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
