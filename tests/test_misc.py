@@ -17,6 +17,7 @@ from cpp_linter.loggers import (
     log_commander,
     start_log_group,
     end_log_group,
+    worker_log_init,
 )
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
@@ -60,6 +61,29 @@ def test_start_group(caplog: pytest.LogCaptureFixture):
     start_log_group("TEST")
     messages = caplog.messages
     assert "::group::TEST" in messages
+
+
+@pytest.mark.no_clang
+def test_worker_log_init_resolves_rich(monkeypatch: pytest.MonkeyPatch):
+    """``worker_log_init(use_rich=None)`` decides the rich setting itself."""
+    # Workers normally receive `use_rich` from the parent, but the `None` default
+    # must still fall back to `should_use_rich()`. Force the non-rich branch so
+    # the test does not depend on whether `rich` is installed, and restore the
+    # shared logger afterwards.
+    monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
+    saved_handlers = logger.handlers[:]
+    saved_level = logger.level
+    saved_propagate = logger.propagate
+    try:
+        log_stream = worker_log_init(logging.DEBUG, use_rich=None)
+        logger.info("hello from worker")
+        assert "hello from worker" in log_stream.getvalue()
+        assert logger.level == logging.DEBUG
+    finally:
+        logger.handlers.clear()
+        logger.handlers.extend(saved_handlers)
+        logger.setLevel(saved_level)
+        logger.propagate = saved_propagate
 
 
 @pytest.mark.parametrize(
