@@ -12,6 +12,7 @@ from cpp_linter.cli import get_cli_parser, Args
         ("database", "build", "database", "build"),
         ("diff-base", "5", "diff_base", 5),
         ("diff-base", "main", "diff_base", "main"),
+        ("diff-base", "", "diff_base", None),
         ("ignore-index", None, "ignore_index", True),
         ("style", "file", "style", "file"),
         ("tidy-checks", "-*", "tidy_checks", "-*"),
