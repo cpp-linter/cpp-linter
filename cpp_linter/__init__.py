@@ -27,6 +27,11 @@ def select_client() -> RestApiClient:
             "Gitea Actions is not supported; CI-specific operations are disabled",
         )
         return LocalApiClient()
+    if os.environ.get("GITEA_ACTIONS", "") == "true":
+        log_commander.warn(
+            "Gitea Actions is not supported; CI-specific operations are disabled",
+        )
+        return LocalApiClient()
     if os.environ.get("GITHUB_ACTIONS", "") == "true":
         return GithubApiClient()
     return LocalApiClient()

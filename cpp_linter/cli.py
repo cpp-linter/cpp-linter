@@ -118,14 +118,14 @@ tree.
 )
 
 
-def type_diff_base(input: None | str) -> None | str | int:
+def type_diff_base(user_input: None | str) -> None | str | int:
     """A custom type check for the ``--diff-base`` arg."""
-    if not input:
+    if not user_input:
         return None
-    if input.isdigit():
-        return int(input)
+    if user_input.isdigit():
+        return int(user_input)
     else:
-        return str(input)
+        return str(user_input)
 
 
 _parser_args[("-b", "--diff-base")] = dict(
