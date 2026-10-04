@@ -9,7 +9,7 @@ import subprocess
 import pytest
 from cpp_linter.loggers import logger
 from cpp_linter.common_fs import FileObj, CACHE_PATH
-from cpp_linter.rest_api.github_api import GithubApiClient
+from cpp_linter import rest_api
 from cpp_linter.clang_tools import ClangVersions, capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
@@ -115,7 +115,7 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 
     format_checks_failed = tally_format_advice(files)
     tidy_checks_failed = tally_tidy_advice(files)
-    comment = GithubApiClient.make_comment(
+    comment = rest_api.make_comment(
         files=files,
         tidy_checks_failed=tidy_checks_failed,
         format_checks_failed=format_checks_failed,

@@ -7,7 +7,7 @@ from typing import cast
 import shutil
 
 from ..common_fs import FileObj, FileIOTimeout
-from ..common_fs.file_filter import TidyFileFilter, FormatFileFilter
+from ..common_fs.file_filter import make_file_filter
 from ..loggers import (
     start_log_group,
     end_log_group,
@@ -47,8 +47,8 @@ def _run_on_single_file(
     tidy_cmd: str | None,
     db_json: list[dict[str, str]] | None,
     format_cmd: str | None,
-    format_filter: FormatFileFilter | None,
-    tidy_filter: TidyFileFilter | None,
+    run_format: bool,
+    run_tidy: bool,
     args: Args,
 ) -> tuple[str, str, TidyAdvice | None, FormatAdvice | None]:
     log_stream = worker_log_init(log_lvl, use_rich)
@@ -60,9 +60,7 @@ def _run_on_single_file(
     # line numbers from the event's diff. Formatting first would shift every
     # subsequent diagnostic, silently dropping some and misplacing the rest.
     tidy_note = None
-    if tidy_cmd is not None and (
-        tidy_filter is None or tidy_filter.is_source_or_ignored(file.name)
-    ):
+    if tidy_cmd is not None and run_tidy:
         try:
             tidy_note = run_clang_tidy(
                 command=tidy_cmd,
@@ -83,9 +81,7 @@ def _run_on_single_file(
             logger.error("Failed to open the file %s when running clang-tidy", filename)
 
     format_advice = None
-    if format_cmd is not None and (
-        format_filter is None or format_filter.is_source_or_ignored(file.name)
-    ):
+    if format_cmd is not None and run_format:
         try:
             format_advice = run_clang_format(
                 command=format_cmd,
@@ -148,9 +144,10 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
         if format_cmd is None:  # pragma: no cover
             raise FileNotFoundError("clang-format executable was not found")
         clang_versions.format = _capture_tool_version(format_cmd)
-        format_filter = FormatFileFilter(
+        format_filter = make_file_filter(
             extensions=args.extensions,
             ignore_value=args.ignore_format,
+            tool_name="clang-format",
         )
     if args.tidy_checks != "-*":
         # if all checks are disabled, then clang-tidy is skipped
@@ -158,9 +155,10 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
         if tidy_cmd is None:  # pragma: no cover
             raise FileNotFoundError("clang-tidy executable was not found")
         clang_versions.tidy = _capture_tool_version(tidy_cmd)
-        tidy_filter = TidyFileFilter(
+        tidy_filter = make_file_filter(
             extensions=args.extensions,
             ignore_value=args.ignore_tidy,
+            tool_name="clang-tidy",
         )
 
     db_json: list[dict[str, str]] | None = None
@@ -186,8 +184,10 @@ def capture_clang_tools_output(files: list[FileObj], args: Args) -> ClangVersion
                 tidy_cmd=tidy_cmd,
                 db_json=db_json,
                 format_cmd=format_cmd,
-                format_filter=format_filter,
-                tidy_filter=tidy_filter,
+                # filters can't be pickled, so apply them here
+                run_format=format_filter is None
+                or format_filter.is_qualified(file.name),
+                run_tidy=tidy_filter is None or tidy_filter.is_qualified(file.name),
                 args=args,
             )
             for file in files

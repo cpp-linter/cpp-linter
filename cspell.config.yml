@@ -15,11 +15,13 @@ words:
   - cppcoreguidelines
   - cstdio
   - declval
+  - delenv
   - docutils
   - endgroup
   - Fixit
   - fontawesome
   - gitmodules
+  - gitea
   - gmtime
   - intersphinx
   - iomanip

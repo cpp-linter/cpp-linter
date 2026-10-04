@@ -2,8 +2,6 @@ import logging
 import os
 import io
 
-from requests import Response
-
 FOUND_RICH_LIB = False
 try:  # pragma: no cover
     from rich.logging import RichHandler, get_console  # type: ignore
@@ -43,18 +41,6 @@ def start_log_group(name: str) -> None:
 def end_log_group() -> None:
     """End a collapsible group of log statements."""
     log_commander.fatal("::endgroup::")
-
-
-def log_response_msg(response: Response):
-    """Output the response buffer's message on a failed request."""
-    if response.status_code >= 400:
-        logger.error(
-            "response returned %d from %s %s with message: %s",
-            response.status_code,
-            response.request.method,
-            response.request.url,
-            response.text,
-        )
 
 
 def should_use_rich() -> bool:

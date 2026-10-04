@@ -1,7 +1,6 @@
 from pathlib import Path
 import pytest
-from cpp_linter.rest_api.github_api import GithubApiClient
-from cpp_linter.rest_api import USER_OUTREACH
+from cpp_linter.rest_api import USER_OUTREACH, make_comment
 from cpp_linter.clang_tools.clang_format import FormatAdvice, FormatReplacementLine
 from cpp_linter.common_fs import FileObj
 from cpp_linter.clang_tools import ClangVersions
@@ -21,7 +20,7 @@ def test_comment_length_limit(tmp_path: Path):
     clang_versions = ClangVersions()
     clang_versions.format = "x.y.z"
     files = [file] * format_checks_failed
-    thread_comment = GithubApiClient.make_comment(
+    thread_comment = make_comment(
         files=files,
         format_checks_failed=format_checks_failed,
         tidy_checks_failed=0,
@@ -30,7 +29,7 @@ def test_comment_length_limit(tmp_path: Path):
     )
     assert len(thread_comment) < abs_limit
     assert thread_comment.endswith(USER_OUTREACH)
-    step_summary = GithubApiClient.make_comment(
+    step_summary = make_comment(
         files=files,
         format_checks_failed=format_checks_failed,
         tidy_checks_failed=0,

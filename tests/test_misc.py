@@ -10,7 +10,7 @@ from typing import cast
 import pytest
 
 from cpp_linter.common_fs import get_line_cnt_from_cols, FileObj
-from cpp_linter.common_fs.file_filter import FileFilter
+from cpp_linter.common_fs.file_filter import make_file_filter, list_source_files
 from cpp_linter.clang_tools import assemble_version_exec
 from cpp_linter.loggers import (
     logger,
@@ -18,16 +18,18 @@ from cpp_linter.loggers import (
     start_log_group,
     end_log_group,
 )
-from cpp_linter.rest_api.github_api import GithubApiClient
+from cpp_linter.rest_api import LinterClient
+from mock_server import MockServer
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
 
 
 @pytest.mark.no_clang
-def test_exit_output(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+def test_exit_output(mock_server: MockServer, monkeypatch: pytest.MonkeyPatch):
     """Test exit code that indicates if action encountered lining errors."""
-    env_file = tmp_path / "GITHUB_OUTPUT"
-    monkeypatch.setenv("GITHUB_OUTPUT", str(env_file))
-    gh_client = GithubApiClient()
+    monkeypatch.setenv("GITHUB_REPOSITORY", "cpp-linter/test-repo")
+    monkeypatch.setenv("GITHUB_SHA", "deadbeef")
+    env_file = Path(os.environ["GITHUB_OUTPUT"])
+    gh_client = LinterClient()
     tidy_checks_failed = 1
     format_checks_failed = 2
     checks_failed = 3
@@ -78,8 +80,7 @@ def test_list_src_files(
     """List the source files in the root folder of this repo."""
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    file_filter = FileFilter(extensions=extensions)
-    files = file_filter.list_source_files()
+    files = list_source_files(make_file_filter(extensions=extensions))
     assert files
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions

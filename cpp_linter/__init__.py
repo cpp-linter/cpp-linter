@@ -2,17 +2,19 @@
 If executed from command-line, then `main()` is the entrypoint.
 """
 
+import asyncio
 import os
-from .common_fs import CACHE_PATH
-from .common_fs.file_filter import FileFilter
-from .loggers import start_log_group, end_log_group, logger
-from .clang_tools import capture_clang_tools_output
-from .cli import get_cli_parser, Args
-from .rest_api.github_api import GithubApiClient
+
 from ._version import version
+from .clang_tools import capture_clang_tools_output
+from .cli import Args, get_cli_parser
+from .common_fs import CACHE_PATH
+from .common_fs.file_filter import make_file_filter, list_source_files
+from .loggers import end_log_group, logger, start_log_group
+from .rest_api import LinterClient
 
 
-def main():
+async def run():
     """The main script."""
 
     # The parsed CLI args
@@ -25,18 +27,19 @@ def main():
     if args.lines_changed_only:
         args.files_changed_only = True
 
-    rest_api_client = GithubApiClient()
-    logger.info("processing %s event", rest_api_client.event_name)
-    is_pr_event = rest_api_client.event_name == "pull_request"
+    client = LinterClient()
+    logger.info("processing %s event", client.event_name)
+    is_pr_event = client.is_pr_event
+
     if not is_pr_event:
         args.tidy_review = False
         args.format_review = False
 
     # set logging verbosity
-    logger.setLevel(10 if args.verbosity or rest_api_client.debug_enabled else 20)
+    logger.setLevel(10 if args.verbosity or client.debug_enabled else 20)
 
     # prepare ignored paths list
-    global_file_filter = FileFilter(
+    global_file_filter = make_file_filter(
         extensions=args.extensions, ignore_value=args.ignore, not_ignored=args.files
     )
     global_file_filter.parse_submodules()
@@ -47,20 +50,19 @@ def main():
 
     start_log_group("Get list of specified source files")
     if args.files_changed_only:
-        files = rest_api_client.get_list_of_changed_files(
+        files = await client.get_changed_files(
             file_filter=global_file_filter,
             lines_changed_only=args.lines_changed_only,
             diff_base=args.diff_base,
             ignore_index=args.ignore_index,
         )
-        rest_api_client.verify_files_are_present(files)
     else:
-        files = global_file_filter.list_source_files()
+        files = list_source_files(global_file_filter)
         # at this point, files have no info about git changes.
         # for PR reviews, we need this info
         if is_pr_event and (args.tidy_review or args.format_review):
             # get file changes from diff
-            git_changes = rest_api_client.get_list_of_changed_files(
+            git_changes = await client.get_changed_files(
                 file_filter=global_file_filter,
                 lines_changed_only=0,  # prevent filtering out unchanged files
                 diff_base=args.diff_base,
@@ -86,8 +88,13 @@ def main():
     clang_versions = capture_clang_tools_output(files=files, args=args)
 
     start_log_group("Posting comment(s)")
-    rest_api_client.post_feedback(files=files, args=args, clang_versions=clang_versions)
+    await client.post_feedback(files=files, args=args, clang_versions=clang_versions)
     end_log_group()
+
+
+def main():
+    """The command line entrypoint."""
+    asyncio.run(run())
 
 
 if __name__ == "__main__":

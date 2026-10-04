@@ -1,156 +1,52 @@
-"""This module uses ``git`` CLI to get commit info. It also holds some functions
-related to parsing diff output into a list of changed files."""
+"""Helpers that delegate listing changed files to ``git-bot-feedback``."""
 
-import logging
-from pathlib import Path
-from typing import cast
-
-from pygit2 import (  # type: ignore
-    Repository,
-    Object as GitObject,
-    Diff,
-    DiffHunk,
-    Commit,
-    GIT_DELTA_ADDED,
-    GIT_DELTA_MODIFIED,
-    GIT_DELTA_RENAMED,
-    GIT_STATUS_INDEX_NEW,
-    GIT_STATUS_INDEX_MODIFIED,
-    GIT_STATUS_INDEX_RENAMED,
-    GitError,
-)
-from .. import CACHE_PATH
+import git_bot_feedback as gbf
 from ..common_fs import FileObj, has_line_changes
-from ..common_fs.file_filter import FileFilter
-from ..loggers import logger
-from .git_str import parse_diff as legacy_parse_diff
 
 
-def get_sha(repo: Repository, parent: None | int | str = None) -> GitObject:
-    """Uses ``git`` to fetch the full SHA hash of a commit.
-
-    .. note::
-        This function is only used in local development environments, not in a
-        Continuous Integration workflow.
-
-    :param repo: The object representing the git repository.
-    :param parent: This parameter's default value will fetch the SHA of the last commit.
-        Set this parameter to the number of parent commits from the current tree's HEAD
-        or a valid git revision to get the desired commit's SHA hash instead.
-    :returns: A `pygit2.Object` representing the resolved commit.
-    """
-    head = "HEAD"
-    if isinstance(parent, str):
-        head = parent
-    if isinstance(parent, int):
-        head += f"~{parent}"
-    return repo.revparse_single(head)
+def to_gbf_lines_changed_only(
+    lines_changed_only: int | gbf.LinesChangedOnly,
+) -> gbf.LinesChangedOnly:
+    """Convert an integer lines_changed_only value to git_bot_feedback.LinesChangedOnly."""
+    if isinstance(lines_changed_only, gbf.LinesChangedOnly):
+        return lines_changed_only
+    if lines_changed_only == 1:
+        return gbf.LinesChangedOnly.Diff
+    if lines_changed_only == 2:
+        return gbf.LinesChangedOnly.On
+    return gbf.LinesChangedOnly.Off
 
 
-STAGED_STATUS = (
-    GIT_STATUS_INDEX_NEW | GIT_STATUS_INDEX_MODIFIED | GIT_STATUS_INDEX_RENAMED
-)
-
-
-def get_diff(parents: None | int | str = None, ignore_index: bool = False) -> Diff:
-    """Retrieve the diff info about a specified commit.
-
-    :param parents: The commit or ref to use as the base of the diff.
-        If set to None, and there are staged changes to be used, then it will be HEAD and
-        the diff will consist of just the staged changes. If there are no staged changes or
-        the index is ignored, it will be HEAD~1.
-    :param ignore_index: Setting this flag to ``true`` will ignore any staged files
-        in the index when producing a diff.
-    :returns: A `pygit2.Diff` object representing the fetched diff.
-    """
-    repo = Repository(".")
-
-    use_index = (
-        False
-        if ignore_index
-        else any(status & STAGED_STATUS for status in repo.status().values())
-    )
-
-    if not use_index and parents is None:
-        parents = 1
-
-    base = get_sha(repo, parents).peel(Commit)
-
-    if use_index:
-        index = repo.index
-        diff_obj = index.diff_to_tree(base.tree)
-        diff_name = f"HEAD...{base.short_id}"
-    else:
-        head = get_sha(repo).peel(Commit)
-        diff_obj = repo.diff(base, head)
-        diff_name = f"{head.short_id}...{base.short_id}"
-
-    logger.info("getting diff between %s", diff_name)
-    if logger.getEffectiveLevel() <= logging.DEBUG:  # pragma: no cover
-        Path(CACHE_PATH, f"{diff_name}.diff").write_text(
-            diff_obj.patch or "", encoding="utf-8"
-        )
-    return diff_obj
-
-
-ADDITIVE_STATUS = (GIT_DELTA_RENAMED, GIT_DELTA_MODIFIED, GIT_DELTA_ADDED)
-
-
-def parse_diff(
-    diff_obj: Diff | str,
-    file_filter: FileFilter,
+async def get_list_of_changed_files(
+    git_client: gbf.GitClient,
+    file_filter: gbf.FileFilter,
     lines_changed_only: int,
+    diff_base: None | int | str = None,
+    ignore_index: bool = False,
 ) -> list[FileObj]:
-    """Parse a given diff into file objects.
+    """Retrieve changed files delegating to git-bot-feedback.
 
-    :param diff_obj: The complete git diff object for an event.
-    :param file_filter: A `FileFilter` object.
+    :param file_filter: A `git_bot_feedback.FileFilter` to filter files.
     :param lines_changed_only: A value that dictates what file changes to focus on.
-    :returns: A `list` of `FileObj` describing information about the files changed.
-
-        .. note:: Deleted files are omitted because we only want to analyze additions.
+    :param diff_base: The commit or ref to use as the base of the diff.
+    :param ignore_index: Ignore staged files in index.
+    :param git_client: The `git_bot_feedback.GitClient` to delegate to.
+    :returns: A list of `FileObj` describing the changed files.
     """
+    lines_mode = to_gbf_lines_changed_only(lines_changed_only)
+    base_diff_str = str(diff_base) if diff_base is not None else None
+
+    changed_map = await git_client.get_list_of_changed_files(
+        file_filter,
+        lines_mode,
+        base_diff=base_diff_str,
+        ignore_index=ignore_index,
+    )
     file_objects: list[FileObj] = []
-    if isinstance(diff_obj, str):
-        try:
-            diff_obj = Diff.parse_diff(diff_obj)
-        except GitError as exc:
-            logger.warning(f"pygit2.Diff.parse_diff() threw {exc}")
-            return legacy_parse_diff(
-                cast(str, diff_obj), file_filter, lines_changed_only
-            )
-    for patch in diff_obj:
-        if patch.delta.status not in ADDITIVE_STATUS:
-            continue
-        if not file_filter.is_source_or_ignored(patch.delta.new_file.path):
-            continue
-        diff_chunks, additions = parse_patch(patch.hunks)
+    for file_name in sorted(changed_map.keys()):
+        file_diff = changed_map[file_name]
+        diff_chunks = [list(h) for h in file_diff.diff_hunks]
+        additions = file_diff.added_lines
         if has_line_changes(lines_changed_only, diff_chunks, additions):
-            file_objects.append(
-                FileObj(patch.delta.new_file.path, additions, diff_chunks)
-            )
+            file_objects.append(FileObj(file_name, additions, diff_chunks))
     return file_objects
-
-
-def parse_patch(patch: list[DiffHunk]) -> tuple[list[list[int]], list[int]]:
-    """Parse a diff's patch accordingly.
-
-    :param patch: The patch of hunks for 1 file.
-    :returns:
-        A `tuple` of lists where
-
-        - Index 0 is the ranges of lines in the diff. Each item in this `list` is a
-          2 element `list` describing the starting and ending line numbers.
-        - Index 1 is a `list` of the line numbers that contain additions.
-    """
-    ranges: list[list[int]] = []
-    # additions is a list line numbers in the diff containing additions
-    additions: list[int] = []
-
-    for hunk in patch:
-        start_line, hunk_length = (hunk.new_start, hunk.new_lines)
-        ranges.append([start_line, hunk_length + start_line])
-        for line in hunk.lines:
-            if line.origin == "+":
-                additions.append(line.new_lineno)
-    return (ranges, additions)
