@@ -2,12 +2,13 @@
 
 import json
 import os
-from pathlib import Path, PurePath
 import re
 import subprocess
+from pathlib import Path, PurePath
 from typing import cast
-from ..loggers import logger
+
 from ..common_fs import FileObj
+from ..loggers import logger
 from .patcher import PatchMixin, ReviewComments, Suggestion
 
 NOTE_HEADER = re.compile(
@@ -91,7 +92,7 @@ class TidyNotification:
         if self.diagnostic.startswith("clang-analyzer-"):
             check_name_parts = self.diagnostic.split("-", maxsplit=2)
             assert len(check_name_parts) > 2, "diagnostic name malformed"
-            return link + "clang-analyzer/{}.html)".format(check_name_parts[2])
+            return link + f"clang-analyzer/{check_name_parts[2]}.html)"
         diag_split = self.diagnostic.split("-", maxsplit=1)
         if len(diag_split) < 2 or not all(diag_split):
             return self.diagnostic
@@ -260,7 +261,7 @@ def run_clang_tidy(
         cmds.append("--fix-errors")  # include compiler-suggested fixes
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
-    results = subprocess.run(cmds, capture_output=True)
+    results = subprocess.run(cmds, capture_output=True, check=False)
     logger.debug("Output from clang-tidy:\n%s", results.stdout.decode())
     if results.stderr:
         logger.debug(

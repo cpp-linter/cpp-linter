@@ -5,8 +5,9 @@ using uv for dependency management and virtual environment backend.
 """
 
 import logging
-from os import environ
 import sys
+from os import environ
+
 import nox
 
 ci_logger = logging.getLogger("CI logger")
@@ -67,7 +68,7 @@ MAX_VERSION = environ.get("MAX_PYTHON_VERSION", "3.14")
 )
 def test_all(session: nox.Session):
     """Run unit tests in all supported version of python and clang"""
-    ci_logger.info("::group::Using Python %s" % session.python)
+    ci_logger.info("::group::Using Python %s", session.python)
     run_tests(session)
     ci_logger.info("::endgroup::")
 

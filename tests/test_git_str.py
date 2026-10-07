@@ -1,10 +1,11 @@
 import logging
+
 import pytest
-from cpp_linter.loggers import logger
+
 from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.git import parse_diff
 from cpp_linter.git.git_str import parse_diff as parse_diff_str
-
+from cpp_linter.loggers import logger
 
 TYPICAL_DIFF = "\n".join(
     [

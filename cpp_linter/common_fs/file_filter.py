@@ -1,7 +1,8 @@
 import configparser
 from pathlib import Path, PurePath
-from . import FileObj
+
 from ..loggers import logger
+from . import FileObj
 
 
 class FileFilter:

@@ -2,18 +2,20 @@
 See other modules in ``rest_api`` subpackage for detailed derivatives.
 """
 
-from abc import ABC
-from pathlib import PurePath
 import sys
 import time
-from typing import Any, cast, NamedTuple
+from abc import ABC
+from pathlib import PurePath
+from typing import Any, NamedTuple, cast
+
 import requests
+
+from .._version import version
+from ..clang_tools import ClangVersions
+from ..cli import Args
 from ..common_fs import FileObj
 from ..common_fs.file_filter import FileFilter
-from ..cli import Args
-from ..loggers import logger, log_response_msg
-from ..clang_tools import ClangVersions
-from .._version import version
+from ..loggers import log_response_msg, logger
 
 USER_OUTREACH = (
     "\n\nHave any feedback or feature suggestions? [Share it here.]"
@@ -293,18 +295,8 @@ class RestApiClient(ABC):
                 continue
             for note in file_obj.tidy_advice.notes:
                 if file_obj.name == note.filename:
-                    tidy_comment = "- **{filename}:{line}:{cols}:** ".format(
-                        filename=file_obj.name,
-                        line=note.line,
-                        cols=note.cols,
-                    )
-                    tidy_comment += (
-                        "{severity}: [{diagnostic}]\n   > {rationale}\n".format(
-                            severity=note.severity,
-                            diagnostic=note.diagnostic_link,
-                            rationale=note.rationale,
-                        )
-                    )
+                    tidy_comment = f"- **{file_obj.name}:{note.line}:{note.cols}:** "
+                    tidy_comment += f"{note.severity}: [{note.diagnostic_link}]\n   > {note.rationale}\n"
                     if note.fixit_lines:
                         ext = PurePath(file_obj.name).suffix.lstrip(".")
                         suggestion = "\n   ".join(note.fixit_lines)

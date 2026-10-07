@@ -11,25 +11,25 @@ designed around GitHub's REST API.
 
 import json
 import logging
+import sys
+import urllib.parse
 from os import environ
 from pathlib import Path
-import urllib.parse
-import sys
 from typing import Any, cast
 
-from ..common_fs import FileObj, CACHE_PATH
-from ..common_fs.file_filter import FileFilter
+from ..clang_tools import ClangVersions
 from ..clang_tools.clang_format import (
     formalize_style_name,
     tally_format_advice,
 )
 from ..clang_tools.clang_tidy import tally_tidy_advice
-from ..clang_tools.patcher import ReviewComments, PatchMixin
-from ..clang_tools import ClangVersions
+from ..clang_tools.patcher import PatchMixin, ReviewComments
 from ..cli import Args
-from ..loggers import logger, log_commander
-from ..git import parse_diff, get_diff
-from . import RestApiClient, USER_AGENT, USER_OUTREACH, COMMENT_MARKER, RateLimitHeaders
+from ..common_fs import CACHE_PATH, FileObj
+from ..common_fs.file_filter import FileFilter
+from ..git import get_diff, parse_diff
+from ..loggers import log_commander, logger
+from . import COMMENT_MARKER, USER_AGENT, USER_OUTREACH, RateLimitHeaders, RestApiClient
 
 RATE_LIMIT_HEADERS = RateLimitHeaders(
     reset="x-ratelimit-reset",
@@ -145,11 +145,11 @@ class GithubApiClient(RestApiClient):
             for file in file_list:
                 try:
                     file_name = file["filename"]
-                except KeyError as exc:  # pragma: no cover
+                except KeyError:  # pragma: no cover
                     logger.error(
                         f"Missing 'filename' key in file:\n{json.dumps(file, indent=2)}"
                     )
-                    raise exc
+                    raise
                 if file.get("status", "") == "removed":
                     continue
                 if not file_filter.is_source_or_ignored(file_name):
@@ -337,14 +337,8 @@ class GithubApiClient(RestApiClient):
                     output = "::{} ".format(
                         "notice" if note.severity.startswith("note") else note.severity
                     )
-                    output += "file={file},line={line},title={file}:{line}:".format(
-                        file=file_obj.name, line=note.line
-                    )
-                    output += "{cols} [{diag}]::{info}".format(
-                        cols=note.cols,
-                        diag=note.diagnostic,
-                        info=note.rationale,
-                    )
+                    output += f"file={file_obj.name},line={note.line},title={file_obj.name}:{note.line}:"
+                    output += f"{note.cols} [{note.diagnostic}]::{note.rationale}"
                     log_commander.info(output)
 
     def update_comment(

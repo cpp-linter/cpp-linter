@@ -3,15 +3,16 @@ If executed from command-line, then `main()` is the entrypoint.
 """
 
 import os
+
+from ._version import version
+from .clang_tools import capture_clang_tools_output
+from .cli import Args, get_cli_parser
 from .common_fs import CACHE_PATH
 from .common_fs.file_filter import FileFilter
-from .loggers import start_log_group, end_log_group, logger, log_commander
-from .clang_tools import capture_clang_tools_output
-from .cli import get_cli_parser, Args
+from .loggers import end_log_group, log_commander, logger, start_log_group
 from .rest_api import RestApiClient
 from .rest_api.github_api import GithubApiClient
 from .rest_api.local_api import LocalApiClient
-from ._version import version
 
 
 def select_client() -> RestApiClient:

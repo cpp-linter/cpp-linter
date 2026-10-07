@@ -6,15 +6,15 @@ Jenkins. Nothing is posted to a git server.
 
 from pathlib import Path
 
-from ..common_fs import FileObj
-from ..common_fs.file_filter import FileFilter
+from ..clang_tools import ClangVersions
 from ..clang_tools.clang_format import formalize_style_name, tally_format_advice
 from ..clang_tools.clang_tidy import tally_tidy_advice
-from ..clang_tools import ClangVersions
 from ..cli import Args
-from ..loggers import logger, log_commander
-from ..git import parse_diff, get_diff
-from . import RestApiClient, RateLimitHeaders
+from ..common_fs import FileObj
+from ..common_fs.file_filter import FileFilter
+from ..git import get_diff, parse_diff
+from ..loggers import log_commander, logger
+from . import RateLimitHeaders, RestApiClient
 
 #: No REST API is used, so there are no rate limit headers to read.
 RATE_LIMIT_HEADERS = RateLimitHeaders(reset="", remaining="", retry="")

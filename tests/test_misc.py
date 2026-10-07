@@ -1,26 +1,26 @@
 """Tests that complete coverage that aren't prone to failure."""
 
+import json
 import logging
 import os
-import json
-from pathlib import Path
 import shutil
+from pathlib import Path
 from typing import cast
 
 import pytest
 
-from cpp_linter.common_fs import get_line_cnt_from_cols, FileObj
-from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.clang_tools import assemble_version_exec
+from cpp_linter.clang_tools.clang_tidy import TidyNotification
+from cpp_linter.common_fs import FileObj, get_line_cnt_from_cols
+from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.loggers import (
-    logger,
-    log_commander,
-    start_log_group,
     end_log_group,
+    log_commander,
+    logger,
+    start_log_group,
     worker_log_init,
 )
 from cpp_linter.rest_api.github_api import GithubApiClient
-from cpp_linter.clang_tools.clang_tidy import TidyNotification
 
 
 @pytest.mark.no_clang

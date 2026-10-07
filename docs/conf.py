@@ -4,15 +4,17 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import argparse
+import time
+from importlib.metadata import version as get_version
 from io import StringIO
 from pathlib import Path
-import time
 from typing import cast
-from importlib.metadata import version as get_version
+
 import docutils  # type: ignore[import-untyped]
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxRole
 from sphinx_immaterial.inline_icons import load_svg_into_builder_env
+
 from cpp_linter.cli import get_cli_parser
 
 # -- Project information -----------------------------------------------------
@@ -115,7 +117,7 @@ html_theme_options = {
 }
 
 object_description_options = [
-    ("py:parameter", dict(include_in_toc=False)),
+    ("py:parameter", {"include_in_toc": False}),
 ]
 
 sphinx_immaterial_custom_admonitions = [
@@ -133,7 +135,7 @@ sphinx_immaterial_custom_admonitions = [
 ]
 for name in ("hint", "tip", "important"):
     sphinx_immaterial_custom_admonitions.append(
-        dict(name=name, icon="material/school", override=True)
+        {"name": name, "icon": "material/school", "override": True}
     )
 
 # -- Parse CLI args from `-h` output -------------------------------------
@@ -283,8 +285,7 @@ def setup(app: Sphinx):
         parser.print_usage(str_buf)
         usage = str_buf.getvalue()
         start = usage.find(parser.prog)
-        for line in usage.splitlines():
-            doc.write(f"    {line[start:]}\n")
+        doc.writelines(f"    {line[start:]}\n" for line in usage.splitlines())
 
         sub_commands: argparse.Action | None = None
 

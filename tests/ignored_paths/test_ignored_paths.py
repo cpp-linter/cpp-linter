@@ -1,7 +1,9 @@
 """Tests that focus on the ``ignore`` option's parsing."""
 
 from pathlib import Path, PurePath
+
 import pytest
+
 from cpp_linter.common_fs.file_filter import FileFilter
 
 

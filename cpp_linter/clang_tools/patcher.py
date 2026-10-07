@@ -3,9 +3,11 @@ by the clang tool's output."""
 
 from abc import ABC
 from typing import Any
+
 from pygit2 import Patch  # type: ignore
-from ..common_fs import FileObj
 from pygit2.enums import DiffOption  # type: ignore
+
+from ..common_fs import FileObj
 
 INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
 

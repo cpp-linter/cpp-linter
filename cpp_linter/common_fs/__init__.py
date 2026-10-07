@@ -1,14 +1,16 @@
+import time
 from os import environ
 from pathlib import Path
-import time
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
 from pygit2 import DiffHunk  # type: ignore
+
 from ..loggers import logger
 
 if TYPE_CHECKING:  # pragma: no covers
     # circular import
-    from ..clang_tools.clang_tidy import TidyAdvice
     from ..clang_tools.clang_format import FormatAdvice
+    from ..clang_tools.clang_tidy import TidyAdvice
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
 CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
@@ -45,9 +47,9 @@ class FileObj:
         have added changes. This will be empty if not focusing on lines changed only.
         """
         #: The results from clang-tidy
-        self.tidy_advice: "TidyAdvice" | None = None
+        self.tidy_advice: TidyAdvice | None = None
         #: The results from clang-format
-        self.format_advice: "FormatAdvice" | None = None
+        self.format_advice: FormatAdvice | None = None
 
     def __repr__(self) -> str:
         return f"<FileObj {self.name} added:{self.additions} chunks:{self.diff_chunks}>"

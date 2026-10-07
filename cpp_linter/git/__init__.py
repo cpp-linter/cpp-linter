@@ -6,19 +6,22 @@ from pathlib import Path
 from typing import cast
 
 from pygit2 import (  # type: ignore
-    Repository,
-    Object as GitObject,
-    Diff,
-    DiffHunk,
-    Commit,
     GIT_DELTA_ADDED,
     GIT_DELTA_MODIFIED,
     GIT_DELTA_RENAMED,
-    GIT_STATUS_INDEX_NEW,
     GIT_STATUS_INDEX_MODIFIED,
+    GIT_STATUS_INDEX_NEW,
     GIT_STATUS_INDEX_RENAMED,
+    Commit,
+    Diff,
+    DiffHunk,
     GitError,
+    Repository,
 )
+from pygit2 import (
+    Object as GitObject,
+)
+
 from .. import CACHE_PATH
 from ..common_fs import FileObj, has_line_changes
 from ..common_fs.file_filter import FileFilter
