@@ -16,8 +16,11 @@ from ..clang_tools import ClangVersions
 from .._version import version
 
 USER_OUTREACH = (
-    "\n\nHave any feedback or feature suggestions? [Share it here.]"
-    + "(https://github.com/cpp-linter/cpp-linter-action/issues)"
+    "\n\n---\n<sub>:sparkles: Powered by [**cpp-linter**](https://cpp-linter.github.io)"
+    + " &mdash; :star: [Star](https://github.com/cpp-linter/cpp-linter-action)"
+    + " &middot; :heart: [Sponsor](https://opencollective.com/cpp-linter)"
+    + " &middot; :speech_balloon: [Feedback]"
+    + "(https://github.com/cpp-linter/cpp-linter-action/issues)</sub>"
 )
 COMMENT_MARKER = "<!-- cpp linter action -->\n"
 USER_AGENT = f"cpp-linter/{version}"
