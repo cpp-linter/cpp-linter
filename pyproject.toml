@@ -135,3 +135,6 @@ test = [
 
 [tool.ruff.lint]
 ignore = ["FLY002", "RUF012"] # causes false-positives
+
+[tool.ruff.lint.per-file-ignores]
+"tests/list_changes/test_get_file_changes.py" = ["I001"]
