@@ -61,6 +61,13 @@ Limitations
   check the whole repository (the default): most CI systems set ``CI=true``, and with it those
   options ask the GitHub API for the changed files.
 
+Sponsors
+--------
+
+cpp-linter is maintained by two volunteers. `Sponsor the project <https://cpp-linter.github.io/sponsor/>`_
+through `Open Collective <https://opencollective.com/cpp-linter>`_. `Silver and Gold sponsors <https://cpp-linter.github.io/sponsor/#sponsor-tiers>`_
+get their logo here.
+
 Contributing
 ------------
 
