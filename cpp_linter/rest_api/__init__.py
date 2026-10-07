@@ -17,9 +17,9 @@ from .._version import version
 
 USER_OUTREACH = (
     "\n\n---\n<sub>:sparkles: Powered by [**cpp-linter**](https://cpp-linter.github.io)"
-    + " &mdash; :star: [Star](https://github.com/cpp-linter/cpp-linter-action)"
-    + " &middot; :heart: [Sponsor](https://opencollective.com/cpp-linter)"
-    + " &middot; :speech_balloon: [Feedback]"
+    + " -- [:star: Star](https://github.com/cpp-linter/cpp-linter-action)"
+    + " &bull; [:heart: Sponsor](https://opencollective.com/cpp-linter)"
+    + " &bull; [:speech_balloon: Feedback]"
     + "(https://github.com/cpp-linter/cpp-linter-action/issues)</sub>"
 )
 COMMENT_MARKER = "<!-- cpp linter action -->\n"

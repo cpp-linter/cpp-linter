@@ -30,7 +30,6 @@ words:
   - libvips
   - markdownlint
   - maxsplit
-  - middot
   - mktime
   - mypy
   - posargs
