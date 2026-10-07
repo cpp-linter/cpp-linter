@@ -1,12 +1,13 @@
 import json
 import logging
 from pathlib import Path
+
 import pytest
 import requests_mock
-from cpp_linter import GithubApiClient, logger, FileFilter
-import cpp_linter.rest_api.github_api
-from cpp_linter._version import version
 
+import cpp_linter.rest_api.github_api
+from cpp_linter import FileFilter, GithubApiClient, logger
+from cpp_linter._version import version
 
 TEST_PR = 27
 TEST_REPO = "cpp-linter/test-cpp-linter-action"

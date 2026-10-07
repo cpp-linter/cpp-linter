@@ -1,16 +1,16 @@
 """Tests for the ``--fix`` option that auto-applies clang-format fixes in place."""
 
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pytest
 
-from cpp_linter.common_fs import FileObj
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.patcher import ReviewComments
 from cpp_linter.cli import Args
+from cpp_linter.common_fs import FileObj
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
 

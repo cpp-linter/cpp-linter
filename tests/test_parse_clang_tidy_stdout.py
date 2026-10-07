@@ -1,4 +1,5 @@
 import pytest
+
 from cpp_linter.clang_tools.clang_tidy import parse_tidy_output
 
 TIDY_OUT = """

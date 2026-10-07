@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 import requests_mock
 
+import cpp_linter.rest_api.local_api
 from cpp_linter import select_client
 from cpp_linter.clang_tools import ClangVersions
 from cpp_linter.clang_tools.clang_format import FormatAdvice, FormatReplacementLine
@@ -16,7 +17,6 @@ from cpp_linter.common_fs.file_filter import FileFilter
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
 from cpp_linter.rest_api.local_api import LocalApiClient
-import cpp_linter.rest_api.local_api
 
 TEST_DIFF = (Path(__file__).parent / "list_changes" / "patch.diff").read_text(
     encoding="utf-8"

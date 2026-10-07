@@ -2,7 +2,8 @@
 
 import argparse
 from collections import UserDict
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 class Args(UserDict):
@@ -82,10 +83,10 @@ class Args(UserDict):
 
 
 _parser_args: dict[Sequence[str], Any] = {}
-_parser_args[("-v", "--verbosity")] = dict(
-    type=lambda a: a.lower() in ["debug", "10"],
-    default="info",
-    help="""This controls the action's verbosity in the workflow's
+_parser_args[("-v", "--verbosity")] = {
+    "type": lambda a: a.lower() in ["debug", "10"],
+    "default": "info",
+    "help": """This controls the action's verbosity in the workflow's
 logs. Supported options are ``debug`` and ``info``.
 The numerical representations of these log levels
 defined by the `logging <https://docs.python.org/3/library/logging.html#logging-levels>`_ library
@@ -97,10 +98,10 @@ thread comments, file annotations, nor log grouping
 markers.
 
 Defaults to level ``%(default)s``""",
-)
-_parser_args[("-p", "--database")] = dict(
-    default="",
-    help="""The path that is used to read a compile command
+}
+_parser_args[("-p", "--database")] = {
+    "default": "",
+    "help": """The path that is used to read a compile command
 database. For example, it can be a CMake build
 directory in which a file named compile_commands.json
 exists (set ``CMAKE_EXPORT_COMPILE_COMMANDS`` to
@@ -115,7 +116,7 @@ tree.
     Builds using ninja should explicitly specify this
     path. Otherwise, cpp-linter will have difficulty
     parsing clang-tidy output.""",
-)
+}
 
 
 def type_diff_base(user_input: None | str) -> None | str | int:
@@ -128,10 +129,10 @@ def type_diff_base(user_input: None | str) -> None | str | int:
         return str(user_input)
 
 
-_parser_args[("-b", "--diff-base")] = dict(
-    default=None,
-    type=type_diff_base,
-    help="""The specific commit or git revision to use
+_parser_args[("-b", "--diff-base")] = {
+    "default": None,
+    "type": type_diff_base,
+    "help": """The specific commit or git revision to use
 as the base for any git diffs. For example, may be ``HEAD~5``
 for the last five commits, or a branch name for the history
 diff since the common ancestor. If given as an integer, n, it
@@ -141,19 +142,19 @@ This option is ignored in GitHub Actions, where the changed
 files come from GitHub's REST API.
 
 Defaults to ``%(default)s``""",
-)
-_parser_args[("--ignore-index",)] = dict(
-    default=False,
-    action="store_true",
-    help="""Enabling this switch will ignore
+}
+_parser_args[("--ignore-index",)] = {
+    "default": False,
+    "action": "store_true",
+    "help": """Enabling this switch will ignore
 any staged files in the index when producing a diff.
 Useful when used with :std:option:`--diff-base`.
 
 Defaults to ``%(default)s``""",
-)
-_parser_args[("-s", "--style")] = dict(
-    default="llvm",
-    help="""The style rules to use.
+}
+_parser_args[("-s", "--style")] = {
+    "default": "llvm",
+    "help": """The style rules to use.
 
 - Set this to ``file`` to have clang-format use the
   closest relative .clang-format file.
@@ -170,11 +171,11 @@ See `clang-format docs <https://clang.llvm.org/docs/ClangFormat.html>`_ for more
     clang-format.
 
 Defaults to ``%(default)s``""",
-)
-_parser_args[("-c", "--tidy-checks")] = dict(
-    default="boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
+}
+_parser_args[("-c", "--tidy-checks")] = {
+    "default": "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
     "clang-analyzer-*,cppcoreguidelines-*",
-    help="""A comma-separated list of globs with optional
+    "help": """A comma-separated list of globs with optional
 ``-`` prefix. Globs are processed in order of
 appearance in the list. Globs without ``-`` prefix
 add checks with matching names to the set, globs with
@@ -194,10 +195,10 @@ See also `clang-tidy docs <https://clang.llvm.org/extra/clang-tidy>`_ for more i
 Defaults to:
     %(default)s
 """,
-)
-_parser_args[("-V", "--version")] = dict(
-    default="",
-    help="""The desired version of the clang tools to use.
+}
+_parser_args[("-V", "--version")] = {
+    "default": "",
+    "help": """The desired version of the clang tools to use.
 
 - Set this option to a blank string (``''``) to use
   the platform's default installed version.
@@ -207,26 +208,26 @@ _parser_args[("-V", "--version")] = dict(
   to absolute.
 
 Defaults to ``''``""",
-)
-_parser_args[("-e", "--extensions")] = dict(
-    default="c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx",
-    type=lambda i: [ext.strip().lstrip(".") for ext in i.split(",")],
-    help="""The file extensions to analyze.
+}
+_parser_args[("-e", "--extensions")] = {
+    "default": "c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx",
+    "type": lambda i: [ext.strip().lstrip(".") for ext in i.split(",")],
+    "help": """The file extensions to analyze.
 This is a comma-separated string of extensions.
 Defaults to:
     %(default)s
 """,
-)
-_parser_args[("-r", "--repo-root")] = dict(
-    default=".",
-    help="""The relative path to the repository root directory.
+}
+_parser_args[("-r", "--repo-root")] = {
+    "default": ".",
+    "help": """The relative path to the repository root directory.
 This path is relative to the working directory from
 which cpp-linter was executed.
 Defaults to ``%(default)s``""",
-)
-_parser_args[("-i", "--ignore")] = dict(
-    default=".github",
-    help="""Set this option with path(s) to ignore (or not ignore).
+}
+_parser_args[("-i", "--ignore")] = {
+    "default": ".github",
+    "help": """Set this option with path(s) to ignore (or not ignore).
 
 - In the case of multiple paths, you can use ``|`` to
   separate each path.
@@ -251,23 +252,23 @@ _parser_args[("-i", "--ignore")] = dict(
       :py:meth:`~pathlib.Path.glob()` for more details
       about Unix style glob patterns.
 """,
-)
-_parser_args[("-M", "--ignore-format")] = dict(
-    default="",
-    help="""Set this option with path(s) to ignore (or not ignore)
+}
+_parser_args[("-M", "--ignore-format")] = {
+    "default": "",
+    "help": """Set this option with path(s) to ignore (or not ignore)
 when using clang-format. See :std:option:`--ignore` for
 more detail.""",
-)
-_parser_args[("-D", "--ignore-tidy")] = dict(
-    default="",
-    help="""Set this option with path(s) to ignore (or not ignore)
+}
+_parser_args[("-D", "--ignore-tidy")] = {
+    "default": "",
+    "help": """Set this option with path(s) to ignore (or not ignore)
 when using clang-tidy. See :std:option:`--ignore` for
 more detail.""",
-)
-_parser_args[("-l", "--lines-changed-only")] = dict(
-    default="false",
-    type=lambda a: 2 if a.lower() == "true" else int(a.lower() == "diff"),
-    help="""This controls what part of the files are analyzed.
+}
+_parser_args[("-l", "--lines-changed-only")] = {
+    "default": "false",
+    "type": lambda a: 2 if a.lower() == "true" else int(a.lower() == "diff"),
+    "help": """This controls what part of the files are analyzed.
 The following values are accepted:
 
 - ``false``: All lines in a file are analyzed.
@@ -277,11 +278,11 @@ The following values are accepted:
   including unchanged lines but not subtractions.
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-f", "--files-changed-only")] = dict(
-    default="false",
-    type=lambda input: input.lower() == "true",
-    help="""Set this option to false to analyze any source
+}
+_parser_args[("-f", "--files-changed-only")] = {
+    "default": "false",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set this option to false to analyze any source
 files in the repo. This is automatically enabled if
 :std:option:`--lines-changed-only` is enabled.
 
@@ -296,11 +297,11 @@ files in the repo. This is automatically enabled if
     <https://docs.github.com/en/actions/reference/authentication-in-a-workflow>`_
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-g", "--no-lgtm")] = dict(
-    default="true",
-    type=lambda input: input.lower() == "true",
-    help="""Set this option to true or false to enable or
+}
+_parser_args[("-g", "--no-lgtm")] = {
+    "default": "true",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set this option to true or false to enable or
 disable the use of a thread comment or PR review
 that basically says 'Looks Good To Me' (when all
 checks pass).
@@ -310,11 +311,11 @@ checks pass).
     notes further implications.
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-t", "--thread-comments")] = dict(
-    default="false",
-    choices=["true", "false", "update"],
-    help="""This controls the behavior of posted thread
+}
+_parser_args[("-t", "--thread-comments")] = {
+    "default": "false",
+    "choices": ["true", "false", "update"],
+    "help": """This controls the behavior of posted thread
 comments as feedback.
 The following options are supported:
 
@@ -337,28 +338,28 @@ The following options are supported:
     <https://docs.github.com/en/actions/reference/authentication-in-a-workflow>`_
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-w", "--step-summary")] = dict(
-    default="false",
-    type=lambda input: input.lower() == "true",
-    help="""Set this option to true or false to enable or
+}
+_parser_args[("-w", "--step-summary")] = {
+    "default": "false",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set this option to true or false to enable or
 disable the use of a workflow step summary when the run
 has concluded.
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-a", "--file-annotations")] = dict(
-    default="true",
-    type=lambda input: input.lower() == "true",
-    help="""Set this option to false to disable the use of
+}
+_parser_args[("-a", "--file-annotations")] = {
+    "default": "true",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set this option to false to disable the use of
 file annotations as feedback.
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-x", "--extra-arg")] = dict(
-    default=[],
-    action="append",
-    help="""A string of extra arguments passed to clang-tidy
+}
+_parser_args[("-x", "--extra-arg")] = {
+    "default": [],
+    "action": "append",
+    "help": """A string of extra arguments passed to clang-tidy
 for use as compiler arguments. This can be specified
 more than once for each additional argument. Recommend
 using quotes around the value and avoid using spaces
@@ -370,43 +371,43 @@ between name and value (use ``=`` instead):
 
 Defaults to none.
 """,
-)
-_parser_args[("files",)] = dict(
-    nargs="*",
-    help="""
+}
+_parser_args[("files",)] = {
+    "nargs": "*",
+    "help": """
 A space separated list of files to focus on.
 These files will automatically be added to the list of
 explicitly not-ignored files. While other filtering is
 done with :std:option:`--extensions`, the files
 specified as positional arguments will be exempt from
 explicitly ignored domains (see :std:option:`--ignore`).""",
-)
-_parser_args[("-d", "--tidy-review")] = dict(
-    default="false",
-    type=lambda input: input.lower() == "true",
-    help="""Set to ``true`` to enable Pull Request reviews
+}
+_parser_args[("-d", "--tidy-review")] = {
+    "default": "false",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set to ``true`` to enable Pull Request reviews
 from clang-tidy.
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-m", "--format-review")] = dict(
-    default="false",
-    type=lambda input: input.lower() == "true",
-    help="""Set to ``true`` to enable Pull Request reviews
+}
+_parser_args[("-m", "--format-review")] = {
+    "default": "false",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set to ``true`` to enable Pull Request reviews
 from clang-format.
 
 Defaults to ``%(default)s``.""",
-)
-_parser_args[("-R", "--passive-reviews")] = dict(
-    default="false",
-    type=lambda input: input.lower() == "true",
-    help="""Set to ``true`` to prevent Pull Request
+}
+_parser_args[("-R", "--passive-reviews")] = {
+    "default": "false",
+    "type": lambda input: input.lower() == "true",
+    "help": """Set to ``true`` to prevent Pull Request
 reviews from requesting or approving changes.""",
-)
-_parser_args[("-F", "--fix")] = dict(
-    default=False,
-    action="store_true",
-    help="""Apply clang-format fixes in-place to files with
+}
+_parser_args[("-F", "--fix")] = {
+    "default": False,
+    "action": "store_true",
+    "help": """Apply clang-format fixes in-place to files with
 style issues. Only the lines selected by
 :std:option:`--lines-changed-only` are reformatted.
 
@@ -415,14 +416,14 @@ style issues. Only the lines selected by
     clang-tidy fixes are not applied automatically.
 
 Defaults to ``%(default)s``""",
-)
-_parser_args[("-o", "--summary-output-file")] = dict(
-    default="",
-    help="""Supply a path to which the step summary will be written.
+}
+_parser_args[("-o", "--summary-output-file")] = {
+    "default": "",
+    "help": """Supply a path to which the step summary will be written.
 Leave empty to not write summary to a file.
 Any relative path shall be relative to the
 :std:option:`--repo-root` path.""",
-)
+}
 
 
 def _parse_jobs(val: str) -> int | None:
@@ -439,15 +440,15 @@ def _parse_jobs(val: str) -> int | None:
     return jobs
 
 
-_parser_args[("-j", "--jobs")] = dict(
-    default=1,
-    type=_parse_jobs,
-    help="""Set the number of jobs to run simultaneously.
+_parser_args[("-j", "--jobs")] = {
+    "default": 1,
+    "type": _parse_jobs,
+    "help": """Set the number of jobs to run simultaneously.
 If set less than or equal to 0, the number of jobs will
 be set to the number of all available CPU cores.
 
 Defaults to ``%(default)s``.""",
-)
+}
 
 
 def get_cli_parser() -> argparse.ArgumentParser:

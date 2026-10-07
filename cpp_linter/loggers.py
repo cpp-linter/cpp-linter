@@ -1,6 +1,6 @@
+import io
 import logging
 import os
-import io
 
 from requests import Response
 

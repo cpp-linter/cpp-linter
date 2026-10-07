@@ -4,10 +4,10 @@ binds to). The `parse_diff()` function here is only used when
 
 import re
 from typing import cast
+
 from ..common_fs import FileObj, has_line_changes
 from ..common_fs.file_filter import FileFilter
 from ..loggers import logger
-
 
 DIFF_FILE_DELIMITER = re.compile(r"^diff --git a/.*$", re.MULTILINE)
 DIFF_FILE_NAME = re.compile(r"^\+\+\+\sb?/(.*)$", re.MULTILINE)

@@ -1,6 +1,7 @@
 import time
-import requests_mock
+
 import pytest
+import requests_mock
 
 from cpp_linter.rest_api.github_api import GithubApiClient
 

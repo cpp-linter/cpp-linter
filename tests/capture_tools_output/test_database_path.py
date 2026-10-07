@@ -1,19 +1,21 @@
 """Tests specific to specifying the compilation database path."""
 
-from pathlib import Path, PurePath
 import logging
 import os
 import re
 import shutil
 import subprocess
+from pathlib import Path, PurePath
+
 import pytest
-from cpp_linter.loggers import logger
-from cpp_linter.common_fs import FileObj, CACHE_PATH
-from cpp_linter.rest_api.github_api import GithubApiClient
+
 from cpp_linter.clang_tools import ClangVersions, capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
 from cpp_linter.cli import Args
+from cpp_linter.common_fs import CACHE_PATH, FileObj
+from cpp_linter.loggers import logger
+from cpp_linter.rest_api.github_api import GithubApiClient
 
 DEFAULT_CLANG_VERSION = "16"
 CLANG_VERSION = os.getenv("CLANG_VERSION", DEFAULT_CLANG_VERSION)
@@ -87,8 +89,8 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     (tmp_path_demo / "build").mkdir(parents=True)
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
     monkeypatch.chdir(str(tmp_path_demo))
-    subprocess.run(["meson", "init"])
-    subprocess.run(["meson", "setup", "--backend=ninja", "build", "."])
+    subprocess.run(["meson", "init"], check=True)
+    subprocess.run(["meson", "setup", "--backend=ninja", "build", "."], check=True)
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
 
     logger.setLevel(logging.DEBUG)

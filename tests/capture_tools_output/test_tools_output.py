@@ -3,56 +3,56 @@
 import json
 import logging
 import os
-from pathlib import Path
-import urllib.parse
 import re
 import shutil
-from typing import cast
+import urllib.parse
 import warnings
+from pathlib import Path
+from typing import cast
 
 import pygit2  # type: ignore
 import pytest
 import requests_mock
 
-from cpp_linter.common_fs import FileObj, CACHE_PATH
-from cpp_linter.git import parse_diff, get_diff, get_sha
-from cpp_linter.clang_tools import capture_clang_tools_output, ClangVersions
+from cpp_linter.clang_tools import ClangVersions, capture_clang_tools_output
 from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.clang_tidy import tally_tidy_advice
+from cpp_linter.cli import Args, get_cli_parser
+from cpp_linter.common_fs import CACHE_PATH, FileObj
+from cpp_linter.common_fs.file_filter import FileFilter
+from cpp_linter.git import get_diff, get_sha, parse_diff
 from cpp_linter.loggers import log_commander, logger
 from cpp_linter.rest_api.github_api import GithubApiClient
-from cpp_linter.cli import get_cli_parser, Args
-from cpp_linter.common_fs.file_filter import FileFilter
 
 DEFAULT_CLANG_VERSION = "16"
 CLANG_VERSION = os.getenv("CLANG_VERSION", DEFAULT_CLANG_VERSION)
 CLANG_TIDY_COMMAND = re.compile(r'clang-tidy[^\s]*\s(.*)"')
 
 TEST_REPO_COMMIT_PAIRS: list[dict[str, str]] = [
-    dict(
-        repo="chocolate-doom/chocolate-doom",
-        commit="67715d6e2725322e6132e9ff99b9a2a3f3b10c83",
-    ),
-    dict(
-        repo="chocolate-doom/chocolate-doom",
-        commit="71091562db5b0e7853d08ffa2f110af49cc3bc0d",
-    ),
-    dict(
-        repo="libvips/libvips",
-        commit="fe82be345a5b654a76835a7aea5a804bd9ebff0a",
-    ),
-    dict(
-        repo="shenxianpeng/test-repo",
-        commit="662ad4cf90084063ea9c089b8de4aff0b8959d0e",
-    ),
-    dict(
-        repo="cpp-linter/cpp-linter",
-        commit="950ff0b690e1903797c303c5fc8d9f3b52f1d3c5",
-    ),
-    dict(
-        repo="cpp-linter/cpp-linter",
-        commit="0c236809891000b16952576dc34de082d7a40bf3",  # no modded C++ sources
-    ),
+    {
+        "repo": "chocolate-doom/chocolate-doom",
+        "commit": "67715d6e2725322e6132e9ff99b9a2a3f3b10c83",
+    },
+    {
+        "repo": "chocolate-doom/chocolate-doom",
+        "commit": "71091562db5b0e7853d08ffa2f110af49cc3bc0d",
+    },
+    {
+        "repo": "libvips/libvips",
+        "commit": "fe82be345a5b654a76835a7aea5a804bd9ebff0a",
+    },
+    {
+        "repo": "shenxianpeng/test-repo",
+        "commit": "662ad4cf90084063ea9c089b8de4aff0b8959d0e",
+    },
+    {
+        "repo": "cpp-linter/cpp-linter",
+        "commit": "950ff0b690e1903797c303c5fc8d9f3b52f1d3c5",
+    },
+    {
+        "repo": "cpp-linter/cpp-linter",
+        "commit": "0c236809891000b16952576dc34de082d7a40bf3",  # no modded C++ sources
+    },
 ]
 
 
@@ -358,7 +358,7 @@ def test_format_annotations(
                     if line in range(r[0], r[1] + 1):
                         break
                 else:  # pragma: no cover
-                    raise RuntimeError(f"line {line} not in ranges {repr(ranges)}")
+                    raise RuntimeError(f"line {line} not in ranges {ranges!r}")
         else:  # pragma: no cover
             raise RuntimeWarning(f"unrecognized record: {message}")
 
@@ -370,8 +370,10 @@ def test_format_annotations(
     "checks",
     [
         "",
-        "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
-        "clang-analyzer-*,cppcoreguidelines-*",
+        (
+            "boost-*,bugprone-*,performance-*,readability-*,portability-*,modernize-*,"
+            "clang-analyzer-*,cppcoreguidelines-*"
+        ),
     ],
     ids=["config file", "action defaults"],
 )

@@ -1,15 +1,16 @@
-from collections import OrderedDict
 import json
+import shutil
+from collections import OrderedDict
 from os import environ
 from pathlib import Path
-import shutil
-import requests_mock
-import pytest
 
-from cpp_linter.rest_api.github_api import GithubApiClient
+import pytest
+import requests_mock
+
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.cli import Args
 from cpp_linter.common_fs.file_filter import FileFilter
+from cpp_linter.rest_api.github_api import GithubApiClient
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27

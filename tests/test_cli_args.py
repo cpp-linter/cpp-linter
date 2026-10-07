@@ -1,7 +1,8 @@
 """Tests related parsing input from CLI arguments."""
 
 import pytest
-from cpp_linter.cli import get_cli_parser, Args
+
+from cpp_linter.cli import Args, get_cli_parser
 
 
 @pytest.mark.no_clang

@@ -1,12 +1,11 @@
 """Parse output from clang-format's XML suggestions."""
 
-from pathlib import PurePath
 import subprocess
+import xml.etree.ElementTree as ET
+from pathlib import PurePath
 from typing import cast
 
-import xml.etree.ElementTree as ET
-
-from ..common_fs import get_line_cnt_from_cols, FileObj
+from ..common_fs import FileObj, get_line_cnt_from_cols
 from ..loggers import logger
 from .patcher import PatchMixin
 
@@ -62,7 +61,6 @@ class FormatAdvice(PatchMixin):
     """
 
     def __init__(self, filename: str):
-        """ """
         #: The source file that the suggestion concerns.
         self.filename = PurePath(filename).as_posix()
 
@@ -97,7 +95,7 @@ def tally_format_advice(files: list[FileObj]) -> int:
 
 
 def formalize_style_name(style: str) -> str:
-    if style.startswith("llvm") or style.startswith("gnu"):
+    if style.startswith(("llvm", "gnu")):
         return style.upper()
     if style in (
         "google",
@@ -195,7 +193,7 @@ def run_clang_format(
         cmds.append(f"--lines={span[0]}:{span[1]}")
     cmds.append(PurePath(file_obj.name).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
-    results = subprocess.run(cmds, capture_output=True)
+    results = subprocess.run(cmds, capture_output=True, check=False)
     if results.returncode:
         logger.debug(
             "%s raised the following error(s):\n%s", cmds[0], results.stderr.decode()
@@ -210,7 +208,7 @@ def run_clang_format(
         fix_cmds = [arg for arg in cmds if arg != "--output-replacements-xml"]
         fix_cmds.insert(-1, "-i")  # apply edits in-place, just before the file path
         logger.info('Applying formatting fixes with "%s"', " ".join(fix_cmds))
-        fix_results = subprocess.run(fix_cmds, capture_output=True)
+        fix_results = subprocess.run(fix_cmds, capture_output=True, check=False)
         if fix_results.returncode:  # pragma: no cover
             logger.error(
                 "Failed to apply clang-format fixes to %s:\n%s",
