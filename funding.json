@@ -97,13 +97,7 @@
         "guid": "open-collective",
         "type": "payment-provider",
         "address": "https://opencollective.com/cpp-linter",
-        "description": "Preferred. Funds are held transparently on Open Collective."
-      },
-      {
-        "guid": "github-sponsors",
-        "type": "payment-provider",
-        "address": "https://github.com/sponsors/cpp-linter",
-        "description": "GitHub Sponsors for the cpp-linter organization."
+        "description": "Funds are held transparently on Open Collective."
       }
     ],
     "plans": [
@@ -115,7 +109,7 @@
         "amount": 12000,
         "currency": "USD",
         "frequency": "yearly",
-        "channels": ["open-collective", "github-sponsors"]
+        "channels": ["open-collective"]
       },
       {
         "guid": "supply-chain-security",
@@ -125,7 +119,7 @@
         "amount": 15000,
         "currency": "USD",
         "frequency": "one-time",
-        "channels": ["open-collective", "github-sponsors"]
+        "channels": ["open-collective"]
       },
       {
         "guid": "cpp-linter-v2",
@@ -135,7 +129,7 @@
         "amount": 10000,
         "currency": "USD",
         "frequency": "one-time",
-        "channels": ["open-collective", "github-sponsors"]
+        "channels": ["open-collective"]
       }
     ],
     "history": []
