@@ -41,15 +41,18 @@ words:
   - pytest
   - ratelimit
   - revparse
+  - SARIF
   - seealso
   - setenv
   - shenxianpeng
+  - Sigstore
   - srcdir
   - stddef
   - tada
   - toctree
   - tofile
   - tomli
+  - triaging
   - undoc
   - urllib
   - vararg

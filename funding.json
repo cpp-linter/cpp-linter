@@ -1,0 +1,143 @@
+{
+  "version": "v1.0.0",
+  "entity": {
+    "type": "group",
+    "role": "owner",
+    "name": "cpp-linter",
+    "email": "xianpeng.shen@gmail.com",
+    "phone": "",
+    "description": "cpp-linter is a volunteer-run GitHub organization that brings clang-format and clang-tidy into everyday C/C++ development. It maintains a GitHub Action, Python and Rust CLIs, pre-commit hooks, and prebuilt LLVM clang tools for Linux, macOS and Windows. The tools are used by 1,000+ public repositories (including projects from Bloomberg, Qualcomm, Samsung and the Apache Software Foundation), the prebuilt binaries have 715,000+ downloads, and the PyPI packages have 1.3M+ downloads. The organization is maintained by two active maintainers in their spare time.",
+    "webpageUrl": {
+      "url": "https://github.com/cpp-linter"
+    }
+  },
+  "projects": [
+    {
+      "guid": "cpp-linter-action",
+      "name": "cpp-linter-action",
+      "description": "A GitHub Action that runs clang-format and clang-tidy on pull requests and reports results as annotations, PR review suggestions, thread comments and step summaries. Used by 1,000+ public repositories.",
+      "webpageUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter-action"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter-action"
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": ["c-cpp", "cpp", "linter", "clang-tidy", "clang-format", "github-actions", "ci"]
+    },
+    {
+      "guid": "cpp-linter",
+      "name": "cpp-linter (Python)",
+      "description": "The Python package behind cpp-linter-action. Runs clang-format and clang-tidy on changed files and posts feedback to pull requests; also usable as a CLI in any CI.",
+      "webpageUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter"
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": ["c-cpp", "cpp", "linter", "clang-tidy", "clang-format", "python"]
+    },
+    {
+      "guid": "cpp-linter-rs",
+      "name": "cpp-linter-rs",
+      "description": "A Rust implementation of cpp-linter: a fast, single-binary CLI that runs clang-format and clang-tidy and reports results to pull requests.",
+      "webpageUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter-rs"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter-rs"
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": ["c-cpp", "cpp", "linter", "clang-tidy", "clang-format", "rust"]
+    },
+    {
+      "guid": "cpp-linter-hooks",
+      "name": "cpp-linter-hooks",
+      "description": "pre-commit hooks that run clang-format and clang-tidy locally, installing the requested LLVM version automatically.",
+      "webpageUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter-hooks"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/cpp-linter/cpp-linter-hooks"
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": ["c-cpp", "cpp", "pre-commit", "clang-tidy", "clang-format"]
+    },
+    {
+      "guid": "clang-tools-static-binaries",
+      "name": "clang-tools-static-binaries",
+      "description": "Prebuilt static binaries of clang-format, clang-tidy, clang-query and other LLVM clang tools for Linux, macOS and Windows on amd64 and arm64, for LLVM 12 and newer. 715,000+ downloads.",
+      "webpageUrl": {
+        "url": "https://github.com/cpp-linter/clang-tools-static-binaries"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/cpp-linter/clang-tools-static-binaries"
+      },
+      "licenses": ["spdx:Unlicense"],
+      "tags": ["llvm", "clang", "clang-tidy", "clang-format", "binaries"]
+    },
+    {
+      "guid": "clang-tools-pip",
+      "name": "clang-tools (PyPI)",
+      "description": "A Python installer for the prebuilt clang tools binaries, with checksum verification. Published on PyPI as clang-tools, with 700,000+ downloads.",
+      "webpageUrl": {
+        "url": "https://github.com/cpp-linter/clang-tools-pip"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/cpp-linter/clang-tools-pip"
+      },
+      "licenses": ["spdx:MIT"],
+      "tags": ["llvm", "clang", "clang-tidy", "clang-format", "python"]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "open-collective",
+        "type": "payment-provider",
+        "address": "https://opencollective.com/cpp-linter",
+        "description": "Preferred. Funds are held transparently on Open Collective."
+      },
+      {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/cpp-linter",
+        "description": "GitHub Sponsors for the cpp-linter organization."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "maintenance",
+        "status": "active",
+        "name": "Ongoing maintenance",
+        "description": "Keeping up with every LLVM release across all distribution channels (binaries, PyPI wheels, Docker, Homebrew), triaging issues, reviewing pull requests and covering CI costs.",
+        "amount": 12000,
+        "currency": "USD",
+        "frequency": "yearly",
+        "channels": ["open-collective", "github-sponsors"]
+      },
+      {
+        "guid": "supply-chain-security",
+        "status": "active",
+        "name": "Signed and verifiable clang tools binaries",
+        "description": "Signed build provenance (Sigstore / GitHub attestations), SBOMs and reproducible builds for every prebuilt clang tools binary, with automatic verification in our installers and the GitHub Action.",
+        "amount": 15000,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": ["open-collective", "github-sponsors"]
+      },
+      {
+        "guid": "cpp-linter-v2",
+        "status": "active",
+        "name": "cpp-linter v2 (Rust) and more CI platforms",
+        "description": "Ship the Rust implementation as cpp-linter v2 and add support beyond GitHub, such as GitLab merge requests and SARIF output.",
+        "amount": 10000,
+        "currency": "USD",
+        "frequency": "one-time",
+        "channels": ["open-collective", "github-sponsors"]
+      }
+    ],
+    "history": []
+  }
+}
