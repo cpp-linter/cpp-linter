@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import cast
 
 import docutils  # type: ignore[import-untyped]
+import docutils.nodes  # type: ignore[import-untyped]
+import docutils.parsers.rst.roles  # type: ignore[import-untyped]
 from sphinx.application import Sphinx
 from sphinx.util.docutils import SphinxRole
 from sphinx_immaterial.inline_icons import load_svg_into_builder_env
@@ -36,8 +38,8 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "requests": ("https://requests.readthedocs.io/en/latest/", None),
     "pygit2": ("https://www.pygit2.org/", None),
+    "git-bot-feedback": ("https://2bndy5.github.io/git-bot-feedback", None),
 }
 
 autodoc_member_order = "bysource"

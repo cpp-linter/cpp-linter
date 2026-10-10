@@ -2,43 +2,20 @@
 If executed from command-line, then `main()` is the entrypoint.
 """
 
+import asyncio
+import logging
 import os
 
 from ._version import version
 from .clang_tools import capture_clang_tools_output
 from .cli import Args, get_cli_parser
 from .common_fs import CACHE_PATH
-from .common_fs.file_filter import FileFilter
-from .loggers import end_log_group, log_commander, logger, start_log_group
-from .rest_api import RestApiClient
-from .rest_api.github_api import GithubApiClient
-from .rest_api.local_api import LocalApiClient
+from .common_fs.file_filter import list_source_files, make_file_filter
+from .loggers import git_bot_logger, logger
+from .rest_api import LinterClient
 
 
-def select_client() -> RestApiClient:
-    """Choose the REST API client for the environment cpp-linter runs in.
-
-    The GitHub client is used only in GitHub Actions. Anywhere else, including Gitea
-    Actions (which also sets ``GITHUB_ACTIONS``) and other CI systems that set
-    ``CI=true``, changed files come from the local git repository and nothing is
-    posted to a git server.
-    """
-    if os.environ.get("GITEA_ACTIONS", "") == "true":
-        log_commander.warning(
-            "Gitea Actions is not supported; CI-specific operations are disabled",
-        )
-        return LocalApiClient()
-    if os.environ.get("GITEA_ACTIONS", "") == "true":
-        log_commander.warn(
-            "Gitea Actions is not supported; CI-specific operations are disabled",
-        )
-        return LocalApiClient()
-    if os.environ.get("GITHUB_ACTIONS", "") == "true":
-        return GithubApiClient()
-    return LocalApiClient()
-
-
-def main():
+async def run():
     """The main script."""
 
     # The parsed CLI args
@@ -51,24 +28,27 @@ def main():
     if args.lines_changed_only:
         args.files_changed_only = True
 
-    rest_api_client = select_client()
-    logger.info("processing %s event", rest_api_client.event_name)
-    is_pr_event = rest_api_client.event_name == "pull_request"
+    client = LinterClient()
+    logger.info("processing %s event", client.event_name)
+    is_pr_event = client.is_pr_event
+
     if not is_pr_event:
-        if isinstance(rest_api_client, LocalApiClient) and (
-            args.tidy_review or args.format_review
-        ):
+        if client.client_kind == "local" and (args.tidy_review or args.format_review):
             logger.warning(
-                "Pull request reviews are only posted when running in GitHub Actions."
+                "Pull request reviews are only posted when running in a supported CI platform."
             )
         args.tidy_review = False
         args.format_review = False
 
     # set logging verbosity
-    logger.setLevel(10 if args.verbosity or rest_api_client.debug_enabled else 20)
+    log_level = (
+        logging.DEBUG if args.verbosity or client.debug_enabled else logging.INFO
+    )
+    logger.setLevel(log_level)
+    git_bot_logger.setLevel(log_level)
 
     # prepare ignored paths list
-    global_file_filter = FileFilter(
+    global_file_filter = make_file_filter(
         extensions=args.extensions, ignore_value=args.ignore, not_ignored=args.files
     )
     global_file_filter.parse_submodules()
@@ -77,22 +57,21 @@ def main():
     os.chdir(args.repo_root)
     CACHE_PATH.mkdir(exist_ok=True)
 
-    start_log_group("Get list of specified source files")
+    client.start_log_group("Get list of specified source files")
     if args.files_changed_only:
-        files = rest_api_client.get_list_of_changed_files(
+        files = await client.get_changed_files(
             file_filter=global_file_filter,
             lines_changed_only=args.lines_changed_only,
             diff_base=args.diff_base,
             ignore_index=args.ignore_index,
         )
-        rest_api_client.verify_files_are_present(files)
     else:
-        files = global_file_filter.list_source_files()
+        files = list_source_files(global_file_filter)
         # at this point, files have no info about git changes.
         # for PR reviews, we need this info
         if is_pr_event and (args.tidy_review or args.format_review):
             # get file changes from diff
-            git_changes = rest_api_client.get_list_of_changed_files(
+            git_changes = await client.get_changed_files(
                 file_filter=global_file_filter,
                 lines_changed_only=0,  # prevent filtering out unchanged files
                 diff_base=args.diff_base,
@@ -113,13 +92,20 @@ def main():
             "Giving attention to the following files:\n\t%s",
             "\n\t".join([f.name for f in files]),
         )
-    end_log_group()
+    client.end_log_group("Get list of specified source files")
 
-    clang_versions = capture_clang_tools_output(files=files, args=args)
+    clang_versions = capture_clang_tools_output(
+        files=files, args=args, git_client=client
+    )
 
-    start_log_group("Posting comment(s)")
-    rest_api_client.post_feedback(files=files, args=args, clang_versions=clang_versions)
-    end_log_group()
+    client.start_log_group("Posting comment(s)")
+    await client.post_feedback(files=files, args=args, clang_versions=clang_versions)
+    client.end_log_group("Posting comment(s)")
+
+
+def main():
+    """The command line entrypoint."""
+    asyncio.run(run())
 
 
 if __name__ == "__main__":
