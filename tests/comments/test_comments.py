@@ -11,7 +11,7 @@ from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
 from cpp_linter.cli import Args
 from cpp_linter.common_fs.file_filter import list_source_files, make_file_filter
-from cpp_linter.loggers import logger
+from cpp_linter.loggers import git_bot_logger, logger
 from cpp_linter.rest_api import LinterClient
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
@@ -32,12 +32,12 @@ TEST_SHA = "8d68756375e0483c7ac2b4d6bbbece420dbbb495"
         pytest.param("fail", False, marks=pytest.mark.xfail),
     ],
     ids=[
-        "updated-lgtm",
         "updated-no_lgtm",
-        "new-lgtm",
+        "updated-lgtm",
         "new-no_lgtm",
-        "disabled-lgtm",
+        "new-lgtm",
         "disabled-no_lgtm",
+        "disabled-lgtm",
         "no_token",
     ],
 )
@@ -187,6 +187,7 @@ def test_post_feedback(
 
     # to get debug files saved to test workspace folders: enable logger verbosity
     caplog.set_level(logging.DEBUG, logger=logger.name)
+    caplog.set_level(logging.DEBUG, logger=git_bot_logger.name)
 
     asyncio.run(client.post_feedback(files, args, clang_versions))
     writes = [r for r in mock.requests if r.method in ("POST", "PATCH", "DELETE")]
@@ -197,3 +198,16 @@ def test_post_feedback(
             # regular file path -> summary was written
             assert summary_output_path.is_file()
             assert summary_output_path.read_text(encoding="utf-8")
+
+    if args.step_summary:
+        assert summary_path.read_bytes(), "No expected data saved to step summary"
+        records = caplog.get_records("call")
+        for record in records:
+            if record.name.startswith(
+                git_bot_logger.name
+            ) and record.message.startswith("View step summary at "):
+                break
+        else:  # pragma: no cover
+            raise RuntimeError(
+                "Expected a log message about the step summary from git-bot-feedback."
+            )

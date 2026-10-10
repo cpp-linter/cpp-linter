@@ -18,6 +18,7 @@ def mock_server(
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(out_dir / "step_summary.md"))
     monkeypatch.setenv("GITHUB_API_URL", server.base_url)
     monkeypatch.setenv("GITHUB_SERVER_URL", server.base_url)
+    monkeypatch.setenv("GITHUB_RUN_ID", "42024")
     yield server
     httpd.shutdown()
     httpd.server_close()

@@ -3,6 +3,7 @@ If executed from command-line, then `main()` is the entrypoint.
 """
 
 import asyncio
+import logging
 import os
 
 from ._version import version
@@ -10,7 +11,7 @@ from .clang_tools import capture_clang_tools_output
 from .cli import Args, get_cli_parser
 from .common_fs import CACHE_PATH
 from .common_fs.file_filter import list_source_files, make_file_filter
-from .loggers import logger
+from .loggers import git_bot_logger, logger
 from .rest_api import LinterClient
 
 
@@ -40,7 +41,11 @@ async def run():
         args.format_review = False
 
     # set logging verbosity
-    logger.setLevel(10 if args.verbosity or client.debug_enabled else 20)
+    log_level = (
+        logging.DEBUG if args.verbosity or client.debug_enabled else logging.INFO
+    )
+    logger.setLevel(log_level)
+    git_bot_logger.setLevel(log_level)
 
     # prepare ignored paths list
     global_file_filter = make_file_filter(

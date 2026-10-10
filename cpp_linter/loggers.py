@@ -21,10 +21,13 @@ logger = logging.getLogger("CPP Linter")
 if not FOUND_RICH_LIB:
     logger.debug("rich module not found")
 
+#: A logger for git-bot-feedback lib
+git_bot_logger = logging.getLogger("git_bot_feedback")
+
 # setup a separate logger for using github log commands
 log_commander = logging.getLogger(
-    "CI_LOG_GROUPING"
-)  # create a logger for CI log commands
+    "CI_LOG_GROUPING"  # the exact logger name used in git-bot-feedback
+)
 log_commander.setLevel(logging.DEBUG)  # be sure that log commands are output
 console_handler = logging.StreamHandler()  # Create special stdout stream handler
 console_handler.setFormatter(logging.Formatter("%(message)s"))  # no formatted log cmds
