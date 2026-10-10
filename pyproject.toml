@@ -91,6 +91,12 @@ source = ["tests"]
 disable_warnings = ["module-not-imported"]
 concurrency = ["thread", "multiprocessing"]
 
+[tool.coverage.paths]
+source = [
+    "cpp_linter",
+    "D:\\a\\cpp-linter\\cpp-linter\\cpp_linter",
+]
+
 [tool.coverage.json]
 pretty_print = true
 
