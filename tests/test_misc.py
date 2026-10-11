@@ -1,5 +1,6 @@
 """Tests that complete coverage that aren't prone to failure."""
 
+import asyncio
 import json
 import logging
 import os
@@ -9,7 +10,7 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
-from git_bot_feedback import AnnotationLevel
+from git_bot_feedback import AnnotationLevel, GitClient
 from mock_server import MockServer, RecordedRequest
 
 import cpp_linter
@@ -319,6 +320,51 @@ def test_review_summary_reports_non_diff_suggestion():
     assert len(comments) == 1
     assert "Only 1 out of 2 clang-format concerns fit" in summary
     assert "1 review comment(s) from a previous review were reused" in summary
+
+
+@pytest.mark.no_clang
+def test_post_review_short_circuits_when_all_comments_reused(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+):
+    """No review is posted if culling leaves no comments to post."""
+
+    def fake_create_review_comments(files, is_tidy, summary_only, review):
+        suggestion = Suggestion("src/main.cpp")
+        suggestion.line_end = 4
+        suggestion.comment = "### clang-format\nformat issue"
+        review.suggestions.append(suggestion)
+        review.tool_total["clang-format"] = 1
+
+    class FakeGitClient:
+        posted: list = []
+
+        async def cull_pr_reviews(self, options):
+            # Simulate every comment having been posted in a previous review.
+            options.comments = []
+            return options
+
+        async def post_pr_review(self, options):
+            self.posted.append(options)  # pragma: no cover
+
+    monkeypatch.setattr(
+        cpp_linter.rest_api, "create_review_comments", fake_create_review_comments
+    )
+    monkeypatch.setattr(logger, "propagate", True)
+    caplog.set_level(logging.INFO, logger=logger.name)
+    git_client = FakeGitClient()
+    client = LinterClient(cast(GitClient, git_client))
+    args = SimpleNamespace(
+        format_review=True, tidy_review=False, no_lgtm=False, passive_reviews=False
+    )
+
+    asyncio.run(
+        client._post_review(
+            [FileObj("src/main.cpp")], cast(Args, args), ClangVersions()
+        )
+    )
+
+    assert not git_client.posted
+    assert any("already posted in previous reviews" in m for m in caplog.messages)
 
 
 @pytest.mark.no_clang

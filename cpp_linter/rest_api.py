@@ -462,9 +462,15 @@ class LinterClient:
             marker=COMMENT_MARKER,
             allow_draft=False,
             allow_closed=False,
-            delete_review_comments=args.passive_reviews,
+            delete_review_comments=False,
         )
         culled = await self._client.cull_pr_reviews(options)
+        if len(culled.comments) == 0 and len(rc_list) > 0:
+            logger.info(
+                "All review comments were already posted in previous reviews; "
+                + "not posting a new review."
+            )
+            return
 
         summary, _ = review_comments.serialize_to_github_payload(
             tidy_version=clang_versions.tidy,
