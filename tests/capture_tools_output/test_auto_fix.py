@@ -11,6 +11,7 @@ from cpp_linter.clang_tools.clang_format import tally_format_advice
 from cpp_linter.clang_tools.patcher import ReviewComments
 from cpp_linter.cli import Args
 from cpp_linter.common_fs import FileObj
+from cpp_linter.rest_api import LinterClient
 
 CLANG_VERSION = os.getenv("CLANG_VERSION", "16")
 
@@ -40,12 +41,13 @@ def test_fix_applies_clang_format(
     demo_dir = Path(__file__).parent.parent / "demo"
     shutil.copytree(str(demo_dir), str(tmp_path / "demo"))
     monkeypatch.chdir(str(tmp_path))
+    client = LinterClient()
 
     demo_file = "demo/demo.cpp"
     original = Path(demo_file).read_text(encoding="utf-8")
 
     files = [FileObj(demo_file)]
-    capture_clang_tools_output(files, args=_fix_args(style))
+    capture_clang_tools_output(files, args=_fix_args(style), git_client=client)
 
     # The ugly demo had format issues, so --fix must have rewritten the file...
     formatted = Path(demo_file).read_text(encoding="utf-8")
@@ -56,7 +58,7 @@ def test_fix_applies_clang_format(
     # A second pass is a no-op: the file is already formatted, so the fix loop
     # skips it (covers the "nothing to fix" branch).
     files_again = [FileObj(demo_file)]
-    capture_clang_tools_output(files_again, args=_fix_args(style))
+    capture_clang_tools_output(files_again, args=_fix_args(style), git_client=client)
     assert Path(demo_file).read_text(encoding="utf-8") == formatted
     assert tally_format_advice(files_again) == 0
 
@@ -101,6 +103,7 @@ def _tidy_notes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fix: bool):
     monkeypatch.chdir(str(work))
 
     line_count = len(_SHIFTING_SRC.splitlines())
+    client = LinterClient()
     # Model a PR that added the whole file: the diff's line numbers describe the
     # file *before* any formatting is applied.
     file_obj = FileObj(
@@ -108,7 +111,9 @@ def _tidy_notes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fix: bool):
         additions=list(range(1, line_count + 1)),
         diff_chunks=[[1, line_count + 1]],
     )
-    capture_clang_tools_output([file_obj], args=_tidy_order_args(fix))
+    capture_clang_tools_output(
+        [file_obj], args=_tidy_order_args(fix), git_client=client
+    )
     advice = file_obj.tidy_advice
     notes = [] if advice is None else advice.notes
     return [note.line for note in notes], src.read_text(encoding="utf-8")
@@ -155,13 +160,14 @@ def test_fix_with_format_review(
     demo_dir = Path(__file__).parent.parent / "demo"
     shutil.copytree(str(demo_dir), str(tmp_path / "demo"))
     monkeypatch.chdir(str(tmp_path))
+    client = LinterClient()
 
     demo_file = "demo/demo.cpp"
     args = _fix_args("file")
     args.format_review = True
 
     files = [FileObj(demo_file)]
-    capture_clang_tools_output(files, args=args)
+    capture_clang_tools_output(files, args=args, git_client=client)
 
     advice = files[0].format_advice
     assert advice is not None

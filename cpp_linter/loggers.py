@@ -2,8 +2,6 @@ import io
 import logging
 import os
 
-from requests import Response
-
 FOUND_RICH_LIB = False
 try:  # pragma: no cover
     from rich.logging import RichHandler, get_console  # type: ignore
@@ -23,47 +21,18 @@ logger = logging.getLogger("CPP Linter")
 if not FOUND_RICH_LIB:
     logger.debug("rich module not found")
 
+#: A logger for git-bot-feedback lib
+git_bot_logger = logging.getLogger("git_bot_feedback")
+
 # setup a separate logger for using github log commands
-log_commander = logging.getLogger("LOG COMMANDER")  # create a child of our logger obj
+log_commander = logging.getLogger(
+    "CI_LOG_GROUPING"  # the exact logger name used in git-bot-feedback
+)
 log_commander.setLevel(logging.DEBUG)  # be sure that log commands are output
 console_handler = logging.StreamHandler()  # Create special stdout stream handler
 console_handler.setFormatter(logging.Formatter("%(message)s"))  # no formatted log cmds
 log_commander.addHandler(console_handler)  # Use special handler for log_commander
 log_commander.propagate = False
-
-
-def start_log_group(name: str) -> None:
-    """Begin a collapsible group of log statements.
-
-    Outside GitHub Actions, only the group's name is printed.
-
-    :param name: The name of the collapsible group
-    """
-    if os.environ.get("GITHUB_ACTIONS", "") == "true":
-        log_commander.fatal("::group::%s", name)
-    else:
-        log_commander.fatal("%s", name)
-
-
-def end_log_group() -> None:
-    """End a collapsible group of log statements.
-
-    Outside GitHub Actions, this prints nothing.
-    """
-    if os.environ.get("GITHUB_ACTIONS", "") == "true":
-        log_commander.fatal("::endgroup::")
-
-
-def log_response_msg(response: Response):
-    """Output the response buffer's message on a failed request."""
-    if response.status_code >= 400:
-        logger.error(
-            "response returned %d from %s %s with message: %s",
-            response.status_code,
-            response.request.method,
-            response.request.url,
-            response.text,
-        )
 
 
 def should_use_rich() -> bool:

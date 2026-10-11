@@ -1,3 +1,4 @@
+import asyncio
 import json
 import shutil
 from collections import OrderedDict
@@ -5,15 +6,16 @@ from os import environ
 from pathlib import Path
 
 import pytest
-import requests_mock
+from mock_server import MockServer, diff_to_pr_files
 
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.cli import Args
-from cpp_linter.common_fs.file_filter import FileFilter
-from cpp_linter.rest_api.github_api import GithubApiClient
+from cpp_linter.common_fs.file_filter import make_file_filter
+from cpp_linter.rest_api import LinterClient
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
 TEST_PR = 27
+TEST_SHA = "8d68756375e0483c7ac2b4d6bbbece420dbbb495"
 
 test_parameters = OrderedDict(
     is_draft=False,
@@ -73,6 +75,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
     ],
 )
 def test_post_review(
+    mock_server: MockServer,
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     is_draft: bool,
@@ -89,7 +92,15 @@ def test_post_review(
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
-    event_payload = {"number": TEST_PR}
+    event_payload = {
+        "number": TEST_PR,
+        "pull_request": {
+            "number": TEST_PR,
+            "draft": is_draft,
+            "state": "closed" if is_closed else "open",
+            "locked": False,
+        },
+    }
     event_payload_path = tmp_path / "event_payload.json"
     event_payload_path.write_text(json.dumps(event_payload), encoding="utf-8")
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event_payload_path))
@@ -113,119 +124,108 @@ def test_post_review(
         str(cache_path / ".clang-tidy"), str(tmp_path / "src" / ".clang-tidy")
     )
 
-    gh_client = GithubApiClient()
-    gh_client.repo = TEST_REPO
-    gh_client.event_name = "pull_request"
+    monkeypatch.setenv("GITHUB_REPOSITORY", TEST_REPO)
+    monkeypatch.setenv("GITHUB_SHA", TEST_SHA)
+    monkeypatch.setenv("GITHUB_EVENT_NAME", "pull_request")
+    client = LinterClient()
 
-    with requests_mock.Mocker() as mock:
-        base_url = f"{gh_client.api_url}/repos/{TEST_REPO}/pulls/{TEST_PR}"
-        # load mock responses for pull_request event
-        mock.get(
-            base_url,
-            request_headers={"Accept": "application/vnd.github.diff"},
-            text=(cache_path / f"pr_{TEST_PR}.diff").read_text(encoding="utf-8"),
-        )
-        reviews = (cache_path / "pr_reviews.json").read_text(encoding="utf-8")
-        mock.get(
-            f"{base_url}/reviews?page=1&per_page=100",
-            text=reviews,
-        )
-        mock.get(
-            f"{base_url}/comments",
-            text=(cache_path / "pr_review_comments.json").read_text(encoding="utf-8"),
-        )
+    mock = mock_server
+    base_path = f"/repos/{TEST_REPO}/pulls/{TEST_PR}"
+    # load mock responses for pull_request event
+    mock.get(
+        f"{base_path}/files",
+        text=diff_to_pr_files(
+            (cache_path / f"pr_{TEST_PR}.diff").read_text(encoding="utf-8")
+        ),
+    )
+    mock.get(
+        base_path,
+        accept="application/vnd.github.text+json",
+        text=(cache_path / f"pr_{TEST_PR}.json").read_text(encoding="utf-8"),
+    )
+    reviews = (cache_path / "pr_reviews.json").read_text(encoding="utf-8")
+    mock.get(f"{base_path}/reviews", text=reviews)
+    mock.get(
+        f"{base_path}/comments",
+        text=(cache_path / "pr_review_comments.json").read_text(encoding="utf-8"),
+    )
 
-        # acknowledge any PUT and POST requests about specific reviews
-        mock.post(f"{base_url}/reviews")
-        for review_id in [r["id"] for r in json.loads(reviews) if "id" in r]:
-            mock.put(f"{base_url}/reviews/{review_id}/dismissals")
-        extensions = ["cpp", "hpp", "c"]
-        # run the actual test
-        files = gh_client.get_list_of_changed_files(
-            FileFilter(extensions=extensions),
+    # acknowledge any PUT and POST requests about specific reviews
+    mock.post(f"{base_path}/reviews")
+    for review_id in [r["id"] for r in json.loads(reviews) if "id" in r]:
+        mock.put(f"{base_path}/reviews/{review_id}/dismissals")
+    extensions = ["cpp", "hpp", "c"]
+    # run the actual test
+    files = asyncio.run(
+        client.get_changed_files(
+            make_file_filter(extensions=extensions),
             lines_changed_only=changes,
         )
-        assert files
-        for file_obj in files:
-            assert file_obj.diff_chunks
-        if force_approved:
-            files.clear()
+    )
+    assert files
+    for file_obj in files:
+        assert file_obj.diff_chunks
+    if force_approved:
+        files.clear()
 
-        args = Args()
-        if not tidy_review:
-            args.tidy_checks = "-*"
-        args.version = environ.get("CLANG_VERSION", "16")
-        args.style = "file"
-        args.extensions = extensions
-        args.ignore_tidy = "*.c"
-        args.ignore_format = "*.c"
-        args.lines_changed_only = changes
-        args.tidy_review = tidy_review
-        args.format_review = format_review
-        args.jobs = num_workers
-        args.thread_comments = "false"
-        args.no_lgtm = no_lgtm
-        args.file_annotations = False
-        args.passive_reviews = is_passive
+    args = Args()
+    if not tidy_review:
+        args.tidy_checks = "-*"
+    args.version = environ.get("CLANG_VERSION", "16")
+    args.style = "file"
+    args.extensions = extensions
+    args.ignore_tidy = "*.c"
+    args.ignore_format = "*.c"
+    args.lines_changed_only = changes
+    args.tidy_review = tidy_review
+    args.format_review = format_review
+    args.jobs = num_workers
+    args.thread_comments = "false"
+    args.no_lgtm = no_lgtm
+    args.file_annotations = False
+    args.passive_reviews = is_passive
 
-        clang_versions = capture_clang_tools_output(files, args=args)
-        if not force_approved:
-            format_advice = list(filter(lambda x: x.format_advice is not None, files))
-            tidy_advice = list(filter(lambda x: x.tidy_advice is not None, files))
-            if tidy_review:
-                assert tidy_advice and len(tidy_advice) <= len(files)
-            else:
-                assert not tidy_advice
-            assert format_advice and len(format_advice) <= len(files)
+    clang_versions = capture_clang_tools_output(files, args=args, git_client=client)
+    if not force_approved:
+        format_advice = list(filter(lambda x: x.format_advice is not None, files))
+        tidy_advice = list(filter(lambda x: x.tidy_advice is not None, files))
+        if tidy_review:
+            assert tidy_advice and len(tidy_advice) <= len(files)
+        else:
+            assert not tidy_advice
+        assert format_advice and len(format_advice) <= len(files)
 
-        # simulate draft PR by changing the request response
-        cache_pr_response = (cache_path / f"pr_{TEST_PR}.json").read_text(
-            encoding="utf-8"
+    asyncio.run(client.post_feedback(files, args, clang_versions))
+
+    # inspect the review payload for correctness
+    posted = mock.requests_to("POST", f"{base_path}/reviews")
+    if (
+        (tidy_review or format_review)
+        and not is_draft
+        and with_token
+        and not is_closed
+        and not no_lgtm
+    ):
+        assert posted
+        json_payload = posted[-1].json()
+        assert "body" in json_payload
+        assert "event" in json_payload
+        if tidy_review:
+            assert "clang-tidy" in json_payload["body"]
+        elif format_review:
+            assert "clang-format" in json_payload["body"]
+        else:  # pragma: no cover
+            raise RuntimeError("review payload is incorrect")
+        if is_passive:
+            assert json_payload["event"] == "COMMENT"
+        elif force_approved:
+            assert json_payload["event"] == "APPROVE"
+        else:
+            assert json_payload["event"] == "REQUEST_CHANGES"
+
+        # save the body of the review json for manual inspection
+        (tmp_path / "review.json").write_text(
+            json.dumps(json_payload, indent=2), encoding="utf-8"
         )
-        if is_draft:
-            cache_pr_response = cache_pr_response.replace(
-                '  "draft": false,', '  "draft": true,', 1
-            )
-        if is_closed:
-            cache_pr_response = cache_pr_response.replace(
-                '  "state": "open",', '  "state": "closed",', 1
-            )
-        mock.get(
-            base_url,
-            headers={"Accept": "application/vnd.github.text+json"},
-            text=cache_pr_response,
-        )
-        gh_client.post_feedback(files, args, clang_versions)
-
-        # inspect the review payload for correctness
-        last_request = mock.last_request
-        if (
-            (tidy_review or format_review)
-            and not is_draft
-            and with_token
-            and not is_closed
-            and not no_lgtm
-        ):
-            assert hasattr(last_request, "json")
-            json_payload = last_request.json()
-            assert "body" in json_payload
-            assert "event" in json_payload
-            if tidy_review:
-                assert "clang-tidy" in json_payload["body"]
-            elif format_review:
-                assert "clang-format" in json_payload["body"]
-            else:  # pragma: no cover
-                raise RuntimeError("review payload is incorrect")
-            if is_passive:
-                assert json_payload["event"] == "COMMENT"
-            else:
-                if force_approved:
-                    assert json_payload["event"] == "APPROVE"
-                else:
-                    assert json_payload["event"] == "REQUEST_CHANGES"
-
-            # save the body of the review json for manual inspection
-            assert hasattr(last_request, "text")
-            (tmp_path / "review.json").write_text(
-                json.dumps(json_payload, indent=2), encoding="utf-8"
-            )
+    else:
+        assert not posted

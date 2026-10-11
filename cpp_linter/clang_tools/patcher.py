@@ -88,12 +88,16 @@ class ReviewComments:
         self,
         tidy_version: str | None,
         format_version: str | None,
+        reused: int = 0,
     ) -> tuple[str, list[dict[str, Any]]]:
         """Serialize this object into a summary and list of comments compatible
         with Github's REST API.
 
         :param tidy_version: The version numbers of the clang-tidy used.
         :param format_version: The version numbers of the clang-format used.
+        :param reused: The number of review comments that were already posted
+            (in a previous review) and thus culled from the new review. This is
+            only used to add a note to the summary.
 
         :returns: The returned tuple contains a brief summary (at index ``0``)
             that contains markdown text describing the summary of the review
@@ -136,6 +140,11 @@ class ReviewComments:
                 )
             elif not self.tool_total[tool_name]:
                 summary += f"No concerns from {tool_name}.\n"
+        if reused > 0:
+            summary += (
+                f"\n{reused} review comment(s) from a previous review "
+                + "were reused (not posted again).\n"
+            )
         return (summary, comments)
 
 
