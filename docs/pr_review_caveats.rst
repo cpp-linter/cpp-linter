@@ -3,8 +3,6 @@ Pull Request Review Caveats
 
 .. _repository settings: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#preventing-github-actions-from-creating-or-approving-pull-requests
 .. _organization settings: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#preventing-github-actions-from-creating-or-approving-pull-requests
-.. _hiding a comment: https://docs.github.com/en/communities/moderating-comments-and-conversations/managing-disruptive-comments#hiding-a-comment
-.. _resolve a conversion: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/commenting-on-a-pull-request#resolving-conversations
 
 .. hint::
 
@@ -34,11 +32,12 @@ Auto-disabled for certain event types
 The feature is auto-disabled for
 
 - closed Pull Requests
+- locked Pull Requests
 - Pull Requests marked as "draft"
 - push events
 
-Posts a new review on each run
-------------------------------
+Previous reviews are reused or cleaned up
+-----------------------------------------
 
 Clang-tidy and clang-format suggestions are shown in 1 Pull Request review.
 
@@ -47,20 +46,29 @@ Clang-tidy and clang-format suggestions are shown in 1 Pull Request review.
   Remember, clang-tidy can be configured to use the same ``style`` that clang-format accepts.
   There is no current implementation to combine suggestions from both tools (clang-tidy kind of
   does that anyway).
-- Each generated review is specific to the commit that triggered the Continuous Integration
-  workflow.
-- Outdated reviews are dismissed but not marked as resolved.
-  Also, the outdated review's summary comment is not automatically hidden.
-  To reduce the Pull Request's thread noise, users interaction is required.
 
-.. seealso::
+Before posting a new review, cpp-linter checks the reviews it posted in previous runs on the same
+Pull Request:
 
-    Refer to GitHub's documentation about `hiding a comment`_.
-    Hiding a Pull Request review's summary comment will not resolve the suggestions in the diff.
-    Please also refer to `resolve a conversion`_ to collapse outdated or duplicate suggestions
-    in the diff.
+- A suggestion that was already posted is reused instead of being posted again.
+  The new review's summary comment says how many suggestions were reused.
+  If every suggestion was already posted, then no new review is posted at all.
+- A previous suggestion that no longer applies is marked as resolved.
+  Its conversation is not deleted, so any replies from other users are preserved.
+- A previous review that has no reused suggestions is dismissed, and its summary comment is
+  hidden (as "outdated").
 
-GitHub REST API does not provide a way to hide comments or mark review suggestions as resolved.
+A suggestion is only reused if it is identical to a previous one: same file, same lines, and same
+text. So, a suggestion may be posted again if the lines it targets have moved
+(for example, because lines were added above it).
+Suggestions in a conversation that was already resolved (or hidden) are never reused.
+This means that if a user manually resolves a suggestion without addressing it, then the
+suggestion will be posted again in the next review.
+
+.. note::
+
+    Reviews are only reused or cleaned up if they were posted by cpp-linter.
+    Reviews from other users or bots are left as is.
 
 .. tip::
 
