@@ -1,4 +1,4 @@
-name: PR Autolabeler
+name: PR Auto-labeler
 
 on:
   pull_request:
