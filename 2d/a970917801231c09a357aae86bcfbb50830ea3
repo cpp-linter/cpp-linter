@@ -1,0 +1,28 @@
+docs/_templates/layout.html
+  s_ecbcf0356d5867::t_8ed8cfe63b07a2 1-28
+docs/conf.py
+  s_ecbcf0356d5867::t_12ced6b97e5e7a 62-64
+  s_ecbcf0356d5867::t_8ed8cfe63b07a2 37,65-67,115-121
+pyproject.toml
+  s_ecbcf0356d5867::t_e562ccf5669adf 133
+cspell.config.yml
+  s_ecbcf0356d5867::t_9a2a7ba7413ce3 23,37
+uv.lock
+  s_ecbcf0356d5867::t_50b9c744fff545 397,420-423,1328-1352
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2da970917801231c09a357aae86bcfbb50830ea3",
+  "prompts": {},
+  "sessions": {
+    "s_ecbcf0356d5867": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "54458110-7b12-4460-9e64-673c40eaacb1",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
