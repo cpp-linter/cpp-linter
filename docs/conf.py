@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
+    "sphinx_sitemap",
 ]
 
 intersphinx_mapping = {
@@ -58,6 +59,12 @@ html_logo = "_static/logo.png"
 html_favicon = "_static/favicon.ico"
 html_css_files = ["https://cpp-linter.github.io/stylesheets/shared.css"]
 html_title = "cpp-linter"
+# The docs are published under the organization site. sphinx-sitemap builds
+# sitemap.xml from html_baseurl, and the robots.txt at
+# https://cpp-linter.github.io/robots.txt points search engines to it.
+html_baseurl = "https://cpp-linter.github.io/cpp-linter/"
+sitemap_url_scheme = "{link}"
+sitemap_excludes = ["search.html", "genindex.html", "py-modindex.html", "_modules/*"]
 
 html_theme_options = {
     "repo_url": "https://github.com/cpp-linter/cpp-linter",
@@ -105,6 +112,13 @@ html_theme_options = {
         "search.share",
         "content.tabs.link",
     ],
+    # The same Google Analytics property as cpp-linter.github.io and the other
+    # cpp-linter docs, which all share that origin. _templates/layout.html tags
+    # maintainer visits.
+    "analytics": {
+        "provider": "google",
+        "property": "G-JKH4SXC7HC",
+    },
     "social": [
         {
             "icon": "fontawesome/brands/github",
