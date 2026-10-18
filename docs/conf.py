@@ -328,8 +328,7 @@ def setup(app: Sphinx):
                 continue
             doc.write("\n.. std:option:: " + ", ".join(aliases) + "\n")
             assert arg.help is not None
-            defaults_at = arg.help.find("Defaults to")
-            help = arg.help if defaults_at < 0 else arg.help[:defaults_at]
+            help_text = arg.help.split("Defaults to", 1)[0]
             for ver, names in REQUIRED_VERSIONS.items():
                 if arg.dest in names:
                     req_ver = ver
@@ -346,7 +345,7 @@ def setup(app: Sphinx):
                     doc.write(f":badge-permission:`{link} {spec}`")
                     break
             doc.write("\n\n    ")
-            doc.write("\n    ".join(help.splitlines()) + "\n")
+            doc.write("\n    ".join(help_text.splitlines()) + "\n")
 
         if sub_commands is not None:
             choices = cast(dict[str, argparse.ArgumentParser], sub_commands.choices)
