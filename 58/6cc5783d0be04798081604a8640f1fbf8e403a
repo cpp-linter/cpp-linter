@@ -1,0 +1,19 @@
+docs/_templates/layout.html
+  s_0126da56744e3d::t_9f2af5cb38f2f6 24-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "586cc5783d0be04798081604a8640f1fbf8e403a",
+  "prompts": {},
+  "sessions": {
+    "s_0126da56744e3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "17164b29-6f7a-48a0-bc38-7ad3fd078c97",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
