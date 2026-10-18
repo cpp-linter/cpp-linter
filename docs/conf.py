@@ -261,6 +261,7 @@ REQUIRED_VERSIONS = {
     "1.10.0": ["passive_reviews"],
     "1.12.0": ["diff_base", "ignore_index"],
     "1.13.0": ["summary_output_file"],
+    "1.14.0": ["fix"],
 }
 SUBCOMMAND_VERSIONS = {"version": "1.11.0"}
 
@@ -327,7 +328,8 @@ def setup(app: Sphinx):
                 continue
             doc.write("\n.. std:option:: " + ", ".join(aliases) + "\n")
             assert arg.help is not None
-            help = arg.help[: arg.help.find("Defaults to")]
+            defaults_at = arg.help.find("Defaults to")
+            help = arg.help if defaults_at < 0 else arg.help[:defaults_at]
             for ver, names in REQUIRED_VERSIONS.items():
                 if arg.dest in names:
                     req_ver = ver
