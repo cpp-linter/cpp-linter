@@ -1,0 +1,19 @@
+.pre-commit-config.yaml
+  s_f518a1c9328c7b::t_eb0719e6c24921 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3adedeb3121dd3d76dc58b46b8c8864254a35aa2",
+  "prompts": {},
+  "sessions": {
+    "s_f518a1c9328c7b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c2b090ca-b947-4998-975f-5d845a56ad69",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
