@@ -7,15 +7,15 @@ From the root directory of the repository, do the following to steps
 
    .. code-block:: text
 
-       pip install -r docs/requirements.txt
-
-   On Linux, you may need to use ``pip3`` instead.
+       uv sync --group docs
 
 2. Build the docs
 
    .. code-block:: text
 
-       sphinx-build docs docs/_build/html
+       uv run sphinx-build docs docs/_build/html
+
+   Alternatively, ``uv run nox -s docs`` does both steps.
 
    Browse the files in docs/_build/html with your internet browser to see the rendered
    output.

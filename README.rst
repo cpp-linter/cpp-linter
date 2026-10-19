@@ -57,9 +57,8 @@ Limitations
   `clang-tools <https://cpp-linter.github.io/clang-tools-pip/>`_; without them, ``--version=21``
   falls back to whatever ``clang-format`` and ``clang-tidy`` are on your ``PATH``.
 - It exits 0 even when checks fail, so it reports findings but does not fail a build.
-- Locally, ``--files-changed-only`` and ``--lines-changed-only`` read the local git diff. In other CI,
-  check the whole repository (the default): most CI systems set ``CI=true``, and with it those
-  options ask the GitHub API for the changed files.
+- ``--files-changed-only`` and ``--lines-changed-only`` read the local git diff, except in GitHub
+  Actions (and Gitea Actions), where those options ask the server's REST API for the changed files.
 
 Sponsors
 --------
