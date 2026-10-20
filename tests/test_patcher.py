@@ -65,3 +65,13 @@ def test_git_missing(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("cpp_linter.clang_tools.patcher.shutil.which", lambda _: None)
     with pytest.raises(FileNotFoundError):
         Patch.create_from(b"a\n", b"b\n", "x.cpp")
+
+
+def test_inherited_git_config_ignored(monkeypatch: pytest.MonkeyPatch):
+    # myers and patience give different hunks for these
+    old, new = b"b\na\n{\na\n}\n}\n", b"}\n}\nb\na\n}\na\n"
+    expected = lines(Patch.create_from(old, new, "x.cpp"))
+    monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+    monkeypatch.setenv("GIT_CONFIG_KEY_0", "diff.algorithm")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", "patience")
+    assert lines(Patch.create_from(old, new, "x.cpp")) == expected

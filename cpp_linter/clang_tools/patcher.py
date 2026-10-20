@@ -82,7 +82,12 @@ class Patch:
                 # e.g. `text=auto` would otherwise hide CRLF -> LF changes.
                 cwd=tmp,
                 env={
-                    **os.environ,
+                    # drop inherited GIT_* settings (GIT_DIR, GIT_CONFIG_COUNT, ...)
+                    **{
+                        k: v
+                        for k, v in os.environ.items()
+                        if not k.startswith("GIT_") or k == "GIT_EXEC_PATH"
+                    },
                     "GIT_CEILING_DIRECTORIES": str(Path(tmp).parent),
                     "GIT_CONFIG_NOSYSTEM": "1",
                     "GIT_CONFIG_GLOBAL": os.devnull,
