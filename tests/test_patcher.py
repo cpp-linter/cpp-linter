@@ -113,3 +113,8 @@ def test_inherited_git_config_ignored(monkeypatch: pytest.MonkeyPatch, diff: Dif
     monkeypatch.setenv("GIT_CONFIG_KEY_0", "diff.algorithm")
     monkeypatch.setenv("GIT_CONFIG_VALUE_0", "patience")
     assert lines(diff(old, new)) == expected
+
+
+def test_git_error(tmp_path: Path):
+    with pytest.raises(RuntimeError, match="git diff failed for missing.cpp"):
+        Patch.create_from(tmp_path / "missing.cpp", b"a\n", "missing.cpp")

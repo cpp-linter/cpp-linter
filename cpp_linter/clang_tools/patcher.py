@@ -95,8 +95,11 @@ class Patch:
                     "GIT_CONFIG_GLOBAL": os.devnull,
                 },
             )
-        # `git diff --no-index` exits with 1 when the files differ
-        if result.returncode not in (0, 1):
+        # `git diff --no-index` exits with 1 when the files differ, but also when it
+        # cannot read a file (then it prints nothing to stdout).
+        if result.returncode not in (0, 1) or (
+            result.returncode == 1 and not result.stdout
+        ):
             raise RuntimeError(
                 f"git diff failed for {file_name}: "
                 + result.stderr.decode(errors="replace")
