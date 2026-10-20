@@ -80,10 +80,13 @@ def test_line_content(diff: DiffFn, old: bytes, new: bytes, expected: list):
     assert lines(diff(old, new)) == [expected]
 
 
-def test_repo_gitattributes_ignored(tmp_path: Path, diff: DiffFn):
+def test_repo_gitattributes_ignored(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, diff: DiffFn
+):
     """The user's `.gitattributes` must not hide CRLF -> LF fixes."""
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     (tmp_path / ".gitattributes").write_text("* text=auto\n")
+    monkeypatch.chdir(tmp_path)  # run from inside the user's repo, like cpp-linter
     assert lines(diff(b"x\r\n", b"x\n")) == [[("-", "x\r\n", 1), ("+", "x\n", -1)]]
 
 
