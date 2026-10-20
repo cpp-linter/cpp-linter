@@ -3,14 +3,13 @@ from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from pygit2 import DiffHunk  # type: ignore
-
 from ..loggers import logger
 
 if TYPE_CHECKING:  # pragma: no covers
     # circular import
     from ..clang_tools.clang_format import FormatAdvice
     from ..clang_tools.clang_tidy import TidyAdvice
+    from ..clang_tools.patcher import DiffHunk
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
 CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
@@ -113,7 +112,7 @@ class FileObj:
             },
         }
 
-    def is_hunk_contained(self, hunk: DiffHunk) -> tuple[int, int] | None:
+    def is_hunk_contained(self, hunk: "DiffHunk") -> tuple[int, int] | None:
         """Does a given ``hunk`` start and end within a single diff hunk?
 
         This also includes some compensations for hunk headers that are oddly formed.

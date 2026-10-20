@@ -39,7 +39,6 @@ extensions = [
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "pygit2": ("https://www.pygit2.org/", None),
     "git-bot-feedback": ("https://2bndy5.github.io/git-bot-feedback", None),
 }
 
