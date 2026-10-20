@@ -1,6 +1,7 @@
 """A module to contain the abstractions about creating suggestions from a diff generated
 by the clang tool's output."""
 
+import io
 import os
 import re
 import shutil
@@ -50,8 +51,8 @@ class Patch:
     hunks: list[DiffHunk]
 
     @classmethod
-    def create_from(cls, old: bytes, new: bytes, file_name: str) -> "Patch":
-        """Diff ``old`` and ``new`` content of ``file_name`` with ``git diff``.
+    def create_from(cls, old: Path, new: bytes, file_name: str) -> "Patch":
+        """Diff the ``old`` file against the ``new`` content with ``git diff``.
 
         This uses the same diff algorithm (and indent heuristic) as libgit2, so hunks
         are the same as the ones pygit2 produced before it was dropped.
@@ -59,9 +60,10 @@ class Patch:
         git = shutil.which("git")
         if git is None:
             raise FileNotFoundError("git is required to create PR review suggestions")
+        # resolve symlinks; git would diff a symlink's target path, not its content
+        old_path = old.resolve()
         with tempfile.TemporaryDirectory() as tmp:
-            old_path, new_path = Path(tmp, "old"), Path(tmp, "new")
-            old_path.write_bytes(old)
+            new_path = Path(tmp, "new")
             new_path.write_bytes(new)
             result = subprocess.run(
                 [
@@ -73,7 +75,7 @@ class Patch:
                     "--text",
                     "--indent-heuristic",
                     "--unified=0",
-                    old_path.name,
+                    str(old_path),
                     new_path.name,
                 ],
                 capture_output=True,
@@ -106,10 +108,8 @@ class Patch:
     @classmethod
     def parse(cls, diff: str, file_name: str) -> "Patch":
         """Parse the output of ``git diff --unified=0`` for a single file."""
-        # Split on "\n" only; str.splitlines() would also split on form feeds etc.
-        lines = [line + "\n" for line in diff.split("\n")]
-        if diff.endswith("\n") or not diff:
-            lines.pop()
+        # split on "\n" only; str.splitlines() would also split on "\r", "\f", etc.
+        lines = list(io.StringIO(diff, newline="\n"))
         first_hunk = next(
             (i for i, line in enumerate(lines) if line.startswith("@@")), len(lines)
         )
@@ -316,9 +316,7 @@ class PatchMixin(ABC):
         assert self.patched, (
             f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
         )
-        patch = Patch.create_from(
-            file_obj.read_with_timeout(), self.patched, file_obj.name
-        )
+        patch = Patch.create_from(Path(file_obj.name), self.patched, file_obj.name)
         tool_name = self.get_tool_name()
         assert tool_name in review_comments.full_patch
         review_comments.full_patch[tool_name] += f"{patch.text}"
