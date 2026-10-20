@@ -60,7 +60,7 @@ jobs:
         os: ['windows-latest', 'ubuntu-latest']
         version: ${{ fromJSON(needs.pre-seed-versions.outputs.versions) }}
     env:
-      MAX_PYTHON_VERSION: '3.15'
+      MAX_PYTHON_VERSION: '3.16'
 
     runs-on: ${{ matrix.os }}
     steps:
