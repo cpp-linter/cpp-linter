@@ -1,15 +1,145 @@
 """A module to contain the abstractions about creating suggestions from a diff generated
 by the clang tool's output."""
 
+import os
+import re
+import shutil
+import subprocess
+import tempfile
 from abc import ABC
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
-
-from pygit2 import Patch  # type: ignore
-from pygit2.enums import DiffOption  # type: ignore
 
 from ..common_fs import FileObj
 
-INDENT_HEURISTIC = DiffOption.INDENT_HEURISTIC
+#: Matches a unified diff hunk header, e.g. ``@@ -3,2 +3 @@``.
+HUNK_HEADER = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+
+
+@dataclass
+class DiffLine:
+    """A single line of a `DiffHunk`."""
+
+    #: ``"+"`` for an added line or ``"-"`` for a removed line.
+    origin: str
+    #: The line's text, including its line ending (if any).
+    content: str
+    #: The line number in the original file (``-1`` for added lines).
+    old_lineno: int
+
+
+@dataclass
+class DiffHunk:
+    """A hunk of a unified diff generated without context lines."""
+
+    old_start: int
+    old_lines: int
+    new_start: int
+    new_lines: int
+    lines: list[DiffLine] = field(default_factory=list)
+
+
+@dataclass
+class Patch:
+    """A unified diff of a file's original content and a clang tool's fixes."""
+
+    #: The diff as text (shown in the PR review summary).
+    text: str
+    #: The parsed hunks of the diff.
+    hunks: list[DiffHunk]
+
+    @classmethod
+    def create_from(cls, old: bytes, new: bytes, file_name: str) -> "Patch":
+        """Diff ``old`` and ``new`` content of ``file_name`` with ``git diff``.
+
+        This uses the same diff algorithm (and indent heuristic) as libgit2, so hunks
+        are the same as the ones pygit2 produced before it was dropped.
+        """
+        git = shutil.which("git")
+        if git is None:
+            raise FileNotFoundError("git is required to create PR review suggestions")
+        with tempfile.TemporaryDirectory() as tmp:
+            old_path, new_path = Path(tmp, "old"), Path(tmp, "new")
+            old_path.write_bytes(old)
+            new_path.write_bytes(new)
+            result = subprocess.run(
+                [
+                    git,
+                    "diff",
+                    "--no-index",
+                    "--no-color",
+                    "--no-ext-diff",
+                    "--text",
+                    "--indent-heuristic",
+                    "--unified=0",
+                    old_path.name,
+                    new_path.name,
+                ],
+                capture_output=True,
+                check=False,
+                # Keep the user's repo (.gitattributes) and git config out of the diff,
+                # e.g. `text=auto` would otherwise hide CRLF -> LF changes.
+                cwd=tmp,
+                env={
+                    **os.environ,
+                    "GIT_CEILING_DIRECTORIES": str(Path(tmp).parent),
+                    "GIT_CONFIG_NOSYSTEM": "1",
+                    "GIT_CONFIG_GLOBAL": os.devnull,
+                },
+            )
+        # `git diff --no-index` exits with 1 when the files differ
+        if result.returncode not in (0, 1):
+            raise RuntimeError(
+                f"git diff failed for {file_name}: "
+                + result.stderr.decode(errors="replace")
+            )
+        return cls.parse(
+            result.stdout.decode(encoding="utf-8", errors="replace"), file_name
+        )
+
+    @classmethod
+    def parse(cls, diff: str, file_name: str) -> "Patch":
+        """Parse the output of ``git diff --unified=0`` for a single file."""
+        # Split on "\n" only; str.splitlines() would also split on form feeds etc.
+        lines = [line + "\n" for line in diff.split("\n")]
+        if diff.endswith("\n") or not diff:
+            lines.pop()
+        first_hunk = next(
+            (i for i, line in enumerate(lines) if line.startswith("@@")), len(lines)
+        )
+        text = ""
+        if first_hunk < len(lines):
+            text = (
+                f"diff --git a/{file_name} b/{file_name}\n"
+                + f"--- a/{file_name}\n+++ b/{file_name}\n"
+                + "".join(lines[first_hunk:])
+            )
+        hunks: list[DiffHunk] = []
+        old_lineno = 0
+        for line in lines[first_hunk:]:
+            header = HUNK_HEADER.match(line)
+            if header is not None:
+                old_start, old_lines, new_start, new_lines = header.groups()
+                hunks.append(
+                    DiffHunk(
+                        old_start=int(old_start),
+                        old_lines=1 if old_lines is None else int(old_lines),
+                        new_start=int(new_start),
+                        new_lines=1 if new_lines is None else int(new_lines),
+                    )
+                )
+                old_lineno = int(old_start)
+            elif hunks and line.startswith("-"):
+                hunks[-1].lines.append(DiffLine("-", line[1:], old_lineno))
+                old_lineno += 1
+            elif hunks and line.startswith("+"):
+                hunks[-1].lines.append(DiffLine("+", line[1:], -1))
+            elif hunks and hunks[-1].lines and line.startswith("\\"):
+                # "\ No newline at end of file": the previous line has no newline
+                prev = hunks[-1].lines[-1]
+                prev.content = prev.content.removesuffix("\n")
+        return cls(text=text, hunks=hunks)
 
 
 class Suggestion:
@@ -182,12 +312,7 @@ class PatchMixin(ABC):
             f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
         )
         patch = Patch.create_from(
-            file_obj.read_with_timeout(),
-            self.patched,
-            file_obj.name,
-            file_obj.name,
-            context_lines=0,  # exclude any surrounding unchanged lines
-            flag=INDENT_HEURISTIC,
+            file_obj.read_with_timeout(), self.patched, file_obj.name
         )
         tool_name = self.get_tool_name()
         assert tool_name in review_comments.full_patch
