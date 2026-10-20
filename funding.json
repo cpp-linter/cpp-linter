@@ -6,7 +6,7 @@
     "name": "cpp-linter",
     "email": "xianpeng.shen@gmail.com",
     "phone": "",
-    "description": "cpp-linter is a volunteer-run GitHub organization that brings clang-format and clang-tidy into everyday C/C++ development. It maintains a GitHub Action, Python and Rust CLIs, pre-commit hooks, and prebuilt LLVM clang tools for Linux, macOS and Windows. The tools are used by 1,000+ public repositories (including projects from Bloomberg, Qualcomm, Samsung and the Apache Software Foundation), the prebuilt binaries have 715,000+ downloads, and the PyPI packages have 1.3M+ downloads. The organization is maintained by two active maintainers in their spare time.",
+    "description": "cpp-linter is a volunteer-run GitHub organization that brings clang-format and clang-tidy into everyday C/C++ development. It maintains a GitHub Action, Python and Rust CLIs, pre-commit hooks, and prebuilt LLVM clang tools for Linux, macOS and Windows. The tools are used by 1,000+ public repositories (including projects from Bloomberg, Qualcomm, Samsung and the Apache Software Foundation), the prebuilt static binaries have 420,000+ binary downloads, and the PyPI packages have 1.3M+ downloads. The organization is maintained by two active maintainers in their spare time.",
     "webpageUrl": {
       "url": "https://github.com/cpp-linter"
     }
@@ -15,7 +15,7 @@
     {
       "guid": "cpp-linter-action",
       "name": "cpp-linter-action",
-      "description": "A GitHub Action that runs clang-format and clang-tidy on pull requests and reports results as annotations, PR review suggestions, thread comments and step summaries. Used by 1,000+ public repositories.",
+      "description": "A GitHub Action that runs clang-format and clang-tidy on pull requests and reports results as annotations, PR review suggestions, thread comments and step summaries. Used by 1,000+ public repositories, more than any other GitHub Action that reports clang-tidy results on pull requests.",
       "webpageUrl": {
         "url": "https://github.com/cpp-linter/cpp-linter-action"
       },
@@ -67,7 +67,7 @@
     {
       "guid": "clang-tools-static-binaries",
       "name": "clang-tools-static-binaries",
-      "description": "Prebuilt static binaries of clang-format, clang-tidy, clang-query and other LLVM clang tools for Linux, macOS and Windows on amd64 and arm64, for LLVM 12 and newer. 715,000+ downloads.",
+      "description": "Prebuilt static binaries of clang-format, clang-tidy, clang-query and other LLVM clang tools for every LLVM major version from 12 to 23 on 6 platforms (Linux, macOS and Windows on amd64 and arm64), with new releases as LLVM ships them. 420,000+ binary downloads.",
       "webpageUrl": {
         "url": "https://github.com/cpp-linter/clang-tools-static-binaries"
       },
