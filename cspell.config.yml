@@ -36,6 +36,7 @@ words:
   - mktime
   - modindex
   - mypy
+  - NOSYSTEM
   - posargs
   - posix
   - pybind
