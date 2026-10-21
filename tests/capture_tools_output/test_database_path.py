@@ -77,9 +77,14 @@ def test_db_detection(
     assert expected_args == matched_args
 
 
-def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
+@pytest.mark.parametrize("repo_root", [".", "demo"])
+def test_ninja_database(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, repo_root: str
+):
     """verify that the relative paths used in a database generated (and thus clang-tidy
-    stdout) for the ninja build system are resolved accordingly."""
+    stdout) for the ninja build system are resolved accordingly.
+
+    With ``repo_root="demo"``, cpp-linter runs from the parent directory."""
     tmp_path_demo = tmp_path / "demo"
     # generate the project
     shutil.copytree(
@@ -92,12 +97,15 @@ def test_ninja_database(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.chdir(str(tmp_path_demo))
     subprocess.run(["meson", "init"], check=True)
     subprocess.run(["meson", "setup", "--backend=ninja", "build", "."], check=True)
+    if repo_root != ".":
+        monkeypatch.chdir(str(tmp_path))
     monkeypatch.setenv("CPP_LINTER_PYTEST_NO_RICH", "1")
 
     logger.setLevel(logging.DEBUG)
     files = [FileObj("demo.cpp")]
 
     args = Args()
+    args.repo_root = repo_root
     args.database = "build"  # point to generated compile_commands.txt
     args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
     args.version = CLANG_VERSION

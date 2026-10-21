@@ -72,6 +72,7 @@ def _run_on_single_file(
                 db_json=db_json,
                 tidy_review=args.tidy_review,
                 style=args.style,
+                repo_root=args.repo_root,
             )
         except FileIOTimeout:  # pragma: no cover
             logger.error(
@@ -89,6 +90,7 @@ def _run_on_single_file(
                 style=args.style,
                 lines_changed_only=args.lines_changed_only,
                 format_review=args.format_review,
+                repo_root=args.repo_root,
                 fix=args.fix,
             )
         except FileIOTimeout:  # pragma: no cover
@@ -159,10 +161,10 @@ def capture_clang_tools_output(
 
     db_json: list[dict[str, str]] | None = None
     if args.database:
-        db = Path(args.database)
-        if not db.is_absolute():
-            args.database = str(db.resolve())
-        db_path = (db / "compile_commands.json").resolve()
+        # a relative path is relative to the repo root
+        db = Path(args.repo_root, args.database).resolve()
+        args.database = str(db)
+        db_path = db / "compile_commands.json"
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 

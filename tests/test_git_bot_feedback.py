@@ -46,7 +46,8 @@ def test_post_feedback_local_client(tmp_path, monkeypatch: pytest.MonkeyPatch):
     args.file_annotations = True
     args.thread_comments = "false"
     args.lines_changed_only = 0
-    args.summary_output_file = str(tmp_path / "summary.md")
+    args.repo_root = str(tmp_path)
+    args.summary_output_file = "summary.md"  # relative to the repo root
 
     files = [FileObj("src/main.cpp")]
     clang_versions = ClangVersions()

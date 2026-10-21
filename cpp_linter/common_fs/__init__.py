@@ -16,29 +16,28 @@ if TYPE_CHECKING:  # pragma: no covers
 CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
 
 
-def change_to_repo_root(repo_root: str) -> None:
-    """Change the working directory to the :std:option:`--repo-root` path.
+def resolve_repo_root(repo_root: str) -> str:
+    """Resolve the :std:option:`--repo-root` path.
 
     The path must be the current working directory or a directory inside it.
     Symbolic links are resolved before checking, so a link cannot lead outside the
     working directory either.
 
     :param repo_root: The value given to :std:option:`--repo-root`.
+    :returns: The absolute path to the repository root.
     :raises ValueError: If the path is outside the working directory or is not a
         directory.
     """
     cwd = os.path.realpath(os.getcwd())
     root = os.path.realpath(repo_root)
-    if root == cwd:
-        return
     # The trailing separator keeps `/repo-other` from passing as inside `/repo`.
-    if not root.startswith(os.path.join(cwd, "")):
+    if root != cwd and not root.startswith(os.path.join(cwd, "")):
         raise ValueError(
             f"--repo-root '{repo_root}' is outside the working directory '{cwd}'"
         )
     if not os.path.isdir(root):
         raise ValueError(f"--repo-root '{repo_root}' is not a directory")
-    os.chdir(root)
+    return root
 
 
 class FileObj:
@@ -186,9 +185,12 @@ class FileObj:
         )
         return None
 
-    def read_with_timeout(self, timeout_ns: int = 1_000_000_000) -> bytes:
+    def read_with_timeout(
+        self, repo_root: str, timeout_ns: int = 1_000_000_000
+    ) -> bytes:
         """Read the entire file's contents.
 
+        :param repo_root: The path that the file's `name` is relative to.
         :param timeout_ns: The number of nanoseconds to wait till timeout occurs.
             Defaults to 1 second.
 
@@ -206,7 +208,7 @@ class FileObj:
         timeout = time.monotonic_ns() + timeout_ns
         while not success and time.monotonic_ns() < timeout:
             try:
-                with open(self.name, "rb") as f:
+                with open(Path(repo_root, self.name), "rb") as f:
                     while not success and time.monotonic_ns() < timeout:
                         if f.readable():
                             contents = f.read()
@@ -221,11 +223,13 @@ class FileObj:
 
     def read_write_with_timeout(
         self,
+        repo_root: str,
         data: bytes | bytearray,
         timeout_ns: int = 1_000_000_000,
     ) -> bytes:
         """Read then write the entire file's contents.
 
+        :param repo_root: The path that the file's `name` is relative to.
         :param data: The bytes to write to the file. This will overwrite the contents
             being read beforehand.
         :param timeout_ns: The number of nanoseconds to wait till timeout occurs.
@@ -245,7 +249,7 @@ class FileObj:
         timeout = time.monotonic_ns() + timeout_ns
         while not success and time.monotonic_ns() < timeout:
             try:
-                with open(self.name, "r+b") as f:
+                with open(Path(repo_root, self.name), "r+b") as f:
                     while not success and time.monotonic_ns() < timeout:
                         if f.readable():
                             original_data = f.read()
