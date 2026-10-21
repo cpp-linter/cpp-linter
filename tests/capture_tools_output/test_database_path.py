@@ -84,7 +84,8 @@ def test_ninja_database(
     """verify that the relative paths used in a database generated (and thus clang-tidy
     stdout) for the ninja build system are resolved accordingly.
 
-    With ``repo_root="demo"``, cpp-linter runs from the parent directory."""
+    With ``repo_root="demo"``, cpp-linter runs from the parent directory, and the
+    relative ``--database`` path is relative to that working directory."""
     tmp_path_demo = tmp_path / "demo"
     # generate the project
     shutil.copytree(
@@ -106,7 +107,8 @@ def test_ninja_database(
 
     args = Args()
     args.repo_root = repo_root
-    args.database = "build"  # point to generated compile_commands.txt
+    # point to generated compile_commands.txt
+    args.database = "build" if repo_root == "." else f"{repo_root}/build"
     args.tidy_checks = ""  # let clang-tidy use a .clang-tidy config file
     args.version = CLANG_VERSION
     args.style = ""  # don't invoke clang-format

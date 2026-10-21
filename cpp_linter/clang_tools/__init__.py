@@ -161,10 +161,10 @@ def capture_clang_tools_output(
 
     db_json: list[dict[str, str]] | None = None
     if args.database:
-        # a relative path is relative to the repo root
-        db = Path(args.repo_root, args.database).resolve()
-        args.database = str(db)
-        db_path = db / "compile_commands.json"
+        db = Path(args.database)
+        if not db.is_absolute():
+            args.database = str(db.resolve())
+        db_path = (db / "compile_commands.json").resolve()
         if db_path.exists():
             db_json = json.loads(db_path.read_text(encoding="utf-8"))
 
