@@ -1,3 +1,4 @@
+import os
 import time
 from os import environ
 from pathlib import Path
@@ -13,6 +14,31 @@ if TYPE_CHECKING:  # pragma: no covers
 
 #: A path to generated cache artifacts. (only used when verbosity is in debug mode)
 CACHE_PATH = Path(environ.get("CPP_LINTER_CACHE", ".cpp-linter_cache"))
+
+
+def resolve_repo_root(repo_root: str) -> str:
+    """Resolve the :std:option:`--repo-root` path.
+
+    The path must be the current working directory or a directory inside it.
+    Symbolic links are resolved before checking, so a link cannot lead outside the
+    working directory either.
+
+    :param repo_root: The value given to :std:option:`--repo-root`.
+    :returns: The absolute path to the repository root, ending with a path separator.
+    :raises ValueError: If the path is outside the working directory or is not a
+        directory.
+    """
+    cwd = os.path.realpath(os.getcwd())
+    # Compare with a trailing separator on both paths, so that `/repo` contains
+    # itself but not `/repo-other`.
+    root = os.path.join(os.path.realpath(repo_root), "")
+    if not root.startswith(os.path.join(cwd, "")):
+        raise ValueError(
+            f"--repo-root '{repo_root}' is outside the working directory '{cwd}'"
+        )
+    if not os.path.isdir(root):
+        raise ValueError(f"--repo-root '{repo_root}' is not a directory")
+    return root
 
 
 class FileObj:

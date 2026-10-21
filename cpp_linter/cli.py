@@ -222,7 +222,8 @@ _parser_args[("-r", "--repo-root")] = {
     "default": ".",
     "help": """The relative path to the repository root directory.
 This path is relative to the working directory from
-which cpp-linter was executed.
+which cpp-linter was executed. It must be that
+directory or a directory inside it.
 Defaults to ``%(default)s``""",
 }
 _parser_args[("-i", "--ignore")] = {
