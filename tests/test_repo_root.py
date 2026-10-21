@@ -1,18 +1,12 @@
 """Tests for checking the :std:option:`--repo-root` path."""
 
-import os
 from pathlib import Path
 
 import pytest
 
 import cpp_linter
 from cpp_linter.cli import Args
-from cpp_linter.common_fs import resolve_repo_root
-
-
-def as_dir(path: Path) -> str:
-    """The form `resolve_repo_root()` returns: real path with a trailing separator."""
-    return os.path.join(os.path.realpath(path), "")
+from cpp_linter.common_fs import change_to_repo_root
 
 
 @pytest.fixture
@@ -33,25 +27,29 @@ def work(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     [(".", "."), ("", "."), ("sub", "sub"), ("sub/", "sub"), ("sub/..", ".")],
 )
 def test_inside_cwd(work: Path, repo_root: str, expected: str):
-    assert resolve_repo_root(repo_root) == as_dir(work / expected)
+    change_to_repo_root(repo_root)
+    assert Path.cwd().samefile(work / expected)
 
 
 @pytest.mark.no_clang
 def test_absolute_inside_cwd(work: Path):
-    assert resolve_repo_root(str(work / "sub")) == as_dir(work / "sub")
+    change_to_repo_root(str(work / "sub"))
+    assert Path.cwd().samefile(work / "sub")
 
 
 @pytest.mark.no_clang
 @pytest.mark.parametrize("repo_root", ["..", "sub/../..", "../work-other"])
 def test_outside_cwd(work: Path, repo_root: str):
     with pytest.raises(ValueError, match="is outside the working directory"):
-        resolve_repo_root(repo_root)
+        change_to_repo_root(repo_root)
+    assert Path.cwd().samefile(work)
 
 
 @pytest.mark.no_clang
 def test_absolute_outside_cwd(work: Path):
     with pytest.raises(ValueError, match="is outside the working directory"):
-        resolve_repo_root(str(work.parent / "work-other"))
+        change_to_repo_root(str(work.parent / "work-other"))
+    assert Path.cwd().samefile(work)
 
 
 @pytest.mark.no_clang
@@ -62,14 +60,16 @@ def test_symlink_outside_cwd(work: Path):
     except OSError:  # pragma: no cover
         pytest.skip("cannot create symbolic links here")
     with pytest.raises(ValueError, match="is outside the working directory"):
-        resolve_repo_root("link")
+        change_to_repo_root("link")
+    assert Path.cwd().samefile(work)
 
 
 @pytest.mark.no_clang
 @pytest.mark.parametrize("repo_root", ["file.txt", "missing"])
 def test_not_a_directory(work: Path, repo_root: str):
     with pytest.raises(ValueError, match="is not a directory"):
-        resolve_repo_root(repo_root)
+        change_to_repo_root(repo_root)
+    assert Path.cwd().samefile(work)
 
 
 @pytest.mark.no_clang

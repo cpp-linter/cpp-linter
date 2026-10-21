@@ -4,13 +4,12 @@ If executed from command-line, then `main()` is the entrypoint.
 
 import asyncio
 import logging
-import os
 import sys
 
 from ._version import version
 from .clang_tools import capture_clang_tools_output
 from .cli import Args, get_cli_parser
-from .common_fs import CACHE_PATH, resolve_repo_root
+from .common_fs import CACHE_PATH, change_to_repo_root
 from .common_fs.file_filter import list_source_files, make_file_filter
 from .loggers import git_bot_logger, logger
 from .rest_api import LinterClient
@@ -54,13 +53,11 @@ async def run():
     )
     global_file_filter.parse_submodules()
 
-    # change working directory
     try:
-        repo_root = resolve_repo_root(args.repo_root)
+        change_to_repo_root(args.repo_root)
     except ValueError as exc:
         logger.error(exc)
         sys.exit(1)
-    os.chdir(repo_root)
     CACHE_PATH.mkdir(exist_ok=True)
 
     client.start_log_group("Get list of specified source files")
