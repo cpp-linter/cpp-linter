@@ -2,7 +2,6 @@
 
 import asyncio
 import os
-import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -17,9 +16,9 @@ from cpp_linter.clang_tools.clang_tidy import TidyAdvice
 from cpp_linter.clang_tools.patcher import Suggestion
 from cpp_linter.clang_versions import ClangVersions
 from cpp_linter.cli import Args
-from cpp_linter.common_fs import FileObj, resolve_repo_root
-from cpp_linter.common_fs.file_filter import list_source_files, make_file_filter
-from cpp_linter.git import get_list_of_changed_files, get_repo_root_prefix
+from cpp_linter.common_fs import FileObj, get_repo_root_prefix, resolve_repo_root
+from cpp_linter.common_fs.file_filter import make_file_filter
+from cpp_linter.git import get_list_of_changed_files
 from cpp_linter.rest_api import LinterClient, make_annotations
 
 
@@ -109,31 +108,45 @@ def mono_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """A git repository whose ``member`` folder is used as the repo root, while
     cpp-linter runs from the top level of the git repository."""
     repo = tmp_path / "mono"
-    for name in ("member/src/a.cpp", "member/build/gen.cpp"):
-        (repo / name).parent.mkdir(parents=True, exist_ok=True)
-        (repo / name).touch()
-    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    (repo / ".git").mkdir(parents=True)
+    (repo / "member" / "src").mkdir(parents=True)
     monkeypatch.chdir(repo)
     return repo
 
 
 @pytest.mark.no_clang
-def test_repo_root_prefix(mono_repo: Path, tmp_path: Path):
-    assert get_repo_root_prefix("member") == "member/"
-    assert get_repo_root_prefix("member/src") == "member/src/"
-    assert get_repo_root_prefix(".") == ""
-    not_git = tmp_path / "not-git"
-    not_git.mkdir()
-    assert get_repo_root_prefix(str(not_git)) == ""
+@pytest.mark.parametrize(
+    "repo_root,expected",
+    [(".", ""), ("member", "member/"), ("member/src", "member/src/")],
+)
+def test_repo_root_prefix(mono_repo: Path, repo_root: str, expected: str):
+    assert get_repo_root_prefix(repo_root) == expected
 
 
 @pytest.mark.no_clang
-def test_ignored_folder_in_repo_root(mono_repo: Path):
-    """A plain folder in ``--ignore`` is relative to the repo root, not to the working
-    directory."""
-    file_filter = make_file_filter(ignore_value="build", extensions=["cpp"])
-    files = list_source_files(file_filter, "member")
-    assert [f.name for f in files] == ["src/a.cpp"]
+def test_repo_root_prefix_in_nested_repo(mono_repo: Path):
+    """A submodule has a ``.git`` file, and is its own git repository."""
+    (mono_repo / "member" / ".git").touch()
+    assert get_repo_root_prefix("member") == ""
+    assert get_repo_root_prefix("member/src") == "src/"
+
+
+@pytest.mark.no_clang
+def test_repo_root_prefix_in_sub_folder(
+    mono_repo: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The working directory can be a sub-folder of the git repository."""
+    monkeypatch.chdir(mono_repo / "member")
+    assert get_repo_root_prefix(".") == "member/"
+    assert get_repo_root_prefix("src") == "member/src/"
+
+
+@pytest.mark.no_clang
+def test_repo_root_prefix_without_git(work: Path):
+    """Without a ``.git`` folder (a checkout made without git), the working directory
+    is used as the top level of the repository."""
+    assert get_repo_root_prefix(".") == ""
+    assert get_repo_root_prefix("sub") == "sub/"
 
 
 class ChangedFilesClient:
@@ -167,7 +180,7 @@ def test_changed_files_relative_to_repo_root(mono_repo: Path):
     git_client = ChangedFilesClient(
         [
             "member/src/a.cpp",
-            "member/build/gen.cpp",  # ignored
+            "member/src/gen.cpp",  # ignored
             "member/src/notes.txt",  # not a source file
             "other/b.cpp",  # outside the repo root
         ]
@@ -175,9 +188,11 @@ def test_changed_files_relative_to_repo_root(mono_repo: Path):
     files = asyncio.run(
         get_list_of_changed_files(
             git_client=cast(gbf.GitClient, git_client),
-            file_filter=make_file_filter(ignore_value="build", extensions=["cpp"]),
+            file_filter=make_file_filter(
+                ignore_value="src/gen.cpp", extensions=["cpp"]
+            ),
             lines_changed_only=0,
-            repo_root="member",
+            path_prefix="member/",
         )
     )
     assert [f.name for f in files] == ["src/a.cpp"]
@@ -190,13 +205,14 @@ def test_changed_files_at_top_level(mono_repo: Path):
     """At the top level of the git repository, the names and the filter are used as
     they are."""
     git_client = ChangedFilesClient(["member/src/a.cpp", "member/build/gen.cpp"])
-    file_filter = make_file_filter(ignore_value="member/build", extensions=["cpp"])
+    file_filter = make_file_filter(
+        ignore_value="member/build/gen.cpp", extensions=["cpp"]
+    )
     files = asyncio.run(
         get_list_of_changed_files(
             git_client=cast(gbf.GitClient, git_client),
             file_filter=file_filter,
             lines_changed_only=0,
-            repo_root=".",
         )
     )
     assert git_client.file_filter is file_filter
@@ -225,7 +241,7 @@ def test_annotations_use_git_paths(mono_repo: Path):
             ]
         ),
     )
-    annotations = make_annotations([file_obj], "llvm", get_repo_root_prefix("member"))
+    annotations = make_annotations([file_obj], "llvm", "member/")
     assert [a.path for a in annotations] == ["member/src/a.cpp"] * 2
 
 
@@ -253,6 +269,7 @@ def test_review_comments_use_git_paths(
     monkeypatch.setattr(rest_api, "create_review_comments", fake_create_review_comments)
     git_client = ReviewClient()
     client = LinterClient(cast(gbf.GitClient, git_client))
+    client.repo_root_prefix = "member/"
     args = Args()
     args.format_review = True
     args.repo_root = str(mono_repo / "member")

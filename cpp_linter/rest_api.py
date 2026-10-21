@@ -30,7 +30,7 @@ from .clang_tools.patcher import PatchMixin, ReviewComments
 from .clang_versions import ClangVersions
 from .cli import Args
 from .common_fs import FileObj
-from .git import get_list_of_changed_files, get_repo_root_prefix
+from .git import get_list_of_changed_files
 from .loggers import logger
 
 USER_OUTREACH = (
@@ -192,8 +192,8 @@ def make_annotations(
     """Create annotations from the clang tools' advice.
 
     :param path_prefix: The path of the repo root inside the git repository (see
-        `~cpp_linter.git.get_repo_root_prefix()`). Annotations use paths relative to
-        the git repository.
+        `~cpp_linter.common_fs.get_repo_root_prefix()`). Annotations use paths
+        relative to the git repository.
     """
     annotations: list[FileAnnotation] = []
     style_guide = formalize_style_name(style)
@@ -249,6 +249,11 @@ class LinterClient:
             git_client = GitClient()
             git_client.set_user_agent(USER_AGENT)
         self._client = git_client
+        #: The path of the :std:option:`--repo-root` inside the git repository (see
+        #: `~cpp_linter.common_fs.get_repo_root_prefix()`). The changed files and the
+        #: feedback use it to convert between file names relative to the repo root
+        #: and file names relative to the git repository.
+        self.repo_root_prefix: str = ""
 
     @property
     def event_name(self) -> str:
@@ -284,7 +289,6 @@ class LinterClient:
         lines_changed_only: int,
         diff_base: None | int | str = None,
         ignore_index: bool = False,
-        repo_root: str = ".",
     ) -> list[FileObj]:
         """Fetch a list of the event's changed files.
 
@@ -293,8 +297,7 @@ class LinterClient:
         :param diff_base: The commit or ref to use as the base of the diff.
         :param ignore_index: Setting this flag to `True` will ignore any staged changes
             in the index when producing a diff.
-        :param repo_root: The path to the repository root. The returned file names are
-            relative to it.
+        :returns: The changed files, named relative to the repo root.
         """
         return await get_list_of_changed_files(
             file_filter=file_filter,
@@ -302,7 +305,7 @@ class LinterClient:
             diff_base=diff_base,
             ignore_index=ignore_index,
             git_client=self._client,
-            repo_root=repo_root,
+            path_prefix=self.repo_root_prefix,
         )
 
     def set_exit_code(
@@ -386,9 +389,7 @@ class LinterClient:
                 )
 
         if args.file_annotations:
-            annotations = make_annotations(
-                files, args.style, get_repo_root_prefix(args.repo_root)
-            )
+            annotations = make_annotations(files, args.style, self.repo_root_prefix)
             if annotations:
                 self._client.write_file_annotations(annotations)
 
@@ -463,14 +464,13 @@ class LinterClient:
         if args.passive_reviews:
             action = ReviewAction.Comment
 
-        # review comments use paths relative to the git repository
-        path_prefix = get_repo_root_prefix(args.repo_root)
         rc_list = (
             []
             if summary_only
             else [
                 ReviewComment(
-                    path=path_prefix + sug.file_name,
+                    # relative to the git repository
+                    path=self.repo_root_prefix + sug.file_name,
                     comment=sug.comment,
                     line_end=sug.line_end,
                     line_start=sug.line_start

@@ -23,32 +23,8 @@ def make_file_filter(
     patterns = ignore_value.split("|") if ignore_value else []
     patterns.extend(f"!{path}" for path in not_ignored or [])
     return gbf.FileFilter(
-        ignore=_add_folder_globs(patterns),
-        extensions=list(extensions or []),
-        log_scope=tool_name,
+        ignore=patterns, extensions=list(extensions or []), log_scope=tool_name
     )
-
-
-def _add_folder_globs(patterns: list[str]) -> list[str]:
-    """Add a ``path/**`` glob for each plain ``path`` pattern.
-
-    git-bot-feedback only matches a plain pattern to the files in a folder if the
-    pattern is a folder in the working directory. The patterns are relative to the
-    :std:option:`--repo-root`, which can be a sub-folder of the working directory.
-    The glob matches the files in the folder wherever the folder is.
-    """
-    result: list[str] = []
-    for pattern in patterns:
-        result.append(pattern)
-        path = pattern.replace("\\", "/").strip()
-        negate = path.startswith("!")
-        if negate:
-            path = path[1:].lstrip()
-        path = path.removeprefix("./").rstrip("/")
-        if path in ("", ".") or path.startswith("..") or set(path) & set("*?[{"):
-            continue  # not a plain path to a folder
-        result.append(f"{'!' if negate else ''}{path}/**")
-    return result
 
 
 def list_source_files(file_filter: gbf.FileFilter, repo_root: str) -> list[FileObj]:

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from cpp_linter.common_fs.file_filter import _add_folder_globs, make_file_filter
+from cpp_linter.common_fs.file_filter import make_file_filter
 
 
 @pytest.mark.parametrize(
@@ -81,23 +81,4 @@ def test_ignore_submodule(monkeypatch: pytest.MonkeyPatch):
 def test_positional_arg(user_input: list[str]):
     """Make sure positional arg value(s) are added to not_ignored list."""
     file_filter = make_file_filter(not_ignored=user_input)
-    # each path also gets a glob for the files in a folder of that name
-    assert file_filter.not_ignored == {*user_input, *(f"{p}/**" for p in user_input)}
-
-
-@pytest.mark.parametrize(
-    "patterns,expected",
-    [
-        (["build"], ["build", "build/**"]),
-        (["./build/"], ["./build/", "build/**"]),
-        (["! src"], ["! src", "!src/**"]),
-        (["sub\\dir"], ["sub\\dir", "sub/dir/**"]),
-        (["", "!", ".", "..", "../x"], ["", "!", ".", "..", "../x"]),
-        (["*/build", "src/*.cpp", "file?.h", "[ab]", "{a,b}"], None),
-    ],
-)
-@pytest.mark.no_clang
-def test_add_folder_globs(patterns: list[str], expected: list[str] | None):
-    """Plain paths get a glob for the files in a folder; patterns that are already
-    globs, empty or outside the repo root are kept as they are."""
-    assert _add_folder_globs(patterns) == (expected or patterns)
+    assert set(user_input) == file_filter.not_ignored

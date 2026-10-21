@@ -468,6 +468,7 @@ def test_main_runs_cli_workflow(
             self.event_name = "pull_request" if is_pr_event else "push"
             self.client_kind = "github" if is_pr_event else "local"
             self.debug_enabled = False
+            self.repo_root_prefix = ""
             self.get_changed_files_args = None
             self.posted = None
 
@@ -508,6 +509,8 @@ def test_main_runs_cli_workflow(
     # cpp-linter stays in the working directory; the cache goes in the repo root
     assert Path.cwd().samefile(tmp_path)
     assert (repo_root / ".cpp-linter_cache").is_dir()
+    # without a `.git` folder, the repo root's path is relative to the working directory
+    assert client.repo_root_prefix == "repo/"
     assert client.get_changed_files_args is not None
     assert client.get_changed_files_args["lines_changed_only"] == (
         0 if is_pr_event else lines_changed_only

@@ -40,6 +40,32 @@ def resolve_repo_root(repo_root: str) -> str:
     return root
 
 
+def get_repo_root_prefix(repo_root: str) -> str:
+    """Get the path of :std:option:`--repo-root` inside its git repository.
+
+    Git (and the git server's REST API) names changed files relative to the top level
+    of the git repository, but cpp-linter names files relative to the
+    :std:option:`--repo-root`. This prefix converts between the two.
+
+    The top level of the git repository is the closest folder, starting with
+    ``repo_root`` itself, that has a ``.git`` folder (or a ``.git`` file, as in a
+    submodule). If there is none, as in a checkout made without git, then the
+    working directory is used.
+
+    :param repo_root: The path to the repository root, as returned by
+        `resolve_repo_root()`.
+    :returns: The path with a trailing ``/`` (for example ``member/``), or an empty
+        string if ``repo_root`` is the top level.
+    """
+    root = Path(repo_root).resolve()
+    top = next(
+        (path for path in (root, *root.parents) if (path / ".git").exists()),
+        Path.cwd().resolve(),
+    )
+    prefix = root.relative_to(top).as_posix()
+    return "" if prefix == "." else f"{prefix}/"
+
+
 class FileObj:
     """A class to represent a single file being analyzed.
 
