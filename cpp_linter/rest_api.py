@@ -30,7 +30,7 @@ from .clang_tools.patcher import PatchMixin, ReviewComments
 from .clang_versions import ClangVersions
 from .cli import Args
 from .common_fs import FileObj
-from .git import get_list_of_changed_files
+from .git import get_list_of_changed_files, get_repo_root_prefix
 from .loggers import logger
 
 USER_OUTREACH = (
@@ -186,12 +186,19 @@ def create_review_comments(
         )
 
 
-def make_annotations(files: list[FileObj], style: str) -> list[FileAnnotation]:
-    """Create annotations from the clang tools' advice."""
+def make_annotations(
+    files: list[FileObj], style: str, path_prefix: str = ""
+) -> list[FileAnnotation]:
+    """Create annotations from the clang tools' advice.
+
+    :param path_prefix: The path of the repo root inside the git repository (see
+        `~cpp_linter.git.get_repo_root_prefix()`). Annotations use paths relative to
+        the git repository.
+    """
     annotations: list[FileAnnotation] = []
     style_guide = formalize_style_name(style)
     for file_obj in files:
-        name = file_obj.name
+        name = path_prefix + file_obj.name
         if file_obj.format_advice and file_obj.format_advice.replaced_lines:
             line_list = ", ".join(
                 str(fix.line) for fix in file_obj.format_advice.replaced_lines
@@ -207,7 +214,7 @@ def make_annotations(files: list[FileObj], style: str) -> list[FileAnnotation]:
             )
         if file_obj.tidy_advice:
             for note in file_obj.tidy_advice.notes:
-                if note.filename != name:
+                if note.filename != file_obj.name:
                     continue
                 if note.severity.startswith("note"):
                     severity = AnnotationLevel.Notice
@@ -277,6 +284,7 @@ class LinterClient:
         lines_changed_only: int,
         diff_base: None | int | str = None,
         ignore_index: bool = False,
+        repo_root: str = ".",
     ) -> list[FileObj]:
         """Fetch a list of the event's changed files.
 
@@ -285,6 +293,8 @@ class LinterClient:
         :param diff_base: The commit or ref to use as the base of the diff.
         :param ignore_index: Setting this flag to `True` will ignore any staged changes
             in the index when producing a diff.
+        :param repo_root: The path to the repository root. The returned file names are
+            relative to it.
         """
         return await get_list_of_changed_files(
             file_filter=file_filter,
@@ -292,6 +302,7 @@ class LinterClient:
             diff_base=diff_base,
             ignore_index=ignore_index,
             git_client=self._client,
+            repo_root=repo_root,
         )
 
     def set_exit_code(
@@ -375,7 +386,9 @@ class LinterClient:
                 )
 
         if args.file_annotations:
-            annotations = make_annotations(files, args.style)
+            annotations = make_annotations(
+                files, args.style, get_repo_root_prefix(args.repo_root)
+            )
             if annotations:
                 self._client.write_file_annotations(annotations)
 
@@ -450,12 +463,14 @@ class LinterClient:
         if args.passive_reviews:
             action = ReviewAction.Comment
 
+        # review comments use paths relative to the git repository
+        path_prefix = get_repo_root_prefix(args.repo_root)
         rc_list = (
             []
             if summary_only
             else [
                 ReviewComment(
-                    path=sug.file_name,
+                    path=path_prefix + sug.file_name,
                     comment=sug.comment,
                     line_end=sug.line_end,
                     line_start=sug.line_start

@@ -69,6 +69,7 @@ async def run():
             lines_changed_only=args.lines_changed_only,
             diff_base=args.diff_base,
             ignore_index=args.ignore_index,
+            repo_root=args.repo_root,
         )
     else:
         files = list_source_files(global_file_filter, args.repo_root)
@@ -81,6 +82,7 @@ async def run():
                 lines_changed_only=0,  # prevent filtering out unchanged files
                 diff_base=args.diff_base,
                 ignore_index=args.ignore_index,
+                repo_root=args.repo_root,
             )
             # merge info from git changes into list of all files
             for git_file in git_changes:
