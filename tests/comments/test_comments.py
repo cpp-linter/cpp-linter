@@ -53,7 +53,7 @@ def test_post_feedback(
     """A mock test of posting comments and step summary"""
 
     extensions = ["cpp", "hpp", "c"]
-    files = list_source_files(make_file_filter(extensions=extensions))
+    files = list_source_files(make_file_filter(extensions=extensions), ".")
     assert files
 
     args = Args()
@@ -109,6 +109,8 @@ def test_post_feedback(
                             "'stddef.h' file not found",
                             "clang-diagnostic-error",
                         ),
+                        database=None,
+                        repo_root=".",
                     ),
                     TidyNotification(
                         notification_line=(
@@ -125,6 +127,7 @@ def test_post_feedback(
                                 "directory": str(Path(__file__).parent),
                             }
                         ],
+                        repo_root=".",
                     ),
                 ]
             )

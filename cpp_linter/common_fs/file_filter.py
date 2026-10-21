@@ -27,10 +27,11 @@ def make_file_filter(
     )
 
 
-def list_source_files(file_filter: gbf.FileFilter) -> list[FileObj]:
-    """Make a list of source files in the current working directory that qualify
+def list_source_files(file_filter: gbf.FileFilter, repo_root: str) -> list[FileObj]:
+    """Make a list of source files in the ``repo_root`` directory that qualify
     according to the ``file_filter``.
 
-    :returns: A list of `FileObj` objects without diff information.
+    :returns: A list of `FileObj` objects without diff information. The file names
+        are relative to ``repo_root``.
     """
-    return [FileObj(name) for name in sorted(file_filter.walk_dir("."))]
+    return [FileObj(name) for name in sorted(file_filter.walk_dir(repo_root))]

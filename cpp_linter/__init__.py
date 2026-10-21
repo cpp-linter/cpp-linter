@@ -4,12 +4,13 @@ If executed from command-line, then `main()` is the entrypoint.
 
 import asyncio
 import logging
-import os
+import sys
+from pathlib import Path
 
 from ._version import version
 from .clang_tools import capture_clang_tools_output
 from .cli import Args, get_cli_parser
-from .common_fs import CACHE_PATH
+from .common_fs import CACHE_PATH, resolve_repo_root
 from .common_fs.file_filter import list_source_files, make_file_filter
 from .loggers import git_bot_logger, logger
 from .rest_api import LinterClient
@@ -47,15 +48,19 @@ async def run():
     logger.setLevel(log_level)
     git_bot_logger.setLevel(log_level)
 
+    try:
+        args.repo_root = resolve_repo_root(args.repo_root)
+    except ValueError as exc:
+        logger.error(exc)
+        sys.exit(1)
+
     # prepare ignored paths list
     global_file_filter = make_file_filter(
         extensions=args.extensions, ignore_value=args.ignore, not_ignored=args.files
     )
     global_file_filter.parse_submodules()
 
-    # change working directory
-    os.chdir(args.repo_root)
-    CACHE_PATH.mkdir(exist_ok=True)
+    Path(args.repo_root, CACHE_PATH).mkdir(exist_ok=True)
 
     client.start_log_group("Get list of specified source files")
     if args.files_changed_only:
@@ -66,7 +71,7 @@ async def run():
             ignore_index=args.ignore_index,
         )
     else:
-        files = list_source_files(global_file_filter)
+        files = list_source_files(global_file_filter, args.repo_root)
         # at this point, files have no info about git changes.
         # for PR reviews, we need this info
         if is_pr_event and (args.tidy_review or args.format_review):

@@ -310,16 +310,23 @@ class PatchMixin(ABC):
         raise NotImplementedError("must be implemented by derivative")
 
     def get_suggestions_from_patch(
-        self, file_obj: FileObj, summary_only: bool, review_comments: ReviewComments
+        self,
+        file_obj: FileObj,
+        summary_only: bool,
+        review_comments: ReviewComments,
+        repo_root: str,
     ):
         """Create a list of suggestions from the tool's `patched` output.
 
         Results are stored in the ``review_comments`` parameter (passed by reference).
+        The file's name is relative to ``repo_root``.
         """
         assert self.patched, (
             f"{self.__class__.__name__} has no suggestions for {file_obj.name}"
         )
-        patch = Patch.create_from(Path(file_obj.name), self.patched, file_obj.name)
+        patch = Patch.create_from(
+            Path(repo_root, file_obj.name), self.patched, file_obj.name
+        )
         tool_name = self.get_tool_name()
         assert tool_name in review_comments.full_patch
         review_comments.full_patch[tool_name] += f"{patch.text}"

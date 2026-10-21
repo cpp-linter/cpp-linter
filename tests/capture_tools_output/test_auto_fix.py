@@ -63,6 +63,26 @@ def test_fix_applies_clang_format(
     assert tally_format_advice(files_again) == 0
 
 
+def test_fix_in_repo_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """File names are relative to ``--repo-root``, not to the working directory."""
+    monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
+    repo_root = tmp_path / "repo"
+    demo_dir = Path(__file__).parent.parent / "demo"
+    shutil.copytree(str(demo_dir), str(repo_root / "demo"))
+    monkeypatch.chdir(str(tmp_path))
+    demo_file = repo_root / "demo" / "demo.cpp"
+    original = demo_file.read_text(encoding="utf-8")
+
+    args = _fix_args("file")
+    args.repo_root = str(repo_root)
+    files = [FileObj("demo/demo.cpp")]
+    capture_clang_tools_output(files, args=args, git_client=LinterClient())
+
+    assert demo_file.read_text(encoding="utf-8") != original
+    assert tally_format_advice(files) == 0
+    assert Path.cwd().samefile(tmp_path)
+
+
 # A file whose formatting changes its line count: the one-liner below expands
 # into several lines, pushing every later diagnostic down.
 _SHIFTING_SRC = """\
@@ -179,7 +199,7 @@ def test_fix_with_format_review(
     # And that diff is empty, so the review carries no suggestion for the file.
     review = ReviewComments()
     review.tool_total["clang-format"] = 0
-    advice.get_suggestions_from_patch(files[0], False, review)
+    advice.get_suggestions_from_patch(files[0], False, review, args.repo_root)
     assert review.suggestions == []
     assert review.tool_total["clang-format"] == 0
     assert review.full_patch["clang-format"] == ""

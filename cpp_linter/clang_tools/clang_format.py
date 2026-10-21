@@ -110,7 +110,7 @@ def formalize_style_name(style: str) -> str:
 
 
 def parse_format_replacements_xml(
-    xml_out: str, file_obj: FileObj, lines_changed_only: int
+    xml_out: str, file_obj: FileObj, lines_changed_only: int, repo_root: str
 ) -> FormatAdvice:
     """Parse XML output of replacements from clang-format.
 
@@ -119,6 +119,7 @@ def parse_format_replacements_xml(
         that was exported by clang-format.
     :param lines_changed_only: A flag that forces focus on only changes in the event's
         diff info.
+    :param repo_root: The path that the file's name is relative to.
     """
     format_advice = FormatAdvice(file_obj.name)
     if not xml_out:
@@ -128,7 +129,7 @@ def parse_format_replacements_xml(
         file_obj.range_of_changed_lines(lines_changed_only, get_ranges=True),
     )
     tree = ET.fromstring(xml_out)
-    content = file_obj.read_with_timeout()
+    content = file_obj.read_with_timeout(repo_root)
     for child in tree:
         if child.tag == "replacement":
             null_len = int(child.attrib["length"])
@@ -164,6 +165,7 @@ def run_clang_format(
     style: str,
     lines_changed_only: int,
     format_review: bool,
+    repo_root: str,
     fix: bool = False,
 ) -> FormatAdvice:
     """Run clang-format on a certain file
@@ -176,6 +178,8 @@ def run_clang_format(
         diff info.
     :param format_review: A flag to enable/disable creating a diff suggestion for
         PR review comments.
+    :param repo_root: The path that the file's name is relative to. clang-format runs
+        in this directory.
     :param fix: A flag to enable applying clang-format's fixes in-place. Only the
         lines selected by ``lines_changed_only`` are reformatted.
     """
@@ -193,13 +197,16 @@ def run_clang_format(
         cmds.append(f"--lines={span[0]}:{span[1]}")
     cmds.append(PurePath(file_obj.name).as_posix())
     logger.info('Running "%s"', " ".join(cmds))
-    results = subprocess.run(cmds, capture_output=True, check=False)
+    results = subprocess.run(cmds, capture_output=True, check=False, cwd=repo_root)
     if results.returncode:
         logger.debug(
             "%s raised the following error(s):\n%s", cmds[0], results.stderr.decode()
         )
     advice = parse_format_replacements_xml(
-        results.stdout.decode(encoding="utf-8").strip(), file_obj, lines_changed_only
+        results.stdout.decode(encoding="utf-8").strip(),
+        file_obj,
+        lines_changed_only,
+        repo_root,
     )
     if fix and advice.replaced_lines:
         # Reuse the assembled (range-aware) args to apply fixes in-place. This
@@ -208,7 +215,9 @@ def run_clang_format(
         fix_cmds = [arg for arg in cmds if arg != "--output-replacements-xml"]
         fix_cmds.insert(-1, "-i")  # apply edits in-place, just before the file path
         logger.info('Applying formatting fixes with "%s"', " ".join(fix_cmds))
-        fix_results = subprocess.run(fix_cmds, capture_output=True, check=False)
+        fix_results = subprocess.run(
+            fix_cmds, capture_output=True, check=False, cwd=repo_root
+        )
         if fix_results.returncode:  # pragma: no cover
             logger.error(
                 "Failed to apply clang-format fixes to %s:\n%s",
@@ -228,7 +237,9 @@ def run_clang_format(
         del cmds[2]  # remove `--output-replacements-xml` flag
         logger.info('Getting fixes with "%s"', " ".join(cmds))
         # get formatted file from stdout
-        formatted_output = subprocess.run(cmds, capture_output=True, check=True)
+        formatted_output = subprocess.run(
+            cmds, capture_output=True, check=True, cwd=repo_root
+        )
         # store formatted_output (for comparing later)
         advice.patched = formatted_output.stdout
     return advice

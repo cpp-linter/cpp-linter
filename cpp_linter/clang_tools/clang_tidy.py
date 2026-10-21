@@ -27,12 +27,15 @@ class TidyNotification:
     :param database: The compilation database deserialized from JSON, only if
         :std:option:`--database` argument points to a valid path containing a
         ``compile_commands.json file``.
+    :param repo_root: The path that clang-tidy ran in. The notification's file name
+        is made relative to it.
     """
 
     def __init__(
         self,
         notification_line: tuple[str, int | str, int | str, str, str, str],
-        database: list[dict[str, str]] | None = None,
+        database: list[dict[str, str]] | None,
+        repo_root: str,
     ):
         # logger.debug("Creating tidy note from line %s", notification_line)
         (
@@ -53,12 +56,8 @@ class TidyNotification:
         #: The line number of the source file.
         self.line = int(self.line)
         self.cols = int(self.cols)
-        rel_path = (
-            Path(self.filename)
-            .resolve()
-            .as_posix()
-            .replace(Path.cwd().as_posix() + "/", "")
-        )
+        root = Path(repo_root).resolve().as_posix() + "/"
+        rel_path = Path(repo_root, self.filename).resolve().as_posix().replace(root, "")
         if not PurePath(self.filename).is_absolute() and database is not None:
             # get absolute path from compilation database:
             # This is need for meson builds as they use paths relative to
@@ -70,10 +69,10 @@ class TidyNotification:
                     and unit["file"] == self.filename
                 ):
                     rel_path = (
-                        Path(unit["directory"], unit["file"])
+                        Path(repo_root, unit["directory"], unit["file"])
                         .resolve()
                         .as_posix()
-                        .replace(Path.cwd().as_posix() + "/", "")
+                        .replace(root, "")
                     )
                     break
         #: The source filename concerning the notification.
@@ -133,9 +132,15 @@ class TidyAdvice(PatchMixin):
         return "clang-tidy"
 
     def get_suggestions_from_patch(
-        self, file_obj: FileObj, summary_only: bool, review_comments: ReviewComments
+        self,
+        file_obj: FileObj,
+        summary_only: bool,
+        review_comments: ReviewComments,
+        repo_root: str,
     ):
-        super().get_suggestions_from_patch(file_obj, summary_only, review_comments)
+        super().get_suggestions_from_patch(
+            file_obj, summary_only, review_comments, repo_root
+        )
 
         def _has_related_suggestion(suggestion: Suggestion) -> bool:
             for known in review_comments.suggestions:
@@ -199,6 +204,7 @@ def run_clang_tidy(
     db_json: list[dict[str, str]] | None,
     tidy_review: bool,
     style: str,
+    repo_root: str,
 ) -> TidyAdvice:
     """Run clang-tidy on a certain file.
 
@@ -231,6 +237,9 @@ def run_clang_tidy(
         ``compile_commands.json file``.
     :param tidy_review: A flag to enable/disable creating a diff suggestion for
         PR review comments.
+    :param style: The clang-format style that clang-tidy uses to format its fixes.
+    :param repo_root: The path that the file's name is relative to. clang-tidy runs
+        in this directory.
     """
     filename = file_obj.name.replace("/", os.sep)
     cmds = [command]
@@ -258,28 +267,30 @@ def run_clang_tidy(
     if tidy_review:
         # clang-tidy overwrites the file contents when applying fixes.
         # create a cache of original contents
-        original_buf = file_obj.read_with_timeout()
+        original_buf = file_obj.read_with_timeout(repo_root)
         cmds.append("--fix-errors")  # include compiler-suggested fixes
     cmds.append(filename)
     logger.info('Running "%s"', " ".join(cmds))
-    results = subprocess.run(cmds, capture_output=True, check=False)
+    results = subprocess.run(cmds, capture_output=True, check=False, cwd=repo_root)
     logger.debug("Output from clang-tidy:\n%s", results.stdout.decode())
     if results.stderr:
         logger.debug(
             "clang-tidy made the following summary:\n%s", results.stderr.decode()
         )
 
-    advice = parse_tidy_output(results.stdout.decode(), database=db_json)
+    advice = parse_tidy_output(
+        results.stdout.decode(), database=db_json, repo_root=repo_root
+    )
 
     if tidy_review:
         # store the modified output from clang-tidy and re-write original file contents
-        advice.patched = file_obj.read_write_with_timeout(original_buf)
+        advice.patched = file_obj.read_write_with_timeout(repo_root, original_buf)
 
     return advice
 
 
 def parse_tidy_output(
-    tidy_out: str, database: list[dict[str, str]] | None
+    tidy_out: str, database: list[dict[str, str]] | None, repo_root: str
 ) -> TidyAdvice:
     """Parse clang-tidy stdout.
 
@@ -287,6 +298,7 @@ def parse_tidy_output(
     :param database: The compilation database deserialized from JSON, only if
         :std:option:`--database` argument points to a valid path containing a
         ``compile_commands.json file``.
+    :param repo_root: The path that clang-tidy ran in.
     """
     notification = None
     found_fix = False
@@ -306,6 +318,7 @@ def parse_tidy_output(
                         note_match.groups(),
                     ),
                     database,
+                    repo_root,
                 )
                 tidy_notes.append(notification)
                 # begin capturing subsequent lines as part of notification details

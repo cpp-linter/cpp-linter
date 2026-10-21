@@ -159,6 +159,7 @@ def create_review_comments(
     tidy_tool: bool,
     summary_only: bool,
     review_comments: ReviewComments,
+    repo_root: str,
 ):
     """Creates a batch of comments for a specific clang tool's PR review.
 
@@ -168,6 +169,7 @@ def create_review_comments(
     :param summary_only: A flag to indicate if only the review summary is desired.
     :param review_comments: An object (passed by reference) that is used to store
         the results.
+    :param repo_root: The path that the files' names are relative to.
     """
     tool_name = "clang-tidy" if tidy_tool else "clang-format"
     review_comments.tool_total[tool_name] = 0
@@ -179,7 +181,9 @@ def create_review_comments(
             tool_advice = file_obj.format_advice
         if not tool_advice:
             continue
-        tool_advice.get_suggestions_from_patch(file_obj, summary_only, review_comments)
+        tool_advice.get_suggestions_from_patch(
+            file_obj, summary_only, review_comments, repo_root
+        )
 
 
 def make_annotations(files: list[FileObj], style: str) -> list[FileAnnotation]:
@@ -366,7 +370,9 @@ class LinterClient:
             if args.step_summary:
                 self._client.append_step_summary(comment)
             if args.summary_output_file:
-                self._write_summary_file(args.summary_output_file, comment)
+                self._write_summary_file(
+                    Path(args.repo_root, args.summary_output_file), comment
+                )
 
         if args.file_annotations:
             annotations = make_annotations(files, args.style)
@@ -403,8 +409,8 @@ class LinterClient:
         return checks_failed
 
     @staticmethod
-    def _write_summary_file(path: str, comment: str):
-        output_path = Path(path).resolve()
+    def _write_summary_file(path: Path, comment: str):
+        output_path = path.resolve()
         try:
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(f"\n{comment}\n", encoding="utf-8")
@@ -423,9 +429,13 @@ class LinterClient:
         ).lower() in ("true", "on", "1")
         review_comments = ReviewComments()
         if args.format_review:
-            create_review_comments(files, False, summary_only, review_comments)
+            create_review_comments(
+                files, False, summary_only, review_comments, args.repo_root
+            )
         if args.tidy_review:
-            create_review_comments(files, True, summary_only, review_comments)
+            create_review_comments(
+                files, True, summary_only, review_comments, args.repo_root
+            )
 
         is_lgtm = not sum(
             x for x in review_comments.tool_total.values() if isinstance(x, int)

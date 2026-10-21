@@ -48,7 +48,7 @@ TIDY_OUT = """
 @pytest.mark.no_clang
 def test_parse_clang_tidy_output() -> None:
     """parsing of clang-tidy output to validate the regex patterns used."""
-    advice = parse_tidy_output(TIDY_OUT, database=None)
+    advice = parse_tidy_output(TIDY_OUT, database=None, repo_root=".")
 
     assert len(advice.notes) == 4
     for note in advice.notes:

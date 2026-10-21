@@ -143,7 +143,7 @@ def test_list_src_files(
     """List the source files in the root folder of this repo."""
     monkeypatch.chdir(Path(__file__).parent.parent.as_posix())
     caplog.set_level(logging.DEBUG, logger=logger.name)
-    files = list_source_files(make_file_filter(extensions=extensions))
+    files = list_source_files(make_file_filter(extensions=extensions), ".")
     assert files
     for file in files:
         assert Path(file.name).suffix.lstrip(".") in extensions
@@ -208,7 +208,9 @@ def test_clang_analyzer_link():
             severity,
             rationale,
             diagnostic_name,
-        )
+        ),
+        database=None,
+        repo_root=".",
     )
     assert note.diagnostic_link == (
         "[{}]({}/{}.html)".format(
@@ -230,7 +232,9 @@ def test_diagnostic_link_no_hyphen() -> None:
             "error",
             "Test rationale",
             "no_diagnostic_name",
-        )
+        ),
+        database=None,
+        repo_root=".",
     )
     assert note.diagnostic_link == "no_diagnostic_name"
 
@@ -248,8 +252,8 @@ def test_rest_api_skips_files_without_advice():
     assert "src/main.cpp" not in comment
 
     review = ReviewComments()
-    create_review_comments([file_obj], False, False, review)
-    create_review_comments([file_obj], True, False, review)
+    create_review_comments([file_obj], False, False, review, ".")
+    create_review_comments([file_obj], True, False, review, ".")
     assert review.tool_total == {"clang-tidy": 0, "clang-format": 0}
     assert not review.suggestions
 
@@ -328,7 +332,7 @@ def test_post_review_short_circuits_when_all_comments_reused(
 ):
     """No review is posted if culling leaves no comments to post."""
 
-    def fake_create_review_comments(files, is_tidy, summary_only, review):
+    def fake_create_review_comments(files, is_tidy, summary_only, review, repo_root):
         suggestion = Suggestion("src/main.cpp")
         suggestion.line_end = 4
         suggestion.comment = "### clang-format\nformat issue"
@@ -354,7 +358,11 @@ def test_post_review_short_circuits_when_all_comments_reused(
     git_client = FakeGitClient()
     client = LinterClient(cast(GitClient, git_client))
     args = SimpleNamespace(
-        format_review=True, tidy_review=False, no_lgtm=False, passive_reviews=False
+        format_review=True,
+        tidy_review=False,
+        no_lgtm=False,
+        passive_reviews=False,
+        repo_root=".",
     )
 
     asyncio.run(
@@ -384,13 +392,13 @@ def test_removal_only_patch_creates_suggestion(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(patcher, "Patch", PatchFactory)
     file_obj = FileObj("src/main.cpp")
-    monkeypatch.setattr(file_obj, "read_with_timeout", lambda: b"")
+    monkeypatch.setattr(file_obj, "read_with_timeout", lambda *_: b"")
     monkeypatch.setattr(file_obj, "is_hunk_contained", lambda _: (7, 7))
     advice = FormatPatch()
     advice.patched = b"diff"
     review = ReviewComments()
 
-    advice.get_suggestions_from_patch(file_obj, False, review)
+    advice.get_suggestions_from_patch(file_obj, False, review, ".")
 
     assert review.tool_total["clang-format"] == 1
     assert "Please remove the line(s)" in review.suggestions[0].comment
@@ -489,14 +497,17 @@ def test_main_runs_cli_workflow(
     )
     monkeypatch.setattr(cpp_linter, "LinterClient", lambda: client)
     monkeypatch.setattr(cpp_linter, "make_file_filter", lambda **kwargs: file_filter)
-    monkeypatch.setattr(cpp_linter, "list_source_files", lambda _: source_files)
+    monkeypatch.setattr(cpp_linter, "list_source_files", lambda *_: source_files)
     monkeypatch.setattr(
         cpp_linter, "capture_clang_tools_output", lambda **kwargs: ClangVersions()
     )
-    monkeypatch.setattr(cpp_linter, "CACHE_PATH", tmp_path / "cache")
+    monkeypatch.setattr(cpp_linter, "CACHE_PATH", Path(".cpp-linter_cache"))
 
     cpp_linter.main()
 
+    # cpp-linter stays in the working directory; the cache goes in the repo root
+    assert Path.cwd().samefile(tmp_path)
+    assert (repo_root / ".cpp-linter_cache").is_dir()
     assert client.get_changed_files_args is not None
     assert client.get_changed_files_args["lines_changed_only"] == (
         0 if is_pr_event else lines_changed_only

@@ -72,6 +72,7 @@ def _run_on_single_file(
                 db_json=db_json,
                 tidy_review=args.tidy_review,
                 style=args.style,
+                repo_root=args.repo_root,
             )
         except FileIOTimeout:  # pragma: no cover
             logger.error(
@@ -89,6 +90,7 @@ def _run_on_single_file(
                 style=args.style,
                 lines_changed_only=args.lines_changed_only,
                 format_review=args.format_review,
+                repo_root=args.repo_root,
                 fix=args.fix,
             )
         except FileIOTimeout:  # pragma: no cover
