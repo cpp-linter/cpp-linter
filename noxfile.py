@@ -12,7 +12,7 @@ import nox
 
 ci_logger = logging.getLogger("CI logger")
 ci_handler = logging.StreamHandler(stream=sys.stdout)
-ci_handler.formatter = logging.Formatter("%(msg)s")
+ci_handler.formatter = logging.Formatter("%(message)s")
 ci_logger.handlers.append(ci_handler)
 ci_logger.propagate = False
 
