@@ -11,6 +11,7 @@ from mock_server import MockServer, diff_to_pr_files
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.cli import Args
 from cpp_linter.common_fs.file_filter import make_file_filter
+from cpp_linter.loggers import logger
 from cpp_linter.rest_api import LinterClient
 
 TEST_REPO = "cpp-linter/test-cpp-linter-action"
@@ -45,10 +46,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
     argvalues=[
         tuple(mk_param_set(is_draft=True).values()),
         tuple(mk_param_set(is_closed=True).values()),
-        pytest.param(
-            *tuple(mk_param_set(with_token=False).values()),
-            marks=pytest.mark.xfail,
-        ),
+        tuple(mk_param_set(with_token=False).values()),
         tuple(mk_param_set(force_approved=True).values()),
         tuple(mk_param_set(force_approved=True, no_lgtm=True).values()),
         tuple(mk_param_set(tidy_review=True, format_review=False).values()),
@@ -77,6 +75,7 @@ def mk_param_set(**kwargs) -> OrderedDict:
 def test_post_review(
     mock_server: MockServer,
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
     tmp_path: Path,
     is_draft: bool,
     is_closed: bool,
@@ -107,6 +106,9 @@ def test_post_review(
     monkeypatch.setenv("CI", "true")
     if with_token:
         monkeypatch.setenv("GITHUB_TOKEN", "123456")
+    else:
+        # don't let a token from the developer's or CI's environment leak in
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     if summary_only:
         monkeypatch.setenv("CPP_LINTER_PR_REVIEW_SUMMARY_ONLY", "true")
     monkeypatch.setenv("COVERAGE_FILE", str(Path.cwd() / ".coverage"))
@@ -194,6 +196,16 @@ def test_post_review(
         else:
             assert not tidy_advice
         assert format_advice and len(format_advice) <= len(files)
+
+    if not with_token:
+        # a review was requested without a token to post it
+        monkeypatch.setattr(logger, "propagate", True)  # for caplog
+        with pytest.raises(SystemExit) as exc_info:
+            asyncio.run(client.post_feedback(files, args, clang_versions))
+        assert exc_info.value.code == 1
+        assert "A token is required to post review comments!" in caplog.text
+        assert not mock.requests_to("POST", f"{base_path}/reviews")
+        return
 
     asyncio.run(client.post_feedback(files, args, clang_versions))
 

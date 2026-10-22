@@ -17,6 +17,8 @@ def mock_server(
     monkeypatch.setenv("GITHUB_OUTPUT", str(out_dir / "output"))
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(out_dir / "step_summary.md"))
     monkeypatch.setenv("GITHUB_API_URL", server.base_url)
+    # keep GraphQL requests (used for PR reviews) off the real api.github.com
+    monkeypatch.setenv("GITHUB_GRAPHQL_URL", f"{server.base_url}/graphql")
     monkeypatch.setenv("GITHUB_SERVER_URL", server.base_url)
     monkeypatch.setenv("GITHUB_RUN_ID", "42024")
     yield server
