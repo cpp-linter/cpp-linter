@@ -53,7 +53,9 @@ async def run():
     except ValueError as exc:
         logger.error(exc)
         sys.exit(1)
-    client.repo_root_prefix = get_repo_root_prefix(args.repo_root)
+    client.repo_root_prefix = get_repo_root_prefix(
+        args.repo_root, client.workspace_root()
+    )
 
     # prepare ignored paths list
     global_file_filter = make_file_filter(

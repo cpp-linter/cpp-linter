@@ -33,7 +33,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "git-bot-feedback>=0.2.9",
+    "git-bot-feedback>=0.3.0",
     "pyyaml>=6.0.2",
 ]
 

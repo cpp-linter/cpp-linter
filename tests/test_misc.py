@@ -476,6 +476,9 @@ def test_main_runs_cli_workflow(
         def is_pr_event(self):
             return is_pr_event
 
+        def workspace_root(self):
+            return None
+
         async def get_changed_files(self, **kwargs):
             self.get_changed_files_args = kwargs
             return changed_files

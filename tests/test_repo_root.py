@@ -1,6 +1,7 @@
 """Tests for checking the :std:option:`--repo-root` path."""
 
 import asyncio
+import logging
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -147,6 +148,64 @@ def test_repo_root_prefix_without_git(work: Path):
     is used as the top level of the repository."""
     assert get_repo_root_prefix(".") == ""
     assert get_repo_root_prefix("sub") == "sub/"
+
+
+@pytest.mark.no_clang
+def test_repo_root_prefix_from_workspace_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Without a ``.git`` folder, the CI workspace is the top level of the repository,
+    even when cpp-linter runs from a sub-folder of it."""
+    workspace = tmp_path / "workspace"
+    (workspace / "member" / "src").mkdir(parents=True)
+    monkeypatch.chdir(workspace / "member")
+    assert get_repo_root_prefix(".", workspace) == "member/"
+    assert get_repo_root_prefix("src", workspace) == "member/src/"
+
+
+@pytest.mark.no_clang
+def test_repo_root_prefix_prefers_git_root(mono_repo: Path, tmp_path: Path):
+    """A ``.git`` folder wins over the CI workspace, as with ``actions/checkout``
+    ``path: mono``, where ``GITHUB_WORKSPACE`` is the parent of the git repository."""
+    assert get_repo_root_prefix("member", tmp_path) == "member/"
+
+
+@pytest.mark.no_clang
+def test_repo_root_prefix_ignores_unrelated_workspace_root(work: Path, tmp_path: Path):
+    """A workspace root that does not contain the repo root is not used."""
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    assert get_repo_root_prefix("sub", elsewhere) == "sub/"
+
+
+class FakeWorkspaceClient:
+    def __init__(self, workspace_root: Path | None, error: str | None = None):
+        self._workspace_root = workspace_root
+        self._error = error
+
+    def workspace_root(self) -> Path | None:
+        if self._error is not None:
+            raise ValueError(self._error)
+        return self._workspace_root
+
+
+@pytest.mark.no_clang
+def test_client_workspace_root(tmp_path: Path):
+    client = LinterClient(cast(gbf.GitClient, FakeWorkspaceClient(tmp_path)))
+    assert client.workspace_root() == tmp_path
+    client = LinterClient(cast(gbf.GitClient, FakeWorkspaceClient(None)))
+    assert client.workspace_root() is None
+
+
+@pytest.mark.no_clang
+def test_client_workspace_root_error(caplog: pytest.LogCaptureFixture):
+    """An unreadable workspace variable is logged and treated as no workspace."""
+    client = LinterClient(
+        cast(gbf.GitClient, FakeWorkspaceClient(None, "GITHUB_WORKSPACE is not set"))
+    )
+    with caplog.at_level(logging.WARNING, logger="CPP Linter"):
+        assert client.workspace_root() is None
+    assert "GITHUB_WORKSPACE is not set" in caplog.text
 
 
 class ChangedFilesClient:

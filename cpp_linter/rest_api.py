@@ -255,6 +255,19 @@ class LinterClient:
         #: and file names relative to the git repository.
         self.repo_root_prefix: str = ""
 
+    def workspace_root(self) -> Path | None:
+        """The CI workspace's root folder, as the CI platform's environment
+        variable gives it (for example ``GITHUB_WORKSPACE``).
+
+        :returns: `None` when not running in a supported CI platform, or when the
+            variable cannot be read.
+        """
+        try:
+            return self._client.workspace_root()
+        except ValueError as exc:
+            logger.warning("Could not get the workspace root: %s", exc)
+            return None
+
     @property
     def event_name(self) -> str:
         """The triggering event type's name."""
