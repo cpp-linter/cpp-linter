@@ -398,6 +398,7 @@ wheels = [
 name = "git-bot-feedback"
 version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/42/fbbdd6ee8a3a0785cd49ff6ab5fed02a63ab7d17735f0a0c9c7dc13ac95a/git_bot_feedback-0.3.0.tar.gz", hash = "sha256:f85d1fe630e9dccb4b7907fbfa39f87b00b123e4e4c38544d6b1f004aa3aec42", size = 154342, upload-time = "2026-10-22T22:12:26.588Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a3/8b/529efbca41f2b1d9dd2bfd187a3a987fab9827c617d42bca1062903f436b/git_bot_feedback-0.3.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:f9e291c803d9fa7950d5487a32d8125057ac33075a819c35b77558d6d64a3617", size = 4073841, upload-time = "2026-10-22T22:12:01.011Z" },
     { url = "https://files.pythonhosted.org/packages/d1/b2/233d6bb4e17e8394aef720e26f686b9f44faff870958686289a7cea35140/git_bot_feedback-0.3.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:036fbcde24ff52ac8dd20a3cf8673d6d0f16cf0ec25589a51a7dd425192aad5d", size = 3923498, upload-time = "2026-10-22T22:12:02.896Z" },
@@ -411,6 +412,9 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e2/54/7cdc9a1384b84804e4dcd13189632e20563667aaab1b0ed5885843c94a80/git_bot_feedback-0.3.0-cp310-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:370c3489eecc3e96c8f0e938612bee6f7256e46d45bda6aef934bce8a9025c3f", size = 3099744, upload-time = "2026-10-22T22:12:16.927Z" },
     { url = "https://files.pythonhosted.org/packages/9d/70/f59eeca8fabedc628ad3e23bcdd73b4d215a0008c96cd1bf2adf80040f86/git_bot_feedback-0.3.0-cp310-abi3-musllinux_1_2_i686.whl", hash = "sha256:ec2c88cc76c81c2e2f0bbc86c97974e329a91e095dc3bfef264a3499feb875e8", size = 3486288, upload-time = "2026-10-22T22:12:18.42Z" },
     { url = "https://files.pythonhosted.org/packages/e7/85/c0e1d6d76b5ac25b89160d61bb452d5d7ad142a8e25f436746ddc3810e6b/git_bot_feedback-0.3.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:adc3b0e31ac3949d6288849489a9a0ec02b9e8cd16b2aa06b92f73c4f60e077a", size = 3894186, upload-time = "2026-10-22T22:12:20.038Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/f6/295ed50714dd4928ec0cd2136f9d45d68f149128251f5dad7af184ac7204/git_bot_feedback-0.3.0-cp310-abi3-win32.whl", hash = "sha256:0f5e473e5326c61400b9c2ed48718494694c0942dfac9e9c567cb2715d6e7842", size = 3022178, upload-time = "2026-10-22T22:12:22.013Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/4a/2059fb9f5af8eaf7897926d47c91d6d2bdff12f936d55f0342af993f3334/git_bot_feedback-0.3.0-cp310-abi3-win_amd64.whl", hash = "sha256:57d48dc4a829e102e8dcabec156e39bb89b28b00ce16d7a850b8cd2191872da9", size = 3531559, upload-time = "2026-10-22T22:12:23.469Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/61/2f2474e9c9e1b6aaa08578d64c2329ce4a87b188590259dd22650b2baf28/git_bot_feedback-0.3.0-cp311-abi3-win_arm64.whl", hash = "sha256:4020419860cafc66b2baaeea4d8d9ccbccc22a2fc5122b814464255398e90339", size = 3484730, upload-time = "2026-10-22T22:12:25.084Z" },
 ]
 
 [[package]]
