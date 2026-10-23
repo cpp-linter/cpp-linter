@@ -186,12 +186,19 @@ def create_review_comments(
         )
 
 
-def make_annotations(files: list[FileObj], style: str) -> list[FileAnnotation]:
-    """Create annotations from the clang tools' advice."""
+def make_annotations(
+    files: list[FileObj], style: str, path_prefix: str = ""
+) -> list[FileAnnotation]:
+    """Create annotations from the clang tools' advice.
+
+    :param path_prefix: The path of the repo root inside the git repository (see
+        `~cpp_linter.common_fs.get_repo_root_prefix()`). Annotations use paths
+        relative to the git repository.
+    """
     annotations: list[FileAnnotation] = []
     style_guide = formalize_style_name(style)
     for file_obj in files:
-        name = file_obj.name
+        name = path_prefix + file_obj.name
         if file_obj.format_advice and file_obj.format_advice.replaced_lines:
             line_list = ", ".join(
                 str(fix.line) for fix in file_obj.format_advice.replaced_lines
@@ -207,7 +214,7 @@ def make_annotations(files: list[FileObj], style: str) -> list[FileAnnotation]:
             )
         if file_obj.tidy_advice:
             for note in file_obj.tidy_advice.notes:
-                if note.filename != name:
+                if note.filename != file_obj.name:
                     continue
                 if note.severity.startswith("note"):
                     severity = AnnotationLevel.Notice
@@ -242,6 +249,24 @@ class LinterClient:
             git_client = GitClient()
             git_client.set_user_agent(USER_AGENT)
         self._client = git_client
+        #: The path of the :std:option:`--repo-root` inside the git repository (see
+        #: `~cpp_linter.common_fs.get_repo_root_prefix()`). The changed files and the
+        #: feedback use it to convert between file names relative to the repo root
+        #: and file names relative to the git repository.
+        self.repo_root_prefix: str = ""
+
+    def workspace_root(self) -> Path | None:
+        """The CI workspace's root folder, as the CI platform's environment
+        variable gives it (for example ``GITHUB_WORKSPACE``).
+
+        :returns: `None` when not running in a supported CI platform, or when the
+            variable cannot be read.
+        """
+        try:
+            return self._client.workspace_root()
+        except ValueError as exc:
+            logger.warning("Could not get the workspace root: %s", exc)
+            return None
 
     @property
     def event_name(self) -> str:
@@ -285,6 +310,7 @@ class LinterClient:
         :param diff_base: The commit or ref to use as the base of the diff.
         :param ignore_index: Setting this flag to `True` will ignore any staged changes
             in the index when producing a diff.
+        :returns: The changed files, named relative to the repo root.
         """
         return await get_list_of_changed_files(
             file_filter=file_filter,
@@ -292,6 +318,7 @@ class LinterClient:
             diff_base=diff_base,
             ignore_index=ignore_index,
             git_client=self._client,
+            path_prefix=self.repo_root_prefix,
         )
 
     def set_exit_code(
@@ -375,7 +402,7 @@ class LinterClient:
                 )
 
         if args.file_annotations:
-            annotations = make_annotations(files, args.style)
+            annotations = make_annotations(files, args.style, self.repo_root_prefix)
             if annotations:
                 self._client.write_file_annotations(annotations)
 
@@ -455,7 +482,8 @@ class LinterClient:
             if summary_only
             else [
                 ReviewComment(
-                    path=sug.file_name,
+                    # relative to the git repository
+                    path=self.repo_root_prefix + sug.file_name,
                     comment=sug.comment,
                     line_end=sug.line_end,
                     line_start=sug.line_start

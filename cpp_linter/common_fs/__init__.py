@@ -4,6 +4,8 @@ from os import environ
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import git_bot_feedback as gbf
+
 from ..loggers import logger
 
 if TYPE_CHECKING:  # pragma: no covers
@@ -38,6 +40,42 @@ def resolve_repo_root(repo_root: str) -> str:
     if not os.path.isdir(root):
         raise ValueError(f"--repo-root '{repo_root}' is not a directory")
     return root
+
+
+def get_repo_root_prefix(repo_root: str, workspace_root: Path | None = None) -> str:
+    """Get the path of :std:option:`--repo-root` inside its git repository.
+
+    Git (and the git server's REST API) names changed files relative to the top level
+    of the git repository, but cpp-linter names files relative to the
+    :std:option:`--repo-root`. This prefix converts between the two.
+
+    The top level of the git repository is the first of these that contains
+    ``repo_root``:
+
+    1. The closest folder, starting with ``repo_root`` itself, that has a ``.git``
+       folder (or a ``.git`` file, as in a submodule). See
+       `git_bot_feedback.nearest_git_root()`.
+    2. The ``workspace_root``, as in a checkout made without git on a CI runner.
+    3. The working directory.
+
+    :param repo_root: The path to the repository root, as returned by
+        `resolve_repo_root()`.
+    :param workspace_root: The CI workspace's root folder, if any (see
+        `~cpp_linter.rest_api.LinterClient.workspace_root()`).
+    :returns: The path with a trailing ``/`` (for example ``member/``), or an empty
+        string if ``repo_root`` is the top level.
+    """
+    root = Path(repo_root).resolve()
+    candidates = (
+        gbf.nearest_git_root(root),
+        workspace_root.resolve() if workspace_root is not None else None,
+        Path.cwd().resolve(),
+    )
+    top = next(
+        (path for path in candidates if path and root.is_relative_to(path)), root
+    )
+    prefix = root.relative_to(top).as_posix()
+    return "" if prefix == "." else f"{prefix}/"
 
 
 class FileObj:

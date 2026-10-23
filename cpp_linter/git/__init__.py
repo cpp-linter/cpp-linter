@@ -24,6 +24,7 @@ async def get_list_of_changed_files(
     lines_changed_only: int,
     diff_base: None | int | str = None,
     ignore_index: bool = False,
+    path_prefix: str = "",
 ) -> list[FileObj]:
     """Retrieve changed files delegating to git-bot-feedback.
 
@@ -32,20 +33,40 @@ async def get_list_of_changed_files(
     :param diff_base: The commit or ref to use as the base of the diff.
     :param ignore_index: Ignore staged files in index.
     :param git_client: The `git_bot_feedback.GitClient` to delegate to.
-    :returns: A list of `FileObj` describing the changed files.
+    :param path_prefix: The path of the repo root inside the git repository (see
+        `~cpp_linter.common_fs.get_repo_root_prefix()`).
+    :returns: A list of `FileObj` describing the changed files. The file names are
+        relative to the repo root. Changed files outside the repo root are left out.
     """
     lines_mode = to_gbf_lines_changed_only(lines_changed_only)
     base_diff_str = str(diff_base) if diff_base is not None else None
 
+    # The changed files are named relative to the top level of the git repository,
+    # but the `file_filter` patterns are relative to the repo root. So, when the repo
+    # root is a sub-folder, only filter by file extension here, and apply the
+    # `file_filter` after the names are made relative to the repo root.
+    # An empty pattern after `!` explicitly does not ignore any path.
+    git_filter = (
+        gbf.FileFilter(ignore=["!"], extensions=list(file_filter.extensions))
+        if path_prefix
+        else file_filter
+    )
     changed_map = await git_client.get_list_of_changed_files(
-        file_filter,
+        git_filter,
         lines_mode,
         base_diff=base_diff_str,
         ignore_index=ignore_index,
     )
     file_objects: list[FileObj] = []
-    for file_name in sorted(changed_map.keys()):
-        file_diff = changed_map[file_name]
+    for git_name in sorted(changed_map.keys()):
+        file_name = git_name
+        if path_prefix:
+            if not git_name.startswith(path_prefix):
+                continue  # the file is outside the repo root
+            file_name = git_name[len(path_prefix) :]
+            if not file_filter.is_qualified(file_name):
+                continue
+        file_diff = changed_map[git_name]
         diff_chunks = [list(h) for h in file_diff.diff_hunks]
         additions = file_diff.added_lines
         if has_line_changes(lines_changed_only, diff_chunks, additions):

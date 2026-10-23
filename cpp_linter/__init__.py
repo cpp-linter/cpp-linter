@@ -10,7 +10,7 @@ from pathlib import Path
 from ._version import version
 from .clang_tools import capture_clang_tools_output
 from .cli import Args, get_cli_parser
-from .common_fs import CACHE_PATH, resolve_repo_root
+from .common_fs import CACHE_PATH, get_repo_root_prefix, resolve_repo_root
 from .common_fs.file_filter import list_source_files, make_file_filter
 from .loggers import git_bot_logger, logger
 from .rest_api import LinterClient
@@ -53,6 +53,9 @@ async def run():
     except ValueError as exc:
         logger.error(exc)
         sys.exit(1)
+    client.repo_root_prefix = get_repo_root_prefix(
+        args.repo_root, client.workspace_root()
+    )
 
     # prepare ignored paths list
     global_file_filter = make_file_filter(
