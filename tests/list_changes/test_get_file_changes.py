@@ -116,3 +116,25 @@ def test_files_without_patches(
     # git-bot-feedback skips files lacking patch info when filtering by lines
     skipped = status == "removed" or lines_changed_only > 0
     assert [file.name for file in files] == ([] if skipped else ["src/large.cpp"])
+
+
+@pytest.mark.no_clang
+@pytest.mark.parametrize("event_name", ["push", "pull_request"])
+def test_get_changed_files_not_found(
+    mock_server: MockServer,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    event_name: str,
+):
+    """An unknown PR or commit (HTTP 404) is an error, not an empty list of files."""
+    _setup_event(monkeypatch, tmp_path, event_name)
+    # no routes are registered, so the server answers every request with 404
+
+    client = LinterClient()
+    with pytest.raises(OSError, match="404"):
+        asyncio.run(
+            client.get_changed_files(
+                make_file_filter(extensions=["cpp"]), lines_changed_only=0
+            )
+        )
+    assert mock_server.requests_to("GET", _endpoint(event_name))

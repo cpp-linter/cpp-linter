@@ -29,7 +29,7 @@ TEST_SHA = "8d68756375e0483c7ac2b4d6bbbece420dbbb495"
         ("true", False),
         ("false", True),
         ("false", False),
-        pytest.param("fail", False, marks=pytest.mark.xfail),
+        ("fail", False),
     ],
     ids=[
         "updated-no_lgtm",
@@ -137,6 +137,9 @@ def test_post_feedback(
 
     if thread_comments != "fail":
         monkeypatch.setenv("GITHUB_TOKEN", "123456")
+    else:
+        # don't let a token from the developer's or CI's environment leak in
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     summary_path = tmp_path / "step_summary.md"
     summary_path.touch()
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
@@ -191,6 +194,16 @@ def test_post_feedback(
     # to get debug files saved to test workspace folders: enable logger verbosity
     caplog.set_level(logging.DEBUG, logger=logger.name)
     caplog.set_level(logging.DEBUG, logger=git_bot_logger.name)
+
+    if thread_comments == "fail":
+        # thread comments were requested without a token to post them
+        monkeypatch.setattr(logger, "propagate", True)  # for caplog
+        with pytest.raises(SystemExit) as exc_info:
+            asyncio.run(client.post_feedback(files, args, clang_versions))
+        assert exc_info.value.code == 1
+        assert "The token is required to post comments!" in caplog.text
+        assert not [r for r in mock.requests if r.method != "GET"]
+        return
 
     asyncio.run(client.post_feedback(files, args, clang_versions))
     writes = [r for r in mock.requests if r.method in ("POST", "PATCH", "DELETE")]
