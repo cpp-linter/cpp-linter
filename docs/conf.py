@@ -193,11 +193,11 @@ class CliBadge(SphinxRole):
             old_highlight = self.inliner.document.settings.syntax_highlight
             self.inliner.document.settings.syntax_highlight = "yaml"
             code, sys_msgs = docutils.parsers.rst.roles.code_role(
-                role="code",
-                rawtext=self.rawtext,
-                text=self.text,
-                lineno=self.lineno,
-                inliner=self.inliner,
+                "code",
+                self.rawtext,
+                self.text,
+                self.lineno,
+                self.inliner,
                 options={"language": "yaml", "classes": ["highlight"]},
                 content=self.content,
             )
