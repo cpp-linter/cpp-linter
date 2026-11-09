@@ -56,6 +56,7 @@ def test_parse_clang_tidy_output() -> None:
         assert "-" in note.diagnostic
 
 
+# cspell:ignore mwarning mvariable deadcode
 # Output of clang-tidy 18 when `.clang-tidy` sets `UseColor: true`.
 # Colors are emitted even when stdout is piped.
 COLORED_TIDY_OUT = (
