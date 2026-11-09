@@ -2,6 +2,7 @@ import asyncio
 import json
 from pathlib import Path
 
+import git_bot_feedback as gbf
 import pytest
 from mock_server import MockServer
 
@@ -131,7 +132,7 @@ def test_get_changed_files_not_found(
     # no routes are registered, so the server answers every request with 404
 
     client = LinterClient()
-    with pytest.raises(OSError, match="404"):
+    with pytest.raises(gbf.RequestError, match="404"):
         asyncio.run(
             client.get_changed_files(
                 make_file_filter(extensions=["cpp"]), lines_changed_only=0
