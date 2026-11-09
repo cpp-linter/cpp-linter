@@ -15,6 +15,9 @@ NOTE_HEADER = re.compile(
     r"^(.+):(\d+):(\d+):\s(\w+):(.*)\[([a-zA-Z\d\-\.]+),?[^\]]*\]$"
 )
 FIXED_NOTE = re.compile(r"^.+:(\d+):\d+:\snote: FIX-IT applied suggested code changes$")
+# ANSI color codes; clang-tidy emits them even when piped if `.clang-tidy` sets
+# `UseColor: true`.
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
 
 
 class TidyNotification:
@@ -303,7 +306,7 @@ def parse_tidy_output(
     notification = None
     found_fix = False
     tidy_notes = []
-    for line in tidy_out.splitlines():
+    for line in ANSI_ESCAPE.sub("", tidy_out).splitlines():
         note_match = re.match(NOTE_HEADER, line)
         fixed_match = re.match(FIXED_NOTE, line)
         if note_match is not None:
