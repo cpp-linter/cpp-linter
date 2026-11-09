@@ -409,30 +409,40 @@ class LinterClient:
         self.set_exit_code(checks_failed, format_checks_failed, tidy_checks_failed)
 
         if args.thread_comments != "false":
-            if not self.has_token:
+            if self._client.is_pr_event() and not self._client.is_pr_same_remote():
+                logger.warning(
+                    "PR originated from a different remote; skipped posting thread-comments"
+                )
+            elif not self.has_token:
                 logger.error("The token is required to post comments!")
                 sys.exit(1)
-            if comment is None or len(comment) >= THREAD_COMMENT_LIMIT:
-                comment = comment_with_limit(THREAD_COMMENT_LIMIT)
-            await self._client.post_thread_comment(
-                ThreadCommentOptions(
-                    policy=CommentPolicy.Update
-                    if args.thread_comments == "update"
-                    else CommentPolicy.Anew,
-                    comment=comment,
-                    kind=CommentKind.Lgtm
-                    if not checks_failed
-                    else CommentKind.Concerns,
-                    marker=COMMENT_MARKER,
-                    no_lgtm=args.no_lgtm,
+            else:
+                if comment is None or len(comment) >= THREAD_COMMENT_LIMIT:
+                    comment = comment_with_limit(THREAD_COMMENT_LIMIT)
+                await self._client.post_thread_comment(
+                    ThreadCommentOptions(
+                        policy=CommentPolicy.Update
+                        if args.thread_comments == "update"
+                        else CommentPolicy.Anew,
+                        comment=comment,
+                        kind=CommentKind.Lgtm
+                        if not checks_failed
+                        else CommentKind.Concerns,
+                        marker=COMMENT_MARKER,
+                        no_lgtm=args.no_lgtm,
+                    )
                 )
-            )
 
         if self.is_pr_event and (args.tidy_review or args.format_review):
-            if not self.has_token:
+            if not self._client.is_pr_same_remote():
+                logger.warning(
+                    "PR originated from a different remote; skipped posting review comments"
+                )
+            elif not self.has_token:
                 logger.error("A token is required to post review comments!")
                 sys.exit(1)
-            await self._post_review(files, args, clang_versions)
+            else:
+                await self._post_review(files, args, clang_versions)
         return checks_failed
 
     @staticmethod

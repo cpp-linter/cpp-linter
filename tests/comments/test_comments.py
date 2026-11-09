@@ -9,7 +9,9 @@ from mock_server import MockServer
 
 from cpp_linter.clang_tools import capture_clang_tools_output
 from cpp_linter.clang_tools.clang_tidy import TidyNotification
+from cpp_linter.clang_versions import ClangVersions
 from cpp_linter.cli import Args
+from cpp_linter.common_fs import FileObj
 from cpp_linter.common_fs.file_filter import list_source_files, make_file_filter
 from cpp_linter.loggers import git_bot_logger, logger
 from cpp_linter.rest_api import LinterClient
@@ -77,6 +79,8 @@ def test_post_feedback(
             "draft": False,
             "state": "open",
             "locked": False,
+            "head": {"repo": {"id": 100, "full_name": TEST_REPO}},
+            "base": {"repo": {"id": 100, "full_name": TEST_REPO}},
         },
     }
     event_payload_path = tmp_path / "event_payload.json"
@@ -227,3 +231,105 @@ def test_post_feedback(
             raise RuntimeError(
                 "Expected a log message about the step summary from git-bot-feedback."
             )
+
+
+@pytest.mark.no_clang
+@pytest.mark.parametrize(
+    "thread_comments,with_token",
+    [
+        ("update", True),
+        ("true", True),
+        ("false", True),
+        ("update", False),
+        ("fail", False),
+    ],
+    ids=[
+        "update-with_token",
+        "new-with_token",
+        "disabled-with_token",
+        "update-no_token",
+        "fail-no_token",
+    ],
+)
+def test_post_feedback_different_remote(
+    mock_server: MockServer,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+    thread_comments: str,
+    with_token: bool,
+):
+    """Ensure thread comments are skipped when PR is from a different remote,
+    even without a token."""
+    event_payload = {
+        "number": TEST_PR,
+        "pull_request": {
+            "number": TEST_PR,
+            "draft": False,
+            "state": "open",
+            "locked": False,
+            "head": {
+                "repo": {
+                    "id": 200,
+                    "full_name": "fork-user/test-cpp-linter-action",
+                }
+            },
+            "base": {
+                "repo": {
+                    "id": 100,
+                    "full_name": TEST_REPO,
+                }
+            },
+        },
+    }
+    event_payload_path = tmp_path / "event_payload.json"
+    event_payload_path.write_text(json.dumps(event_payload), encoding="utf-8")
+
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event_payload_path))
+    monkeypatch.setenv("GITHUB_REPOSITORY", TEST_REPO)
+    monkeypatch.setenv("GITHUB_SHA", TEST_SHA)
+    monkeypatch.setenv("GITHUB_EVENT_NAME", "pull_request")
+    if with_token:
+        monkeypatch.setenv("GITHUB_TOKEN", "123456")
+    else:
+        monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    summary_path = tmp_path / "step_summary.md"
+    summary_path.touch()
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_path))
+
+    args = Args()
+    args.no_lgtm = False
+    args.thread_comments = thread_comments
+    args.step_summary = True
+    args.file_annotations = False
+    args.summary_output_file = str(tmp_path / "summary.md")
+
+    files = [FileObj("demo/demo.cpp")]
+    clang_versions = ClangVersions()
+    clang_versions.tidy = "16.0.0"
+    clang_versions.format = "16.0.0"
+
+    client = LinterClient()
+    mock = mock_server
+
+    monkeypatch.setattr(logger, "propagate", True)
+    caplog.set_level(logging.WARNING, logger=logger.name)
+
+    asyncio.run(client.post_feedback(files, args, clang_versions))
+
+    writes = [r for r in mock.requests if r.method in ("POST", "PATCH", "DELETE")]
+    assert not writes
+
+    if thread_comments != "false":
+        assert (
+            "PR originated from a different remote; skipped posting thread-comments"
+            in caplog.text
+        )
+    else:
+        assert (
+            "PR originated from a different remote; skipped posting thread-comments"
+            not in caplog.text
+        )
+
+    assert (tmp_path / "summary.md").is_file()
+    assert summary_path.read_bytes()

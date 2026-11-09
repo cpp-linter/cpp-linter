@@ -30,6 +30,7 @@ test_parameters = OrderedDict(
     no_lgtm=False,
     num_workers=None,
     is_passive=False,
+    same_remote=True,
 )
 
 
@@ -56,6 +57,8 @@ def mk_param_set(**kwargs) -> OrderedDict:
         tuple(mk_param_set(tidy_review=True, changes=0).values()),
         tuple(mk_param_set(tidy_review=True, changes=0, summary_only=True).values()),
         tuple(mk_param_set(is_passive=True).values()),
+        tuple(mk_param_set(same_remote=False).values()),
+        tuple(mk_param_set(same_remote=False, with_token=False).values()),
     ],
     ids=[
         "draft",
@@ -70,6 +73,8 @@ def mk_param_set(**kwargs) -> OrderedDict:
         "all_lines",
         "summary_only",
         "passive",
+        "different_remote",
+        "different_remote_no_token",
     ],
 )
 def test_post_review(
@@ -88,6 +93,7 @@ def test_post_review(
     no_lgtm: bool,
     num_workers: int,
     is_passive: bool,
+    same_remote: bool,
 ):
     """A mock test of posting PR reviews"""
     # patch env vars
@@ -98,6 +104,18 @@ def test_post_review(
             "draft": is_draft,
             "state": "closed" if is_closed else "open",
             "locked": False,
+            "head": {
+                "repo": {
+                    "id": 100 if same_remote else 200,
+                    "full_name": TEST_REPO if same_remote else "other/repo",
+                }
+            },
+            "base": {
+                "repo": {
+                    "id": 100,
+                    "full_name": TEST_REPO,
+                }
+            },
         },
     }
     event_payload_path = tmp_path / "event_payload.json"
@@ -196,6 +214,16 @@ def test_post_review(
         else:
             assert not tidy_advice
         assert format_advice and len(format_advice) <= len(files)
+
+    if not same_remote:
+        monkeypatch.setattr(logger, "propagate", True)  # for caplog
+        asyncio.run(client.post_feedback(files, args, clang_versions))
+        assert (
+            "PR originated from a different remote; skipped posting review comments"
+            in caplog.text
+        )
+        assert not mock.requests_to("POST", f"{base_path}/reviews")
+        return
 
     if not with_token:
         # a review was requested without a token to post it
