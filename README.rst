@@ -23,6 +23,15 @@ The Python command behind cpp-linter-action: it runs clang-format and clang-tidy
 `Get started <https://cpp-linter.github.io/getting-started/#locally-or-in-other-ci>`_ ·
 `Discussions <https://github.com/orgs/cpp-linter/discussions>`_
 
+.. note::
+    This is cpp-linter v1, which gets bug fixes only. New features go to v2, a rewrite in Rust
+    that lives in the `cpp-linter-rs repository <https://github.com/cpp-linter/cpp-linter-rs>`_ and
+    is in release candidate stage.
+
+    v2 keeps the ``cpp-linter`` name on PyPI, so ``pip install --upgrade cpp-linter`` will install
+    v2 once 2.0 is released. To stay on v1, pin ``cpp-linter<2``. The
+    `migration guide <https://cpp-linter.github.io/cpp-linter-rs/migration/>`_ lists what changes.
+
 Quick start
 -----------
 
@@ -30,7 +39,7 @@ With the clang tools installed (see `Limitations`_):
 
 .. code-block:: shell
 
-    pip install cpp-linter
+    pip install "cpp-linter<2"
     cpp-linter --version=21 --style=file --tidy-checks=''
 
 Usage
