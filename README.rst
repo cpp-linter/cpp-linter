@@ -39,7 +39,7 @@ With the clang tools installed (see `Limitations`_):
 
 .. code-block:: shell
 
-    pip install cpp-linter
+    pip install "cpp-linter<2"
     cpp-linter --version=21 --style=file --tidy-checks=''
 
 Usage
