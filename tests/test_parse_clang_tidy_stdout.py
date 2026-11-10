@@ -54,3 +54,34 @@ def test_parse_clang_tidy_output() -> None:
     for note in advice.notes:
         assert " " not in note.diagnostic
         assert "-" in note.diagnostic
+
+
+# cspell:ignore mwarning mvariable deadcode
+# Output of clang-tidy 18 when `.clang-tidy` sets `UseColor: true`.
+# Colors are emitted even when stdout is piped.
+COLORED_TIDY_OUT = (
+    "\x1b[1ma.cpp:1:17: \x1b[0m\x1b[0;1;35mwarning: \x1b[0m\x1b[1mvariable name 'x'"
+    " is too short, expected at least 3 characters"
+    " [readability-identifier-length]\x1b[0m\n"
+    "    1 | int main(){ int x = 0; x = 1; return 0; }\x1b[0m\n"
+    "      | \x1b[0;1;32m                ^\n"
+    "\x1b[0m\x1b[1ma.cpp:1:24: \x1b[0m\x1b[0;1;35mwarning: \x1b[0m\x1b[1mValue stored"
+    " to 'x' is never read [clang-analyzer-deadcode.DeadStores]\x1b[0m\n"
+    "    1 | int main(){ int x = 0; x = 1; return 0; }\x1b[0m\n"
+    "      | \x1b[0;1;32m                       ^   ~\n"
+    "\x1b[0m"
+)
+
+
+@pytest.mark.no_clang
+def test_parse_colored_clang_tidy_output() -> None:
+    """Color codes must not hide diagnostics (`UseColor: true` in `.clang-tidy`)."""
+    advice = parse_tidy_output(COLORED_TIDY_OUT, database=None, repo_root=".")
+
+    assert [note.diagnostic for note in advice.notes] == [
+        "readability-identifier-length",
+        "clang-analyzer-deadcode.DeadStores",
+    ]
+    assert [note.line for note in advice.notes] == [1, 1]
+    assert all("\x1b" not in note.rationale for note in advice.notes)
+    assert all("\x1b" not in line for note in advice.notes for line in note.fixit_lines)
