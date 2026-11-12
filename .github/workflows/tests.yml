@@ -32,24 +32,19 @@ jobs:
     outputs:
       versions: ${{ steps.extract-version-range.outputs.versions }}
     steps:
-      - env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: >-
-          gh release download
-          -R cpp-linter/clang-tools-static-binaries
-          --pattern versions.json
-          --output versions.json
+      # The LLVM versions that clang-tools-static-binaries currently builds,
+      # from its index rather than from its "latest" GitHub release.
       - name: Extract version range
         id: extract-version-range
         shell: python
         run: |-
           import json
           from os import environ
-          from pathlib import Path
-          content = Path("versions.json").read_text(encoding="utf-8")
-          metadata = json.loads(content)
-          versions = list(metadata["llvm_versions"].keys())
-          versions.sort()
+          from urllib.request import urlopen
+          url = "https://cpp-linter.github.io/clang-tools-static-binaries/index.json"
+          with urlopen(url, timeout=60) as response:
+              index = json.load(response)
+          versions = sorted(index["versions"], key=int)
           with open(environ["GITHUB_OUTPUT"], mode="a") as gh_out:
               gh_out.write(f"versions={json.dumps(versions)}\n")
   test:
