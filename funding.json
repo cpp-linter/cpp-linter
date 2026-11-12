@@ -94,6 +94,12 @@
   "funding": {
     "channels": [
       {
+        "guid": "github-sponsors",
+        "type": "payment-provider",
+        "address": "https://github.com/sponsors/cpp-linter",
+        "description": "GitHub Sponsors. Funds go to the same Open Collective balance, fiscally hosted by Open Source Collective."
+      },
+      {
         "guid": "open-collective",
         "type": "payment-provider",
         "address": "https://opencollective.com/cpp-linter",
@@ -109,7 +115,7 @@
         "amount": 12000,
         "currency": "USD",
         "frequency": "yearly",
-        "channels": ["open-collective"]
+        "channels": ["github-sponsors", "open-collective"]
       },
       {
         "guid": "supply-chain-security",
@@ -119,7 +125,7 @@
         "amount": 15000,
         "currency": "USD",
         "frequency": "one-time",
-        "channels": ["open-collective"]
+        "channels": ["github-sponsors", "open-collective"]
       },
       {
         "guid": "cpp-linter-v2",
@@ -129,7 +135,7 @@
         "amount": 10000,
         "currency": "USD",
         "frequency": "one-time",
-        "channels": ["open-collective"]
+        "channels": ["github-sponsors", "open-collective"]
       }
     ],
     "history": []

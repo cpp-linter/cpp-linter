@@ -36,7 +36,7 @@ from .loggers import logger
 USER_OUTREACH = (
     "\n\n---\n<sub>:sparkles: Powered by [**cpp-linter**](https://cpp-linter.github.io)"
     + " -- [:star: Star](https://github.com/cpp-linter/cpp-linter-action)"
-    + " &bull; [:heart: Sponsor](https://opencollective.com/cpp-linter)"
+    + " &bull; [:heart: Sponsor](https://cpp-linter.github.io/sponsor/)"
     + " &bull; [:speech_balloon: Feedback]"
     + "(https://github.com/cpp-linter/cpp-linter-action/issues)</sub>"
 )
